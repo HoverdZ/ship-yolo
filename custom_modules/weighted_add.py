@@ -43,7 +43,6 @@ class WeightedAdd2(nn.Module):
         super().__init__()
         self.eps = eps
         self.w = nn.Parameter(torch.ones(2, dtype=torch.float32))
-        self.relu = nn.ReLU(inplace=False)
 
     def forward(self, xs: Sequence[torch.Tensor]) -> torch.Tensor:
         if not isinstance(xs, (list, tuple)):
@@ -58,7 +57,7 @@ class WeightedAdd2(nn.Module):
                 f"got {tuple(x1.shape)} and {tuple(x2.shape)}"
             )
 
-        weights = self.relu(self.w)
+        weights = torch.relu(self.w)
         return (weights[0] * x1 + weights[1] * x2) / (weights.sum() + self.eps)
 
     def extra_repr(self) -> str:
