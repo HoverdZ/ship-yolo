@@ -51,3 +51,11 @@ Every experiment must record:
 - Store experiment records in `logs/` using the template in `docs/experiment_template.md`.
 - Record both successful and failed experiments when they provide useful ablation evidence.
 - Preserve all historical logs and metric records.
+
+## WAFPN Experiment Rules
+
+- Any WAFPN experiment must pass structure checks before training.
+- Do not start training without a successful `model.info()` and dummy forward pass.
+- Always record weight transfer as Loaded/Total tensors.
+- Keep three detection heads unless the experiment name explicitly contains `P2` or `4head`.
+- WAFPN-v1 uses static learnable weights only. Do not mix in dynamic weights, sigmoid attention, spatial attention, DyHead, DCNv3, or full MSWPN behavior.

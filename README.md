@@ -110,3 +110,12 @@ Each experiment should record:
 - Develop and test MSWPN-lite for lightweight multi-scale enhancement.
 - Explore DyHead and compare its cost-performance tradeoff.
 - Build complete ablation tables and visualization materials for SCI manuscript submission.
+
+## Current Planned Experiment: WAFPN-v1-640
+
+The current planned experiment is `wafpn_v1_640`.
+
+- This experiment keeps the standard three detection heads: P3, P4, and P5.
+- It replaces the 4 Concat fusion nodes in the FPN/PAN Neck with static learnable WeightedAdd fusion.
+- The goal is to verify whether weighted additive fusion is more suitable than original concatenation fusion for remote sensing small-ship detection.
+- Only the pre-training engineering scaffold is complete at this stage. Training has not started.
