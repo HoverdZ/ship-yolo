@@ -59,3 +59,12 @@ Every experiment must record:
 - Always record weight transfer as Loaded/Total tensors.
 - Keep three detection heads unless the experiment name explicitly contains `P2` or `4head`.
 - WAFPN-v1 uses static learnable weights only. Do not mix in dynamic weights, sigmoid attention, spatial attention, DyHead, DCNv3, or full MSWPN behavior.
+
+## SA-DWPN Experiment Rules
+
+- Any SA-DWPN experiment must pass build, `model.info()`, dummy forward, and weight-transfer checks before full training.
+- Keep Detect(P3, P4, P5) unless the experiment name explicitly contains `P2` or `4head`.
+- C2 can guide P3 only through a downsampled branch; it must not connect directly to Detect in SA-DWPN-B.
+- Do not enable spatial gating in the first SA-DWPN-B YAML.
+- Do not add DCNv3, Transformer blocks, loss changes, or data augmentation changes to the first SA-DWPN-B experiment.
+- Record smoke-train status before starting long training.

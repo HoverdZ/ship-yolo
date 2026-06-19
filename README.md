@@ -119,3 +119,13 @@ The current planned experiment is `wafpn_v1_640`.
 - It replaces the 4 Concat fusion nodes in the FPN/PAN Neck with static learnable WeightedAdd fusion.
 - The goal is to verify whether weighted additive fusion is more suitable than original concatenation fusion for remote sensing small-ship detection.
 - Only the pre-training engineering scaffold is complete at this stage. Training has not started.
+
+## Current Planned Experiment: YOLO11n-SA-DWPN-B
+
+The next planned experiment is `yolo11n_sa_dwpn_b_640`.
+
+- This experiment keeps three detection heads: P3, P4, and P5.
+- It injects C2 detail into P3 through a downsampled branch instead of adding a P2 detection head.
+- It replaces standard Neck fusion with SDWF, a scene-adaptive dynamic weighted fusion module.
+- Spatial gating is implemented in code but disabled in the first YAML to keep the first ablation stable.
+- Only the pre-training scaffold is complete at this stage. Full training has not started.
