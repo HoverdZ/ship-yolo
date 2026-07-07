@@ -5,7 +5,9 @@
 This repository does not vendor the full Ultralytics source code. The files here are prepared as a source-ready research scaffold:
 
 - `custom_modules/sa_dwpn.py`
+- `custom_modules/register.py`
 - `experiments/yolo11n_sa_dwpn_b.yaml`
+- `experiments/yolo11n_sa_dwpn_c_lite.yaml`
 - `tools/test_sa_dwpn_build.py`
 - `tools/test_sa_dwpn_weight_transfer.py`
 - `tools/train_sa_dwpn_smoke.py`
@@ -50,6 +52,18 @@ to:
 
 ```text
 ultralytics/cfg/models/11/yolo11n-sa-dwpn.yaml
+```
+
+For C-lite, copy:
+
+```text
+experiments/yolo11n_sa_dwpn_c_lite.yaml
+```
+
+to:
+
+```text
+ultralytics/cfg/models/11/yolo11n-sa-dwpn-c-lite.yaml
 ```
 
 ## Module Registration
@@ -100,6 +114,17 @@ elif m in {Align, DWDown}:
 ```
 
 After each custom module is parsed, ensure `c2` is appended to the channel list for later layer indexing.
+
+## Repository Registration Fallback
+
+The repository also provides an idempotent registration helper:
+
+```python
+from custom_modules.register import register_sa_dwpn_modules
+register_sa_dwpn_modules()
+```
+
+This helper registers `Align`, `DWDown`, and `SDWF` into the Ultralytics module namespace and applies a small one-shot `parse_model()` patch when the installed Ultralytics source has not been edited yet. A permanent source patch is still preferred for long-running experiments, but this helper keeps Colab build and smoke tests reproducible.
 
 ## Required Checks Before Training
 

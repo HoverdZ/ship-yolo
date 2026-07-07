@@ -122,10 +122,29 @@ The current planned experiment is `wafpn_v1_640`.
 
 ## Current Planned Experiment: YOLO11n-SA-DWPN-B
 
-The next planned experiment is `yolo11n_sa_dwpn_b_640`.
+SA-DWPN-B (`yolo11n_sa_dwpn_b_640`) is complete as the validated base variant for the SA-DWPN line.
 
 - This experiment keeps three detection heads: P3, P4, and P5.
 - It injects C2 detail into P3 through a downsampled branch instead of adding a P2 detection head.
 - It replaces standard Neck fusion with SDWF, a scene-adaptive dynamic weighted fusion module.
 - Spatial gating is implemented in code but disabled in the first YAML to keep the first ablation stable.
-- Only the pre-training scaffold is complete at this stage. Full training has not started.
+- B is the baseline variant for the SA-DWPN series; training metrics should be preserved in `logs/` for later comparison.
+
+## Current Planned Experiment: YOLO11n-SA-DWPN-C-lite
+
+The current added experiment is `yolo11n_sa_dwpn_c_lite_640`.
+
+- C-lite is built strictly on SA-DWPN-B.
+- It keeps Detect(O3, O4, O5), with three heads P3/P4/P5.
+- It enables spatial gate only at the P3-related `T3` and `O3` SDWF nodes.
+- It keeps spatial gate disabled at `T4`, `O4`, and `O5`.
+- It does not add P2 Detect, DCNv3, DyHead, loss changes, or data-augmentation changes.
+
+Recommended checks:
+
+```bash
+python tools/test_sa_dwpn_c_lite_build.py
+python tools/test_sa_dwpn_c_lite_forward.py
+python tools/test_sa_dwpn_c_lite_weight_transfer.py --weights yolo11n.pt
+python tools/train_sa_dwpn_c_lite_smoke.py --data /content/drive/MyDrive/ship_detection/data/data.yaml --weights path/to/sa_dwpn_b_best.pt
+```

@@ -68,3 +68,12 @@ Every experiment must record:
 - Do not enable spatial gating in the first SA-DWPN-B YAML.
 - Do not add DCNv3, Transformer blocks, loss changes, or data augmentation changes to the first SA-DWPN-B experiment.
 - Record smoke-train status before starting long training.
+
+## SA-DWPN-C-lite Rules
+
+- C-lite may differ from B only by enabling spatial gate at T3 and O3.
+- T4, O4, and O5 must keep `use_spatial=False`.
+- B YAML must remain unchanged and must continue to build with zero spatial gates enabled.
+- C-lite must pass build, forward, and weight-transfer checks before smoke training.
+- Prefer SA-DWPN-B `best.pt` as the initial weight source for C-lite, then compare against YOLO11n pretrained transfer if needed.
+- Do not start long training until the 1-epoch smoke run succeeds.
