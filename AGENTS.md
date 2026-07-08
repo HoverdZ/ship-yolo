@@ -77,3 +77,17 @@ Every experiment must record:
 - C-lite must pass build, forward, and weight-transfer checks before smoke training.
 - Prefer SA-DWPN-B `best.pt` as the initial weight source for C-lite, then compare against YOLO11n pretrained transfer if needed.
 - Do not start long training until the 1-epoch smoke run succeeds.
+
+## Formal SA-DWPN Ablation Protocol
+
+- Formal ablations must follow `configs/sa_dwpn_protocol.yaml` unless a documented protocol revision is created.
+- Formal models must start from the same official `yolo11n.pt` initialization.
+- Except for the target variable, do not change structure, loss, optimizer policy, augmentation, image size, batch size, epoch count, dataset split, or Ultralytics version.
+- New YAML files must include structural-difference tests.
+- New training scripts must support safe resume.
+- If resume validation fails, raise an error; never fall back to `coco8.yaml` or default training.
+- Do not use temporary Colab monkey patches for Ultralytics source changes; register custom modules through `custom_modules/register.py`.
+- Do not commit datasets, caches, `runs/`, ordinary `.pt` checkpoints, or exported model weights.
+- Every experiment must preserve `args.yaml`, `results.csv`, `summary.json`, and an experiment note when available.
+- Do not fabricate missing experiment data.
+- After code changes, run available tests and report skipped items honestly in the PR.

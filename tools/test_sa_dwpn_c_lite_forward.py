@@ -7,8 +7,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import torch
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -26,6 +24,8 @@ def default_model_path() -> str:
 
 
 def flatten_tensors(output: Any) -> list[torch.Tensor]:
+    import torch
+
     if isinstance(output, torch.Tensor):
         return [output]
     if isinstance(output, (list, tuple)):
@@ -47,6 +47,8 @@ def main() -> None:
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--device", default="cpu")
     args = parser.parse_args()
+
+    import torch
 
     register_sa_dwpn_modules()
     from ultralytics import YOLO

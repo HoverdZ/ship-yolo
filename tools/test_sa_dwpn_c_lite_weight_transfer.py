@@ -6,8 +6,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import torch
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -22,6 +20,8 @@ def default_model_path() -> str:
 
 
 def load_state_dict(weights: str) -> dict[str, torch.Tensor]:
+    import torch
+
     ckpt = torch.load(weights, map_location="cpu", weights_only=False)
     if isinstance(ckpt, dict) and "model" in ckpt:
         return ckpt["model"].float().state_dict()
@@ -38,6 +38,8 @@ def main() -> None:
     parser.add_argument("--weights", required=True, help="Source weights, e.g. yolo11n.pt or SA-DWPN-B best.pt.")
     parser.add_argument("--min-matched", type=int, default=1, help="Fail if matched tensor count is below this value.")
     args = parser.parse_args()
+
+    import torch
 
     if not Path(args.weights).exists():
         raise FileNotFoundError(f"Source weights not found: {args.weights}")

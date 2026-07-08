@@ -11,15 +11,13 @@ from __future__ import annotations
 import inspect
 from types import ModuleType
 
-from custom_modules.sa_dwpn import Align, DWDown, SDWF
-
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
     for name, value in names.items():
         setattr(module, name, value)
 
 
-def _patch_parse_model(tasks: ModuleType) -> None:
+def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     parse_model = getattr(tasks, "parse_model", None)
     if parse_model is None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
@@ -55,7 +53,7 @@ def _patch_parse_model(tasks: ModuleType) -> None:
     source = source.replace(branch_marker, sdwf_branch + branch_marker, 1)
 
     namespace = tasks.__dict__
-    namespace.update({"Align": Align, "DWDown": DWDown, "SDWF": SDWF})
+    namespace.update(names)
     exec(compile(source, inspect.getsourcefile(parse_model) or "<sa_dwpn_parse_model>", "exec"), namespace)
     tasks.parse_model._sa_dwpn_patched = True
 
@@ -67,6 +65,7 @@ def register_sa_dwpn_modules(patch_parse_model: bool = True) -> None:
     safe and does not stack multiple wrappers.
     """
 
+    from custom_modules.sa_dwpn import Align, DWDown, SDWF
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -75,4 +74,4 @@ def register_sa_dwpn_modules(patch_parse_model: bool = True) -> None:
     _set_module_attrs(tasks, names)
 
     if patch_parse_model:
-        _patch_parse_model(tasks)
+        _patch_parse_model(tasks, names)
