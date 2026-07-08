@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.sa_dwpn_utils import all_model_yaml_paths, detect_from, load_protocol, read_yaml, spatial_positions
+from tools.train_sa_dwpn_variant import ensure_new_run_dir_allowed, is_pretrain_staging_dir
 
 
 EXPECTED_SPATIAL = {
@@ -119,6 +120,25 @@ def test_export_artifact_whitelist(tmp_path):
     assert (destination / "args.yaml").exists()
     assert (destination / "results.csv").exists()
     assert not (destination / "weights" / "best.pt").exists()
+
+
+def test_pretrain_staging_run_dir_is_allowed(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "protocol.yaml").write_text("training: {}\n", encoding="utf-8")
+    (run_dir / "resolved_args.json").write_text("{}\n", encoding="utf-8")
+    assert is_pretrain_staging_dir(run_dir)
+    ensure_new_run_dir_allowed(run_dir, exist_ok=False)
+
+
+def test_existing_run_dir_with_training_artifacts_is_blocked(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "protocol.yaml").write_text("training: {}\n", encoding="utf-8")
+    (run_dir / "results.csv").write_text("epoch\n", encoding="utf-8")
+    assert not is_pretrain_staging_dir(run_dir)
+    with pytest.raises(FileExistsError):
+        ensure_new_run_dir_allowed(run_dir, exist_ok=False)
 
 
 @pytest.mark.skipif(

@@ -25,6 +25,9 @@ from tools.sa_dwpn_utils import (
 )
 
 
+PRETRAIN_STAGING_FILES = {"protocol.yaml", "resolved_args.json"}
+
+
 def parse_bool(value):
     if isinstance(value, bool):
         return value
@@ -34,6 +37,30 @@ def parse_bool(value):
     if lowered in {"0", "false", "no", "n"}:
         return False
     raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
+
+
+def is_pretrain_staging_dir(path: Path) -> bool:
+    """Return True when a run dir only contains files written before training."""
+
+    if not path.exists():
+        return False
+    if not path.is_dir():
+        return False
+    entries = [entry.name for entry in path.iterdir()]
+    return bool(entries) and set(entries).issubset(PRETRAIN_STAGING_FILES)
+
+
+def ensure_new_run_dir_allowed(run_dir: Path, exist_ok: bool) -> None:
+    if not run_dir.exists():
+        return
+    if is_pretrain_staging_dir(run_dir):
+        print(f"Run directory contains only pre-training staging files; continuing: {run_dir}")
+        return
+    if not exist_ok:
+        raise FileExistsError(
+            f"Run directory already exists and contains training artifacts: {run_dir}. "
+            "Use --resume true for a valid checkpoint or --exist-ok explicitly."
+        )
 
 
 def main() -> None:
@@ -59,8 +86,7 @@ def main() -> None:
         resume_info = validate_resume_checkpoint(resume_path)
     else:
         resume_info = None
-        if run_dir.exists() and not args.exist_ok:
-            raise FileExistsError(f"Run directory already exists: {run_dir}. Use --resume true or --exist-ok explicitly.")
+        ensure_new_run_dir_allowed(run_dir, args.exist_ok)
 
     register_sa_dwpn_modules()
     from ultralytics import YOLO
@@ -83,7 +109,6 @@ def main() -> None:
     print(f"  spatial positions: {variant['spatial_positions']}")
     print(f"  pretrained transfer report: {transfer_report}")
 
-    run_dir.mkdir(parents=True, exist_ok=True)
     resolved_args = {
         "variant": args.variant,
         "experiment_name": variant["name"],
@@ -100,6 +125,7 @@ def main() -> None:
         "ultralytics_version": getattr(ultralytics, "__version__", "unknown"),
         "transfer_report": transfer_report,
     }
+    run_dir.mkdir(parents=True, exist_ok=True)
     write_json(run_dir / "resolved_args.json", resolved_args)
     shutil.copyfile(args.protocol, run_dir / "protocol.yaml")
 

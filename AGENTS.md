@@ -86,6 +86,7 @@ Every experiment must record:
 - New YAML files must include structural-difference tests.
 - New training scripts must support safe resume.
 - If resume validation fails, raise an error; never fall back to `coco8.yaml` or default training.
+- Training scripts must avoid blocking themselves after pre-training validation. A run directory may be reused only when it contains no files or only `protocol.yaml` and `resolved_args.json`; once training artifacts exist, require valid resume or explicit `--exist-ok`.
 - Do not use temporary Colab monkey patches for Ultralytics source changes; register custom modules through `custom_modules/register.py`.
 - Do not commit datasets, caches, `runs/`, ordinary `.pt` checkpoints, or exported model weights.
 - Every experiment must preserve `args.yaml`, `results.csv`, `summary.json`, and an experiment note when available.
