@@ -173,3 +173,32 @@ python tools/export_run_artifacts.py --run-dir /content/drive/MyDrive/ship_detec
 ```
 
 Heatmaps are auxiliary interpretation artifacts only; they do not prove causality by themselves.
+
+## Prepared Experiment: YOLO11n-InceptionDW-C3k2-P23
+
+The `experiment/inceptiondw-c3k2-p23` line prepares a formal shallow-backbone
+ablation for Ultralytics 8.4.92. It replaces only backbone C3k2 layers 2 and 4;
+P4/P5, SPPF, C2PSA, the full Neck, and Detect remain official YOLO11n.
+
+The implementation uses the Apache-2.0 official InceptionNeXt
+`InceptionDWConv2d` core with fixed 3x3, 1x11, and 11x1 depthwise branches.
+After YOLO11n depth scaling, exactly two InceptionDW cores are present.
+
+Pre-training checks:
+
+```bash
+python tools/build_inceptiondw_c3k2_p23.py
+python tools/check_inceptiondw_c3k2_p23.py --weights yolo11n.pt
+pytest -q tests/test_inceptiondw_c3k2_p23.py
+```
+
+Formal training entrypoint (training is not started by the preparation task):
+
+```bash
+python tools/train_inceptiondw_c3k2_p23.py \
+  --data /path/to/ship_detection/data.yaml \
+  --project /path/to/persistent/runs
+```
+
+See `docs/experiments/yolo11n_inceptiondw_c3k2_p23.md` for the exact scope,
+weight-inheritance audit, model statistics, and safe resume command.
