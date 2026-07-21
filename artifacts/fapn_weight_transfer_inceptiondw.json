@@ -1,0 +1,1321 @@
+{
+  "weights": "yolo11n.pt",
+  "mapping_strategy": "explicit semantic layer mapping",
+  "source_to_target_layer_map": {
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "17": 16,
+    "19": 18,
+    "20": 19,
+    "22": 21,
+    "23": 22
+  },
+  "source_state_tensors": 499,
+  "target_state_tensors": 483,
+  "inherited_state_tensors": 397,
+  "target_parameter_tensors": 264,
+  "inherited_parameter_tensors": 196,
+  "target_parameter_elements": 2912495,
+  "inherited_parameter_elements": 2372272,
+  "randomly_initialized_parameter_elements": 540223,
+  "parameter_element_inheritance_ratio": 0.8145153897259909,
+  "category_report": {
+    "backbone": {
+      "target_parameter_tensors": 132,
+      "inherited_parameter_tensors": 118,
+      "tensor_ratio": 0.8939393939393939,
+      "target_parameter_elements": 1360556,
+      "inherited_parameter_elements": 1359712,
+      "element_ratio": 0.9993796653720979
+    },
+    "fapn": {
+      "target_parameter_tensors": 20,
+      "inherited_parameter_tensors": 0,
+      "tensor_ratio": 0.0,
+      "target_parameter_elements": 478960,
+      "inherited_parameter_elements": 0,
+      "element_ratio": 0.0
+    },
+    "pan": {
+      "target_parameter_tensors": 45,
+      "inherited_parameter_tensors": 44,
+      "tensor_ratio": 0.9777777777777777,
+      "target_parameter_elements": 642112,
+      "inherited_parameter_elements": 625728,
+      "element_ratio": 0.9744842021329613
+    },
+    "detect": {
+      "target_parameter_tensors": 67,
+      "inherited_parameter_tensors": 34,
+      "tensor_ratio": 0.5074626865671642,
+      "target_parameter_elements": 430867,
+      "inherited_parameter_elements": 386832,
+      "element_ratio": 0.8977990888139495
+    },
+    "other": {
+      "target_parameter_tensors": 0,
+      "inherited_parameter_tensors": 0,
+      "tensor_ratio": 1.0,
+      "target_parameter_elements": 0,
+      "inherited_parameter_elements": 0,
+      "element_ratio": 1.0
+    }
+  },
+  "shape_mismatches": [
+    {
+      "target_key": "model.18.cv1.conv.weight",
+      "source_key": "model.19.cv1.conv.weight",
+      "target_shape": [
+        128,
+        128,
+        1,
+        1
+      ],
+      "source_shape": [
+        128,
+        192,
+        1,
+        1
+      ],
+      "category": "pan"
+    },
+    {
+      "target_key": "model.22.cv3.0.0.1.conv.weight",
+      "source_key": "model.23.cv3.0.0.1.conv.weight",
+      "target_shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        64,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.0.1.bn.weight",
+      "source_key": "model.23.cv3.0.0.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.0.1.bn.bias",
+      "source_key": "model.23.cv3.0.0.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.0.1.bn.running_mean",
+      "source_key": "model.23.cv3.0.0.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.0.1.bn.running_var",
+      "source_key": "model.23.cv3.0.0.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.0.conv.weight",
+      "source_key": "model.23.cv3.0.1.0.conv.weight",
+      "target_shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "source_shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.0.bn.weight",
+      "source_key": "model.23.cv3.0.1.0.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.0.bn.bias",
+      "source_key": "model.23.cv3.0.1.0.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.0.bn.running_mean",
+      "source_key": "model.23.cv3.0.1.0.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.0.bn.running_var",
+      "source_key": "model.23.cv3.0.1.0.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.1.conv.weight",
+      "source_key": "model.23.cv3.0.1.1.conv.weight",
+      "target_shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.1.bn.weight",
+      "source_key": "model.23.cv3.0.1.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.1.bn.bias",
+      "source_key": "model.23.cv3.0.1.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.1.bn.running_mean",
+      "source_key": "model.23.cv3.0.1.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.1.1.bn.running_var",
+      "source_key": "model.23.cv3.0.1.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.2.weight",
+      "source_key": "model.23.cv3.0.2.weight",
+      "target_shape": [
+        1,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.0.2.bias",
+      "source_key": "model.23.cv3.0.2.bias",
+      "target_shape": [
+        1
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.0.1.conv.weight",
+      "source_key": "model.23.cv3.1.0.1.conv.weight",
+      "target_shape": [
+        64,
+        128,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        128,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.0.1.bn.weight",
+      "source_key": "model.23.cv3.1.0.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.0.1.bn.bias",
+      "source_key": "model.23.cv3.1.0.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.0.1.bn.running_mean",
+      "source_key": "model.23.cv3.1.0.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.0.1.bn.running_var",
+      "source_key": "model.23.cv3.1.0.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.0.conv.weight",
+      "source_key": "model.23.cv3.1.1.0.conv.weight",
+      "target_shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "source_shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.0.bn.weight",
+      "source_key": "model.23.cv3.1.1.0.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.0.bn.bias",
+      "source_key": "model.23.cv3.1.1.0.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.0.bn.running_mean",
+      "source_key": "model.23.cv3.1.1.0.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.0.bn.running_var",
+      "source_key": "model.23.cv3.1.1.0.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.1.conv.weight",
+      "source_key": "model.23.cv3.1.1.1.conv.weight",
+      "target_shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.1.bn.weight",
+      "source_key": "model.23.cv3.1.1.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.1.bn.bias",
+      "source_key": "model.23.cv3.1.1.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.1.bn.running_mean",
+      "source_key": "model.23.cv3.1.1.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.1.1.bn.running_var",
+      "source_key": "model.23.cv3.1.1.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.2.weight",
+      "source_key": "model.23.cv3.1.2.weight",
+      "target_shape": [
+        1,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.1.2.bias",
+      "source_key": "model.23.cv3.1.2.bias",
+      "target_shape": [
+        1
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.0.1.conv.weight",
+      "source_key": "model.23.cv3.2.0.1.conv.weight",
+      "target_shape": [
+        64,
+        256,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        256,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.0.1.bn.weight",
+      "source_key": "model.23.cv3.2.0.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.0.1.bn.bias",
+      "source_key": "model.23.cv3.2.0.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.0.1.bn.running_mean",
+      "source_key": "model.23.cv3.2.0.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.0.1.bn.running_var",
+      "source_key": "model.23.cv3.2.0.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.0.conv.weight",
+      "source_key": "model.23.cv3.2.1.0.conv.weight",
+      "target_shape": [
+        64,
+        1,
+        3,
+        3
+      ],
+      "source_shape": [
+        80,
+        1,
+        3,
+        3
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.0.bn.weight",
+      "source_key": "model.23.cv3.2.1.0.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.0.bn.bias",
+      "source_key": "model.23.cv3.2.1.0.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.0.bn.running_mean",
+      "source_key": "model.23.cv3.2.1.0.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.0.bn.running_var",
+      "source_key": "model.23.cv3.2.1.0.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.1.conv.weight",
+      "source_key": "model.23.cv3.2.1.1.conv.weight",
+      "target_shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.1.bn.weight",
+      "source_key": "model.23.cv3.2.1.1.bn.weight",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.1.bn.bias",
+      "source_key": "model.23.cv3.2.1.1.bn.bias",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.1.bn.running_mean",
+      "source_key": "model.23.cv3.2.1.1.bn.running_mean",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.1.1.bn.running_var",
+      "source_key": "model.23.cv3.2.1.1.bn.running_var",
+      "target_shape": [
+        64
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.2.weight",
+      "source_key": "model.23.cv3.2.2.weight",
+      "target_shape": [
+        1,
+        64,
+        1,
+        1
+      ],
+      "source_shape": [
+        80,
+        80,
+        1,
+        1
+      ],
+      "category": "detect"
+    },
+    {
+      "target_key": "model.22.cv3.2.2.bias",
+      "source_key": "model.23.cv3.2.2.bias",
+      "target_shape": [
+        1
+      ],
+      "source_shape": [
+        80
+      ],
+      "category": "detect"
+    }
+  ],
+  "unmatched_target_keys": [
+    "model.11.conv.bias",
+    "model.11.conv.weight",
+    "model.12.dcn.conv_offset_mask.bias",
+    "model.12.dcn.conv_offset_mask.weight",
+    "model.12.dcn.dcn.bias",
+    "model.12.dcn.dcn.weight",
+    "model.12.fsm.conv_attention.weight",
+    "model.12.fsm.projection.weight",
+    "model.12.offset_feature.weight",
+    "model.13.conv.bias",
+    "model.13.conv.weight",
+    "model.14.dcn.conv_offset_mask.bias",
+    "model.14.dcn.conv_offset_mask.weight",
+    "model.14.dcn.dcn.bias",
+    "model.14.dcn.dcn.weight",
+    "model.14.fsm.conv_attention.weight",
+    "model.14.fsm.projection.weight",
+    "model.14.offset_feature.weight",
+    "model.15.conv.bias",
+    "model.15.conv.weight",
+    "model.18.cv1.conv.weight",
+    "model.2.m.0.cv2.inception.dwconv_h.bias",
+    "model.2.m.0.cv2.inception.dwconv_h.weight",
+    "model.2.m.0.cv2.inception.dwconv_hw.bias",
+    "model.2.m.0.cv2.inception.dwconv_hw.weight",
+    "model.2.m.0.cv2.inception.dwconv_w.bias",
+    "model.2.m.0.cv2.inception.dwconv_w.weight",
+    "model.2.m.0.cv2_adapter.weight",
+    "model.22.cv3.0.0.1.bn.bias",
+    "model.22.cv3.0.0.1.bn.running_mean",
+    "model.22.cv3.0.0.1.bn.running_var",
+    "model.22.cv3.0.0.1.bn.weight",
+    "model.22.cv3.0.0.1.conv.weight",
+    "model.22.cv3.0.1.0.bn.bias",
+    "model.22.cv3.0.1.0.bn.running_mean",
+    "model.22.cv3.0.1.0.bn.running_var",
+    "model.22.cv3.0.1.0.bn.weight",
+    "model.22.cv3.0.1.0.conv.weight",
+    "model.22.cv3.0.1.1.bn.bias",
+    "model.22.cv3.0.1.1.bn.running_mean",
+    "model.22.cv3.0.1.1.bn.running_var",
+    "model.22.cv3.0.1.1.bn.weight",
+    "model.22.cv3.0.1.1.conv.weight",
+    "model.22.cv3.0.2.bias",
+    "model.22.cv3.0.2.weight",
+    "model.22.cv3.1.0.1.bn.bias",
+    "model.22.cv3.1.0.1.bn.running_mean",
+    "model.22.cv3.1.0.1.bn.running_var",
+    "model.22.cv3.1.0.1.bn.weight",
+    "model.22.cv3.1.0.1.conv.weight",
+    "model.22.cv3.1.1.0.bn.bias",
+    "model.22.cv3.1.1.0.bn.running_mean",
+    "model.22.cv3.1.1.0.bn.running_var",
+    "model.22.cv3.1.1.0.bn.weight",
+    "model.22.cv3.1.1.0.conv.weight",
+    "model.22.cv3.1.1.1.bn.bias",
+    "model.22.cv3.1.1.1.bn.running_mean",
+    "model.22.cv3.1.1.1.bn.running_var",
+    "model.22.cv3.1.1.1.bn.weight",
+    "model.22.cv3.1.1.1.conv.weight",
+    "model.22.cv3.1.2.bias",
+    "model.22.cv3.1.2.weight",
+    "model.22.cv3.2.0.1.bn.bias",
+    "model.22.cv3.2.0.1.bn.running_mean",
+    "model.22.cv3.2.0.1.bn.running_var",
+    "model.22.cv3.2.0.1.bn.weight",
+    "model.22.cv3.2.0.1.conv.weight",
+    "model.22.cv3.2.1.0.bn.bias",
+    "model.22.cv3.2.1.0.bn.running_mean",
+    "model.22.cv3.2.1.0.bn.running_var",
+    "model.22.cv3.2.1.0.bn.weight",
+    "model.22.cv3.2.1.0.conv.weight",
+    "model.22.cv3.2.1.1.bn.bias",
+    "model.22.cv3.2.1.1.bn.running_mean",
+    "model.22.cv3.2.1.1.bn.running_var",
+    "model.22.cv3.2.1.1.bn.weight",
+    "model.22.cv3.2.1.1.conv.weight",
+    "model.22.cv3.2.2.bias",
+    "model.22.cv3.2.2.weight",
+    "model.4.m.0.cv2.inception.dwconv_h.bias",
+    "model.4.m.0.cv2.inception.dwconv_h.weight",
+    "model.4.m.0.cv2.inception.dwconv_hw.bias",
+    "model.4.m.0.cv2.inception.dwconv_hw.weight",
+    "model.4.m.0.cv2.inception.dwconv_w.bias",
+    "model.4.m.0.cv2.inception.dwconv_w.weight",
+    "model.4.m.0.cv2_adapter.weight"
+  ],
+  "unmatched_source_keys": [
+    "model.13.cv1.bn.bias",
+    "model.13.cv1.bn.num_batches_tracked",
+    "model.13.cv1.bn.running_mean",
+    "model.13.cv1.bn.running_var",
+    "model.13.cv1.bn.weight",
+    "model.13.cv1.conv.weight",
+    "model.13.cv2.bn.bias",
+    "model.13.cv2.bn.num_batches_tracked",
+    "model.13.cv2.bn.running_mean",
+    "model.13.cv2.bn.running_var",
+    "model.13.cv2.bn.weight",
+    "model.13.cv2.conv.weight",
+    "model.13.m.0.cv1.bn.bias",
+    "model.13.m.0.cv1.bn.num_batches_tracked",
+    "model.13.m.0.cv1.bn.running_mean",
+    "model.13.m.0.cv1.bn.running_var",
+    "model.13.m.0.cv1.bn.weight",
+    "model.13.m.0.cv1.conv.weight",
+    "model.13.m.0.cv2.bn.bias",
+    "model.13.m.0.cv2.bn.num_batches_tracked",
+    "model.13.m.0.cv2.bn.running_mean",
+    "model.13.m.0.cv2.bn.running_var",
+    "model.13.m.0.cv2.bn.weight",
+    "model.13.m.0.cv2.conv.weight",
+    "model.16.cv1.bn.bias",
+    "model.16.cv1.bn.num_batches_tracked",
+    "model.16.cv1.bn.running_mean",
+    "model.16.cv1.bn.running_var",
+    "model.16.cv1.bn.weight",
+    "model.16.cv1.conv.weight",
+    "model.16.cv2.bn.bias",
+    "model.16.cv2.bn.num_batches_tracked",
+    "model.16.cv2.bn.running_mean",
+    "model.16.cv2.bn.running_var",
+    "model.16.cv2.bn.weight",
+    "model.16.cv2.conv.weight",
+    "model.16.m.0.cv1.bn.bias",
+    "model.16.m.0.cv1.bn.num_batches_tracked",
+    "model.16.m.0.cv1.bn.running_mean",
+    "model.16.m.0.cv1.bn.running_var",
+    "model.16.m.0.cv1.bn.weight",
+    "model.16.m.0.cv1.conv.weight",
+    "model.16.m.0.cv2.bn.bias",
+    "model.16.m.0.cv2.bn.num_batches_tracked",
+    "model.16.m.0.cv2.bn.running_mean",
+    "model.16.m.0.cv2.bn.running_var",
+    "model.16.m.0.cv2.bn.weight",
+    "model.16.m.0.cv2.conv.weight",
+    "model.19.cv1.conv.weight",
+    "model.2.m.0.cv2.conv.weight",
+    "model.23.cv3.0.0.1.bn.bias",
+    "model.23.cv3.0.0.1.bn.running_mean",
+    "model.23.cv3.0.0.1.bn.running_var",
+    "model.23.cv3.0.0.1.bn.weight",
+    "model.23.cv3.0.0.1.conv.weight",
+    "model.23.cv3.0.1.0.bn.bias",
+    "model.23.cv3.0.1.0.bn.running_mean",
+    "model.23.cv3.0.1.0.bn.running_var",
+    "model.23.cv3.0.1.0.bn.weight",
+    "model.23.cv3.0.1.0.conv.weight",
+    "model.23.cv3.0.1.1.bn.bias",
+    "model.23.cv3.0.1.1.bn.running_mean",
+    "model.23.cv3.0.1.1.bn.running_var",
+    "model.23.cv3.0.1.1.bn.weight",
+    "model.23.cv3.0.1.1.conv.weight",
+    "model.23.cv3.0.2.bias",
+    "model.23.cv3.0.2.weight",
+    "model.23.cv3.1.0.1.bn.bias",
+    "model.23.cv3.1.0.1.bn.running_mean",
+    "model.23.cv3.1.0.1.bn.running_var",
+    "model.23.cv3.1.0.1.bn.weight",
+    "model.23.cv3.1.0.1.conv.weight",
+    "model.23.cv3.1.1.0.bn.bias",
+    "model.23.cv3.1.1.0.bn.running_mean",
+    "model.23.cv3.1.1.0.bn.running_var",
+    "model.23.cv3.1.1.0.bn.weight",
+    "model.23.cv3.1.1.0.conv.weight",
+    "model.23.cv3.1.1.1.bn.bias",
+    "model.23.cv3.1.1.1.bn.running_mean",
+    "model.23.cv3.1.1.1.bn.running_var",
+    "model.23.cv3.1.1.1.bn.weight",
+    "model.23.cv3.1.1.1.conv.weight",
+    "model.23.cv3.1.2.bias",
+    "model.23.cv3.1.2.weight",
+    "model.23.cv3.2.0.1.bn.bias",
+    "model.23.cv3.2.0.1.bn.running_mean",
+    "model.23.cv3.2.0.1.bn.running_var",
+    "model.23.cv3.2.0.1.bn.weight",
+    "model.23.cv3.2.0.1.conv.weight",
+    "model.23.cv3.2.1.0.bn.bias",
+    "model.23.cv3.2.1.0.bn.running_mean",
+    "model.23.cv3.2.1.0.bn.running_var",
+    "model.23.cv3.2.1.0.bn.weight",
+    "model.23.cv3.2.1.0.conv.weight",
+    "model.23.cv3.2.1.1.bn.bias",
+    "model.23.cv3.2.1.1.bn.running_mean",
+    "model.23.cv3.2.1.1.bn.running_var",
+    "model.23.cv3.2.1.1.bn.weight",
+    "model.23.cv3.2.1.1.conv.weight",
+    "model.23.cv3.2.2.bias",
+    "model.23.cv3.2.2.weight",
+    "model.4.m.0.cv2.conv.weight"
+  ],
+  "target_to_source_keys": {
+    "model.0.conv.weight": "model.0.conv.weight",
+    "model.0.bn.weight": "model.0.bn.weight",
+    "model.0.bn.bias": "model.0.bn.bias",
+    "model.0.bn.running_mean": "model.0.bn.running_mean",
+    "model.0.bn.running_var": "model.0.bn.running_var",
+    "model.0.bn.num_batches_tracked": "model.0.bn.num_batches_tracked",
+    "model.1.conv.weight": "model.1.conv.weight",
+    "model.1.bn.weight": "model.1.bn.weight",
+    "model.1.bn.bias": "model.1.bn.bias",
+    "model.1.bn.running_mean": "model.1.bn.running_mean",
+    "model.1.bn.running_var": "model.1.bn.running_var",
+    "model.1.bn.num_batches_tracked": "model.1.bn.num_batches_tracked",
+    "model.2.cv1.conv.weight": "model.2.cv1.conv.weight",
+    "model.2.cv1.bn.weight": "model.2.cv1.bn.weight",
+    "model.2.cv1.bn.bias": "model.2.cv1.bn.bias",
+    "model.2.cv1.bn.running_mean": "model.2.cv1.bn.running_mean",
+    "model.2.cv1.bn.running_var": "model.2.cv1.bn.running_var",
+    "model.2.cv1.bn.num_batches_tracked": "model.2.cv1.bn.num_batches_tracked",
+    "model.2.cv2.conv.weight": "model.2.cv2.conv.weight",
+    "model.2.cv2.bn.weight": "model.2.cv2.bn.weight",
+    "model.2.cv2.bn.bias": "model.2.cv2.bn.bias",
+    "model.2.cv2.bn.running_mean": "model.2.cv2.bn.running_mean",
+    "model.2.cv2.bn.running_var": "model.2.cv2.bn.running_var",
+    "model.2.cv2.bn.num_batches_tracked": "model.2.cv2.bn.num_batches_tracked",
+    "model.2.m.0.cv1.conv.weight": "model.2.m.0.cv1.conv.weight",
+    "model.2.m.0.cv1.bn.weight": "model.2.m.0.cv1.bn.weight",
+    "model.2.m.0.cv1.bn.bias": "model.2.m.0.cv1.bn.bias",
+    "model.2.m.0.cv1.bn.running_mean": "model.2.m.0.cv1.bn.running_mean",
+    "model.2.m.0.cv1.bn.running_var": "model.2.m.0.cv1.bn.running_var",
+    "model.2.m.0.cv1.bn.num_batches_tracked": "model.2.m.0.cv1.bn.num_batches_tracked",
+    "model.2.m.0.cv2.bn.weight": "model.2.m.0.cv2.bn.weight",
+    "model.2.m.0.cv2.bn.bias": "model.2.m.0.cv2.bn.bias",
+    "model.2.m.0.cv2.bn.running_mean": "model.2.m.0.cv2.bn.running_mean",
+    "model.2.m.0.cv2.bn.running_var": "model.2.m.0.cv2.bn.running_var",
+    "model.2.m.0.cv2.bn.num_batches_tracked": "model.2.m.0.cv2.bn.num_batches_tracked",
+    "model.3.conv.weight": "model.3.conv.weight",
+    "model.3.bn.weight": "model.3.bn.weight",
+    "model.3.bn.bias": "model.3.bn.bias",
+    "model.3.bn.running_mean": "model.3.bn.running_mean",
+    "model.3.bn.running_var": "model.3.bn.running_var",
+    "model.3.bn.num_batches_tracked": "model.3.bn.num_batches_tracked",
+    "model.4.cv1.conv.weight": "model.4.cv1.conv.weight",
+    "model.4.cv1.bn.weight": "model.4.cv1.bn.weight",
+    "model.4.cv1.bn.bias": "model.4.cv1.bn.bias",
+    "model.4.cv1.bn.running_mean": "model.4.cv1.bn.running_mean",
+    "model.4.cv1.bn.running_var": "model.4.cv1.bn.running_var",
+    "model.4.cv1.bn.num_batches_tracked": "model.4.cv1.bn.num_batches_tracked",
+    "model.4.cv2.conv.weight": "model.4.cv2.conv.weight",
+    "model.4.cv2.bn.weight": "model.4.cv2.bn.weight",
+    "model.4.cv2.bn.bias": "model.4.cv2.bn.bias",
+    "model.4.cv2.bn.running_mean": "model.4.cv2.bn.running_mean",
+    "model.4.cv2.bn.running_var": "model.4.cv2.bn.running_var",
+    "model.4.cv2.bn.num_batches_tracked": "model.4.cv2.bn.num_batches_tracked",
+    "model.4.m.0.cv1.conv.weight": "model.4.m.0.cv1.conv.weight",
+    "model.4.m.0.cv1.bn.weight": "model.4.m.0.cv1.bn.weight",
+    "model.4.m.0.cv1.bn.bias": "model.4.m.0.cv1.bn.bias",
+    "model.4.m.0.cv1.bn.running_mean": "model.4.m.0.cv1.bn.running_mean",
+    "model.4.m.0.cv1.bn.running_var": "model.4.m.0.cv1.bn.running_var",
+    "model.4.m.0.cv1.bn.num_batches_tracked": "model.4.m.0.cv1.bn.num_batches_tracked",
+    "model.4.m.0.cv2.bn.weight": "model.4.m.0.cv2.bn.weight",
+    "model.4.m.0.cv2.bn.bias": "model.4.m.0.cv2.bn.bias",
+    "model.4.m.0.cv2.bn.running_mean": "model.4.m.0.cv2.bn.running_mean",
+    "model.4.m.0.cv2.bn.running_var": "model.4.m.0.cv2.bn.running_var",
+    "model.4.m.0.cv2.bn.num_batches_tracked": "model.4.m.0.cv2.bn.num_batches_tracked",
+    "model.5.conv.weight": "model.5.conv.weight",
+    "model.5.bn.weight": "model.5.bn.weight",
+    "model.5.bn.bias": "model.5.bn.bias",
+    "model.5.bn.running_mean": "model.5.bn.running_mean",
+    "model.5.bn.running_var": "model.5.bn.running_var",
+    "model.5.bn.num_batches_tracked": "model.5.bn.num_batches_tracked",
+    "model.6.cv1.conv.weight": "model.6.cv1.conv.weight",
+    "model.6.cv1.bn.weight": "model.6.cv1.bn.weight",
+    "model.6.cv1.bn.bias": "model.6.cv1.bn.bias",
+    "model.6.cv1.bn.running_mean": "model.6.cv1.bn.running_mean",
+    "model.6.cv1.bn.running_var": "model.6.cv1.bn.running_var",
+    "model.6.cv1.bn.num_batches_tracked": "model.6.cv1.bn.num_batches_tracked",
+    "model.6.cv2.conv.weight": "model.6.cv2.conv.weight",
+    "model.6.cv2.bn.weight": "model.6.cv2.bn.weight",
+    "model.6.cv2.bn.bias": "model.6.cv2.bn.bias",
+    "model.6.cv2.bn.running_mean": "model.6.cv2.bn.running_mean",
+    "model.6.cv2.bn.running_var": "model.6.cv2.bn.running_var",
+    "model.6.cv2.bn.num_batches_tracked": "model.6.cv2.bn.num_batches_tracked",
+    "model.6.m.0.cv1.conv.weight": "model.6.m.0.cv1.conv.weight",
+    "model.6.m.0.cv1.bn.weight": "model.6.m.0.cv1.bn.weight",
+    "model.6.m.0.cv1.bn.bias": "model.6.m.0.cv1.bn.bias",
+    "model.6.m.0.cv1.bn.running_mean": "model.6.m.0.cv1.bn.running_mean",
+    "model.6.m.0.cv1.bn.running_var": "model.6.m.0.cv1.bn.running_var",
+    "model.6.m.0.cv1.bn.num_batches_tracked": "model.6.m.0.cv1.bn.num_batches_tracked",
+    "model.6.m.0.cv2.conv.weight": "model.6.m.0.cv2.conv.weight",
+    "model.6.m.0.cv2.bn.weight": "model.6.m.0.cv2.bn.weight",
+    "model.6.m.0.cv2.bn.bias": "model.6.m.0.cv2.bn.bias",
+    "model.6.m.0.cv2.bn.running_mean": "model.6.m.0.cv2.bn.running_mean",
+    "model.6.m.0.cv2.bn.running_var": "model.6.m.0.cv2.bn.running_var",
+    "model.6.m.0.cv2.bn.num_batches_tracked": "model.6.m.0.cv2.bn.num_batches_tracked",
+    "model.6.m.0.cv3.conv.weight": "model.6.m.0.cv3.conv.weight",
+    "model.6.m.0.cv3.bn.weight": "model.6.m.0.cv3.bn.weight",
+    "model.6.m.0.cv3.bn.bias": "model.6.m.0.cv3.bn.bias",
+    "model.6.m.0.cv3.bn.running_mean": "model.6.m.0.cv3.bn.running_mean",
+    "model.6.m.0.cv3.bn.running_var": "model.6.m.0.cv3.bn.running_var",
+    "model.6.m.0.cv3.bn.num_batches_tracked": "model.6.m.0.cv3.bn.num_batches_tracked",
+    "model.6.m.0.m.0.cv1.conv.weight": "model.6.m.0.m.0.cv1.conv.weight",
+    "model.6.m.0.m.0.cv1.bn.weight": "model.6.m.0.m.0.cv1.bn.weight",
+    "model.6.m.0.m.0.cv1.bn.bias": "model.6.m.0.m.0.cv1.bn.bias",
+    "model.6.m.0.m.0.cv1.bn.running_mean": "model.6.m.0.m.0.cv1.bn.running_mean",
+    "model.6.m.0.m.0.cv1.bn.running_var": "model.6.m.0.m.0.cv1.bn.running_var",
+    "model.6.m.0.m.0.cv1.bn.num_batches_tracked": "model.6.m.0.m.0.cv1.bn.num_batches_tracked",
+    "model.6.m.0.m.0.cv2.conv.weight": "model.6.m.0.m.0.cv2.conv.weight",
+    "model.6.m.0.m.0.cv2.bn.weight": "model.6.m.0.m.0.cv2.bn.weight",
+    "model.6.m.0.m.0.cv2.bn.bias": "model.6.m.0.m.0.cv2.bn.bias",
+    "model.6.m.0.m.0.cv2.bn.running_mean": "model.6.m.0.m.0.cv2.bn.running_mean",
+    "model.6.m.0.m.0.cv2.bn.running_var": "model.6.m.0.m.0.cv2.bn.running_var",
+    "model.6.m.0.m.0.cv2.bn.num_batches_tracked": "model.6.m.0.m.0.cv2.bn.num_batches_tracked",
+    "model.6.m.0.m.1.cv1.conv.weight": "model.6.m.0.m.1.cv1.conv.weight",
+    "model.6.m.0.m.1.cv1.bn.weight": "model.6.m.0.m.1.cv1.bn.weight",
+    "model.6.m.0.m.1.cv1.bn.bias": "model.6.m.0.m.1.cv1.bn.bias",
+    "model.6.m.0.m.1.cv1.bn.running_mean": "model.6.m.0.m.1.cv1.bn.running_mean",
+    "model.6.m.0.m.1.cv1.bn.running_var": "model.6.m.0.m.1.cv1.bn.running_var",
+    "model.6.m.0.m.1.cv1.bn.num_batches_tracked": "model.6.m.0.m.1.cv1.bn.num_batches_tracked",
+    "model.6.m.0.m.1.cv2.conv.weight": "model.6.m.0.m.1.cv2.conv.weight",
+    "model.6.m.0.m.1.cv2.bn.weight": "model.6.m.0.m.1.cv2.bn.weight",
+    "model.6.m.0.m.1.cv2.bn.bias": "model.6.m.0.m.1.cv2.bn.bias",
+    "model.6.m.0.m.1.cv2.bn.running_mean": "model.6.m.0.m.1.cv2.bn.running_mean",
+    "model.6.m.0.m.1.cv2.bn.running_var": "model.6.m.0.m.1.cv2.bn.running_var",
+    "model.6.m.0.m.1.cv2.bn.num_batches_tracked": "model.6.m.0.m.1.cv2.bn.num_batches_tracked",
+    "model.7.conv.weight": "model.7.conv.weight",
+    "model.7.bn.weight": "model.7.bn.weight",
+    "model.7.bn.bias": "model.7.bn.bias",
+    "model.7.bn.running_mean": "model.7.bn.running_mean",
+    "model.7.bn.running_var": "model.7.bn.running_var",
+    "model.7.bn.num_batches_tracked": "model.7.bn.num_batches_tracked",
+    "model.8.cv1.conv.weight": "model.8.cv1.conv.weight",
+    "model.8.cv1.bn.weight": "model.8.cv1.bn.weight",
+    "model.8.cv1.bn.bias": "model.8.cv1.bn.bias",
+    "model.8.cv1.bn.running_mean": "model.8.cv1.bn.running_mean",
+    "model.8.cv1.bn.running_var": "model.8.cv1.bn.running_var",
+    "model.8.cv1.bn.num_batches_tracked": "model.8.cv1.bn.num_batches_tracked",
+    "model.8.cv2.conv.weight": "model.8.cv2.conv.weight",
+    "model.8.cv2.bn.weight": "model.8.cv2.bn.weight",
+    "model.8.cv2.bn.bias": "model.8.cv2.bn.bias",
+    "model.8.cv2.bn.running_mean": "model.8.cv2.bn.running_mean",
+    "model.8.cv2.bn.running_var": "model.8.cv2.bn.running_var",
+    "model.8.cv2.bn.num_batches_tracked": "model.8.cv2.bn.num_batches_tracked",
+    "model.8.m.0.cv1.conv.weight": "model.8.m.0.cv1.conv.weight",
+    "model.8.m.0.cv1.bn.weight": "model.8.m.0.cv1.bn.weight",
+    "model.8.m.0.cv1.bn.bias": "model.8.m.0.cv1.bn.bias",
+    "model.8.m.0.cv1.bn.running_mean": "model.8.m.0.cv1.bn.running_mean",
+    "model.8.m.0.cv1.bn.running_var": "model.8.m.0.cv1.bn.running_var",
+    "model.8.m.0.cv1.bn.num_batches_tracked": "model.8.m.0.cv1.bn.num_batches_tracked",
+    "model.8.m.0.cv2.conv.weight": "model.8.m.0.cv2.conv.weight",
+    "model.8.m.0.cv2.bn.weight": "model.8.m.0.cv2.bn.weight",
+    "model.8.m.0.cv2.bn.bias": "model.8.m.0.cv2.bn.bias",
+    "model.8.m.0.cv2.bn.running_mean": "model.8.m.0.cv2.bn.running_mean",
+    "model.8.m.0.cv2.bn.running_var": "model.8.m.0.cv2.bn.running_var",
+    "model.8.m.0.cv2.bn.num_batches_tracked": "model.8.m.0.cv2.bn.num_batches_tracked",
+    "model.8.m.0.cv3.conv.weight": "model.8.m.0.cv3.conv.weight",
+    "model.8.m.0.cv3.bn.weight": "model.8.m.0.cv3.bn.weight",
+    "model.8.m.0.cv3.bn.bias": "model.8.m.0.cv3.bn.bias",
+    "model.8.m.0.cv3.bn.running_mean": "model.8.m.0.cv3.bn.running_mean",
+    "model.8.m.0.cv3.bn.running_var": "model.8.m.0.cv3.bn.running_var",
+    "model.8.m.0.cv3.bn.num_batches_tracked": "model.8.m.0.cv3.bn.num_batches_tracked",
+    "model.8.m.0.m.0.cv1.conv.weight": "model.8.m.0.m.0.cv1.conv.weight",
+    "model.8.m.0.m.0.cv1.bn.weight": "model.8.m.0.m.0.cv1.bn.weight",
+    "model.8.m.0.m.0.cv1.bn.bias": "model.8.m.0.m.0.cv1.bn.bias",
+    "model.8.m.0.m.0.cv1.bn.running_mean": "model.8.m.0.m.0.cv1.bn.running_mean",
+    "model.8.m.0.m.0.cv1.bn.running_var": "model.8.m.0.m.0.cv1.bn.running_var",
+    "model.8.m.0.m.0.cv1.bn.num_batches_tracked": "model.8.m.0.m.0.cv1.bn.num_batches_tracked",
+    "model.8.m.0.m.0.cv2.conv.weight": "model.8.m.0.m.0.cv2.conv.weight",
+    "model.8.m.0.m.0.cv2.bn.weight": "model.8.m.0.m.0.cv2.bn.weight",
+    "model.8.m.0.m.0.cv2.bn.bias": "model.8.m.0.m.0.cv2.bn.bias",
+    "model.8.m.0.m.0.cv2.bn.running_mean": "model.8.m.0.m.0.cv2.bn.running_mean",
+    "model.8.m.0.m.0.cv2.bn.running_var": "model.8.m.0.m.0.cv2.bn.running_var",
+    "model.8.m.0.m.0.cv2.bn.num_batches_tracked": "model.8.m.0.m.0.cv2.bn.num_batches_tracked",
+    "model.8.m.0.m.1.cv1.conv.weight": "model.8.m.0.m.1.cv1.conv.weight",
+    "model.8.m.0.m.1.cv1.bn.weight": "model.8.m.0.m.1.cv1.bn.weight",
+    "model.8.m.0.m.1.cv1.bn.bias": "model.8.m.0.m.1.cv1.bn.bias",
+    "model.8.m.0.m.1.cv1.bn.running_mean": "model.8.m.0.m.1.cv1.bn.running_mean",
+    "model.8.m.0.m.1.cv1.bn.running_var": "model.8.m.0.m.1.cv1.bn.running_var",
+    "model.8.m.0.m.1.cv1.bn.num_batches_tracked": "model.8.m.0.m.1.cv1.bn.num_batches_tracked",
+    "model.8.m.0.m.1.cv2.conv.weight": "model.8.m.0.m.1.cv2.conv.weight",
+    "model.8.m.0.m.1.cv2.bn.weight": "model.8.m.0.m.1.cv2.bn.weight",
+    "model.8.m.0.m.1.cv2.bn.bias": "model.8.m.0.m.1.cv2.bn.bias",
+    "model.8.m.0.m.1.cv2.bn.running_mean": "model.8.m.0.m.1.cv2.bn.running_mean",
+    "model.8.m.0.m.1.cv2.bn.running_var": "model.8.m.0.m.1.cv2.bn.running_var",
+    "model.8.m.0.m.1.cv2.bn.num_batches_tracked": "model.8.m.0.m.1.cv2.bn.num_batches_tracked",
+    "model.9.cv1.conv.weight": "model.9.cv1.conv.weight",
+    "model.9.cv1.bn.weight": "model.9.cv1.bn.weight",
+    "model.9.cv1.bn.bias": "model.9.cv1.bn.bias",
+    "model.9.cv1.bn.running_mean": "model.9.cv1.bn.running_mean",
+    "model.9.cv1.bn.running_var": "model.9.cv1.bn.running_var",
+    "model.9.cv1.bn.num_batches_tracked": "model.9.cv1.bn.num_batches_tracked",
+    "model.9.cv2.conv.weight": "model.9.cv2.conv.weight",
+    "model.9.cv2.bn.weight": "model.9.cv2.bn.weight",
+    "model.9.cv2.bn.bias": "model.9.cv2.bn.bias",
+    "model.9.cv2.bn.running_mean": "model.9.cv2.bn.running_mean",
+    "model.9.cv2.bn.running_var": "model.9.cv2.bn.running_var",
+    "model.9.cv2.bn.num_batches_tracked": "model.9.cv2.bn.num_batches_tracked",
+    "model.10.cv1.conv.weight": "model.10.cv1.conv.weight",
+    "model.10.cv1.bn.weight": "model.10.cv1.bn.weight",
+    "model.10.cv1.bn.bias": "model.10.cv1.bn.bias",
+    "model.10.cv1.bn.running_mean": "model.10.cv1.bn.running_mean",
+    "model.10.cv1.bn.running_var": "model.10.cv1.bn.running_var",
+    "model.10.cv1.bn.num_batches_tracked": "model.10.cv1.bn.num_batches_tracked",
+    "model.10.cv2.conv.weight": "model.10.cv2.conv.weight",
+    "model.10.cv2.bn.weight": "model.10.cv2.bn.weight",
+    "model.10.cv2.bn.bias": "model.10.cv2.bn.bias",
+    "model.10.cv2.bn.running_mean": "model.10.cv2.bn.running_mean",
+    "model.10.cv2.bn.running_var": "model.10.cv2.bn.running_var",
+    "model.10.cv2.bn.num_batches_tracked": "model.10.cv2.bn.num_batches_tracked",
+    "model.10.m.0.attn.qkv.conv.weight": "model.10.m.0.attn.qkv.conv.weight",
+    "model.10.m.0.attn.qkv.bn.weight": "model.10.m.0.attn.qkv.bn.weight",
+    "model.10.m.0.attn.qkv.bn.bias": "model.10.m.0.attn.qkv.bn.bias",
+    "model.10.m.0.attn.qkv.bn.running_mean": "model.10.m.0.attn.qkv.bn.running_mean",
+    "model.10.m.0.attn.qkv.bn.running_var": "model.10.m.0.attn.qkv.bn.running_var",
+    "model.10.m.0.attn.qkv.bn.num_batches_tracked": "model.10.m.0.attn.qkv.bn.num_batches_tracked",
+    "model.10.m.0.attn.proj.conv.weight": "model.10.m.0.attn.proj.conv.weight",
+    "model.10.m.0.attn.proj.bn.weight": "model.10.m.0.attn.proj.bn.weight",
+    "model.10.m.0.attn.proj.bn.bias": "model.10.m.0.attn.proj.bn.bias",
+    "model.10.m.0.attn.proj.bn.running_mean": "model.10.m.0.attn.proj.bn.running_mean",
+    "model.10.m.0.attn.proj.bn.running_var": "model.10.m.0.attn.proj.bn.running_var",
+    "model.10.m.0.attn.proj.bn.num_batches_tracked": "model.10.m.0.attn.proj.bn.num_batches_tracked",
+    "model.10.m.0.attn.pe.conv.weight": "model.10.m.0.attn.pe.conv.weight",
+    "model.10.m.0.attn.pe.bn.weight": "model.10.m.0.attn.pe.bn.weight",
+    "model.10.m.0.attn.pe.bn.bias": "model.10.m.0.attn.pe.bn.bias",
+    "model.10.m.0.attn.pe.bn.running_mean": "model.10.m.0.attn.pe.bn.running_mean",
+    "model.10.m.0.attn.pe.bn.running_var": "model.10.m.0.attn.pe.bn.running_var",
+    "model.10.m.0.attn.pe.bn.num_batches_tracked": "model.10.m.0.attn.pe.bn.num_batches_tracked",
+    "model.10.m.0.ffn.0.conv.weight": "model.10.m.0.ffn.0.conv.weight",
+    "model.10.m.0.ffn.0.bn.weight": "model.10.m.0.ffn.0.bn.weight",
+    "model.10.m.0.ffn.0.bn.bias": "model.10.m.0.ffn.0.bn.bias",
+    "model.10.m.0.ffn.0.bn.running_mean": "model.10.m.0.ffn.0.bn.running_mean",
+    "model.10.m.0.ffn.0.bn.running_var": "model.10.m.0.ffn.0.bn.running_var",
+    "model.10.m.0.ffn.0.bn.num_batches_tracked": "model.10.m.0.ffn.0.bn.num_batches_tracked",
+    "model.10.m.0.ffn.1.conv.weight": "model.10.m.0.ffn.1.conv.weight",
+    "model.10.m.0.ffn.1.bn.weight": "model.10.m.0.ffn.1.bn.weight",
+    "model.10.m.0.ffn.1.bn.bias": "model.10.m.0.ffn.1.bn.bias",
+    "model.10.m.0.ffn.1.bn.running_mean": "model.10.m.0.ffn.1.bn.running_mean",
+    "model.10.m.0.ffn.1.bn.running_var": "model.10.m.0.ffn.1.bn.running_var",
+    "model.10.m.0.ffn.1.bn.num_batches_tracked": "model.10.m.0.ffn.1.bn.num_batches_tracked",
+    "model.16.conv.weight": "model.17.conv.weight",
+    "model.16.bn.weight": "model.17.bn.weight",
+    "model.16.bn.bias": "model.17.bn.bias",
+    "model.16.bn.running_mean": "model.17.bn.running_mean",
+    "model.16.bn.running_var": "model.17.bn.running_var",
+    "model.16.bn.num_batches_tracked": "model.17.bn.num_batches_tracked",
+    "model.18.cv1.bn.weight": "model.19.cv1.bn.weight",
+    "model.18.cv1.bn.bias": "model.19.cv1.bn.bias",
+    "model.18.cv1.bn.running_mean": "model.19.cv1.bn.running_mean",
+    "model.18.cv1.bn.running_var": "model.19.cv1.bn.running_var",
+    "model.18.cv1.bn.num_batches_tracked": "model.19.cv1.bn.num_batches_tracked",
+    "model.18.cv2.conv.weight": "model.19.cv2.conv.weight",
+    "model.18.cv2.bn.weight": "model.19.cv2.bn.weight",
+    "model.18.cv2.bn.bias": "model.19.cv2.bn.bias",
+    "model.18.cv2.bn.running_mean": "model.19.cv2.bn.running_mean",
+    "model.18.cv2.bn.running_var": "model.19.cv2.bn.running_var",
+    "model.18.cv2.bn.num_batches_tracked": "model.19.cv2.bn.num_batches_tracked",
+    "model.18.m.0.cv1.conv.weight": "model.19.m.0.cv1.conv.weight",
+    "model.18.m.0.cv1.bn.weight": "model.19.m.0.cv1.bn.weight",
+    "model.18.m.0.cv1.bn.bias": "model.19.m.0.cv1.bn.bias",
+    "model.18.m.0.cv1.bn.running_mean": "model.19.m.0.cv1.bn.running_mean",
+    "model.18.m.0.cv1.bn.running_var": "model.19.m.0.cv1.bn.running_var",
+    "model.18.m.0.cv1.bn.num_batches_tracked": "model.19.m.0.cv1.bn.num_batches_tracked",
+    "model.18.m.0.cv2.conv.weight": "model.19.m.0.cv2.conv.weight",
+    "model.18.m.0.cv2.bn.weight": "model.19.m.0.cv2.bn.weight",
+    "model.18.m.0.cv2.bn.bias": "model.19.m.0.cv2.bn.bias",
+    "model.18.m.0.cv2.bn.running_mean": "model.19.m.0.cv2.bn.running_mean",
+    "model.18.m.0.cv2.bn.running_var": "model.19.m.0.cv2.bn.running_var",
+    "model.18.m.0.cv2.bn.num_batches_tracked": "model.19.m.0.cv2.bn.num_batches_tracked",
+    "model.19.conv.weight": "model.20.conv.weight",
+    "model.19.bn.weight": "model.20.bn.weight",
+    "model.19.bn.bias": "model.20.bn.bias",
+    "model.19.bn.running_mean": "model.20.bn.running_mean",
+    "model.19.bn.running_var": "model.20.bn.running_var",
+    "model.19.bn.num_batches_tracked": "model.20.bn.num_batches_tracked",
+    "model.21.cv1.conv.weight": "model.22.cv1.conv.weight",
+    "model.21.cv1.bn.weight": "model.22.cv1.bn.weight",
+    "model.21.cv1.bn.bias": "model.22.cv1.bn.bias",
+    "model.21.cv1.bn.running_mean": "model.22.cv1.bn.running_mean",
+    "model.21.cv1.bn.running_var": "model.22.cv1.bn.running_var",
+    "model.21.cv1.bn.num_batches_tracked": "model.22.cv1.bn.num_batches_tracked",
+    "model.21.cv2.conv.weight": "model.22.cv2.conv.weight",
+    "model.21.cv2.bn.weight": "model.22.cv2.bn.weight",
+    "model.21.cv2.bn.bias": "model.22.cv2.bn.bias",
+    "model.21.cv2.bn.running_mean": "model.22.cv2.bn.running_mean",
+    "model.21.cv2.bn.running_var": "model.22.cv2.bn.running_var",
+    "model.21.cv2.bn.num_batches_tracked": "model.22.cv2.bn.num_batches_tracked",
+    "model.21.m.0.cv1.conv.weight": "model.22.m.0.cv1.conv.weight",
+    "model.21.m.0.cv1.bn.weight": "model.22.m.0.cv1.bn.weight",
+    "model.21.m.0.cv1.bn.bias": "model.22.m.0.cv1.bn.bias",
+    "model.21.m.0.cv1.bn.running_mean": "model.22.m.0.cv1.bn.running_mean",
+    "model.21.m.0.cv1.bn.running_var": "model.22.m.0.cv1.bn.running_var",
+    "model.21.m.0.cv1.bn.num_batches_tracked": "model.22.m.0.cv1.bn.num_batches_tracked",
+    "model.21.m.0.cv2.conv.weight": "model.22.m.0.cv2.conv.weight",
+    "model.21.m.0.cv2.bn.weight": "model.22.m.0.cv2.bn.weight",
+    "model.21.m.0.cv2.bn.bias": "model.22.m.0.cv2.bn.bias",
+    "model.21.m.0.cv2.bn.running_mean": "model.22.m.0.cv2.bn.running_mean",
+    "model.21.m.0.cv2.bn.running_var": "model.22.m.0.cv2.bn.running_var",
+    "model.21.m.0.cv2.bn.num_batches_tracked": "model.22.m.0.cv2.bn.num_batches_tracked",
+    "model.21.m.0.cv3.conv.weight": "model.22.m.0.cv3.conv.weight",
+    "model.21.m.0.cv3.bn.weight": "model.22.m.0.cv3.bn.weight",
+    "model.21.m.0.cv3.bn.bias": "model.22.m.0.cv3.bn.bias",
+    "model.21.m.0.cv3.bn.running_mean": "model.22.m.0.cv3.bn.running_mean",
+    "model.21.m.0.cv3.bn.running_var": "model.22.m.0.cv3.bn.running_var",
+    "model.21.m.0.cv3.bn.num_batches_tracked": "model.22.m.0.cv3.bn.num_batches_tracked",
+    "model.21.m.0.m.0.cv1.conv.weight": "model.22.m.0.m.0.cv1.conv.weight",
+    "model.21.m.0.m.0.cv1.bn.weight": "model.22.m.0.m.0.cv1.bn.weight",
+    "model.21.m.0.m.0.cv1.bn.bias": "model.22.m.0.m.0.cv1.bn.bias",
+    "model.21.m.0.m.0.cv1.bn.running_mean": "model.22.m.0.m.0.cv1.bn.running_mean",
+    "model.21.m.0.m.0.cv1.bn.running_var": "model.22.m.0.m.0.cv1.bn.running_var",
+    "model.21.m.0.m.0.cv1.bn.num_batches_tracked": "model.22.m.0.m.0.cv1.bn.num_batches_tracked",
+    "model.21.m.0.m.0.cv2.conv.weight": "model.22.m.0.m.0.cv2.conv.weight",
+    "model.21.m.0.m.0.cv2.bn.weight": "model.22.m.0.m.0.cv2.bn.weight",
+    "model.21.m.0.m.0.cv2.bn.bias": "model.22.m.0.m.0.cv2.bn.bias",
+    "model.21.m.0.m.0.cv2.bn.running_mean": "model.22.m.0.m.0.cv2.bn.running_mean",
+    "model.21.m.0.m.0.cv2.bn.running_var": "model.22.m.0.m.0.cv2.bn.running_var",
+    "model.21.m.0.m.0.cv2.bn.num_batches_tracked": "model.22.m.0.m.0.cv2.bn.num_batches_tracked",
+    "model.21.m.0.m.1.cv1.conv.weight": "model.22.m.0.m.1.cv1.conv.weight",
+    "model.21.m.0.m.1.cv1.bn.weight": "model.22.m.0.m.1.cv1.bn.weight",
+    "model.21.m.0.m.1.cv1.bn.bias": "model.22.m.0.m.1.cv1.bn.bias",
+    "model.21.m.0.m.1.cv1.bn.running_mean": "model.22.m.0.m.1.cv1.bn.running_mean",
+    "model.21.m.0.m.1.cv1.bn.running_var": "model.22.m.0.m.1.cv1.bn.running_var",
+    "model.21.m.0.m.1.cv1.bn.num_batches_tracked": "model.22.m.0.m.1.cv1.bn.num_batches_tracked",
+    "model.21.m.0.m.1.cv2.conv.weight": "model.22.m.0.m.1.cv2.conv.weight",
+    "model.21.m.0.m.1.cv2.bn.weight": "model.22.m.0.m.1.cv2.bn.weight",
+    "model.21.m.0.m.1.cv2.bn.bias": "model.22.m.0.m.1.cv2.bn.bias",
+    "model.21.m.0.m.1.cv2.bn.running_mean": "model.22.m.0.m.1.cv2.bn.running_mean",
+    "model.21.m.0.m.1.cv2.bn.running_var": "model.22.m.0.m.1.cv2.bn.running_var",
+    "model.21.m.0.m.1.cv2.bn.num_batches_tracked": "model.22.m.0.m.1.cv2.bn.num_batches_tracked",
+    "model.22.cv2.0.0.conv.weight": "model.23.cv2.0.0.conv.weight",
+    "model.22.cv2.0.0.bn.weight": "model.23.cv2.0.0.bn.weight",
+    "model.22.cv2.0.0.bn.bias": "model.23.cv2.0.0.bn.bias",
+    "model.22.cv2.0.0.bn.running_mean": "model.23.cv2.0.0.bn.running_mean",
+    "model.22.cv2.0.0.bn.running_var": "model.23.cv2.0.0.bn.running_var",
+    "model.22.cv2.0.0.bn.num_batches_tracked": "model.23.cv2.0.0.bn.num_batches_tracked",
+    "model.22.cv2.0.1.conv.weight": "model.23.cv2.0.1.conv.weight",
+    "model.22.cv2.0.1.bn.weight": "model.23.cv2.0.1.bn.weight",
+    "model.22.cv2.0.1.bn.bias": "model.23.cv2.0.1.bn.bias",
+    "model.22.cv2.0.1.bn.running_mean": "model.23.cv2.0.1.bn.running_mean",
+    "model.22.cv2.0.1.bn.running_var": "model.23.cv2.0.1.bn.running_var",
+    "model.22.cv2.0.1.bn.num_batches_tracked": "model.23.cv2.0.1.bn.num_batches_tracked",
+    "model.22.cv2.0.2.weight": "model.23.cv2.0.2.weight",
+    "model.22.cv2.0.2.bias": "model.23.cv2.0.2.bias",
+    "model.22.cv2.1.0.conv.weight": "model.23.cv2.1.0.conv.weight",
+    "model.22.cv2.1.0.bn.weight": "model.23.cv2.1.0.bn.weight",
+    "model.22.cv2.1.0.bn.bias": "model.23.cv2.1.0.bn.bias",
+    "model.22.cv2.1.0.bn.running_mean": "model.23.cv2.1.0.bn.running_mean",
+    "model.22.cv2.1.0.bn.running_var": "model.23.cv2.1.0.bn.running_var",
+    "model.22.cv2.1.0.bn.num_batches_tracked": "model.23.cv2.1.0.bn.num_batches_tracked",
+    "model.22.cv2.1.1.conv.weight": "model.23.cv2.1.1.conv.weight",
+    "model.22.cv2.1.1.bn.weight": "model.23.cv2.1.1.bn.weight",
+    "model.22.cv2.1.1.bn.bias": "model.23.cv2.1.1.bn.bias",
+    "model.22.cv2.1.1.bn.running_mean": "model.23.cv2.1.1.bn.running_mean",
+    "model.22.cv2.1.1.bn.running_var": "model.23.cv2.1.1.bn.running_var",
+    "model.22.cv2.1.1.bn.num_batches_tracked": "model.23.cv2.1.1.bn.num_batches_tracked",
+    "model.22.cv2.1.2.weight": "model.23.cv2.1.2.weight",
+    "model.22.cv2.1.2.bias": "model.23.cv2.1.2.bias",
+    "model.22.cv2.2.0.conv.weight": "model.23.cv2.2.0.conv.weight",
+    "model.22.cv2.2.0.bn.weight": "model.23.cv2.2.0.bn.weight",
+    "model.22.cv2.2.0.bn.bias": "model.23.cv2.2.0.bn.bias",
+    "model.22.cv2.2.0.bn.running_mean": "model.23.cv2.2.0.bn.running_mean",
+    "model.22.cv2.2.0.bn.running_var": "model.23.cv2.2.0.bn.running_var",
+    "model.22.cv2.2.0.bn.num_batches_tracked": "model.23.cv2.2.0.bn.num_batches_tracked",
+    "model.22.cv2.2.1.conv.weight": "model.23.cv2.2.1.conv.weight",
+    "model.22.cv2.2.1.bn.weight": "model.23.cv2.2.1.bn.weight",
+    "model.22.cv2.2.1.bn.bias": "model.23.cv2.2.1.bn.bias",
+    "model.22.cv2.2.1.bn.running_mean": "model.23.cv2.2.1.bn.running_mean",
+    "model.22.cv2.2.1.bn.running_var": "model.23.cv2.2.1.bn.running_var",
+    "model.22.cv2.2.1.bn.num_batches_tracked": "model.23.cv2.2.1.bn.num_batches_tracked",
+    "model.22.cv2.2.2.weight": "model.23.cv2.2.2.weight",
+    "model.22.cv2.2.2.bias": "model.23.cv2.2.2.bias",
+    "model.22.cv3.0.0.0.conv.weight": "model.23.cv3.0.0.0.conv.weight",
+    "model.22.cv3.0.0.0.bn.weight": "model.23.cv3.0.0.0.bn.weight",
+    "model.22.cv3.0.0.0.bn.bias": "model.23.cv3.0.0.0.bn.bias",
+    "model.22.cv3.0.0.0.bn.running_mean": "model.23.cv3.0.0.0.bn.running_mean",
+    "model.22.cv3.0.0.0.bn.running_var": "model.23.cv3.0.0.0.bn.running_var",
+    "model.22.cv3.0.0.0.bn.num_batches_tracked": "model.23.cv3.0.0.0.bn.num_batches_tracked",
+    "model.22.cv3.0.0.1.bn.num_batches_tracked": "model.23.cv3.0.0.1.bn.num_batches_tracked",
+    "model.22.cv3.0.1.0.bn.num_batches_tracked": "model.23.cv3.0.1.0.bn.num_batches_tracked",
+    "model.22.cv3.0.1.1.bn.num_batches_tracked": "model.23.cv3.0.1.1.bn.num_batches_tracked",
+    "model.22.cv3.1.0.0.conv.weight": "model.23.cv3.1.0.0.conv.weight",
+    "model.22.cv3.1.0.0.bn.weight": "model.23.cv3.1.0.0.bn.weight",
+    "model.22.cv3.1.0.0.bn.bias": "model.23.cv3.1.0.0.bn.bias",
+    "model.22.cv3.1.0.0.bn.running_mean": "model.23.cv3.1.0.0.bn.running_mean",
+    "model.22.cv3.1.0.0.bn.running_var": "model.23.cv3.1.0.0.bn.running_var",
+    "model.22.cv3.1.0.0.bn.num_batches_tracked": "model.23.cv3.1.0.0.bn.num_batches_tracked",
+    "model.22.cv3.1.0.1.bn.num_batches_tracked": "model.23.cv3.1.0.1.bn.num_batches_tracked",
+    "model.22.cv3.1.1.0.bn.num_batches_tracked": "model.23.cv3.1.1.0.bn.num_batches_tracked",
+    "model.22.cv3.1.1.1.bn.num_batches_tracked": "model.23.cv3.1.1.1.bn.num_batches_tracked",
+    "model.22.cv3.2.0.0.conv.weight": "model.23.cv3.2.0.0.conv.weight",
+    "model.22.cv3.2.0.0.bn.weight": "model.23.cv3.2.0.0.bn.weight",
+    "model.22.cv3.2.0.0.bn.bias": "model.23.cv3.2.0.0.bn.bias",
+    "model.22.cv3.2.0.0.bn.running_mean": "model.23.cv3.2.0.0.bn.running_mean",
+    "model.22.cv3.2.0.0.bn.running_var": "model.23.cv3.2.0.0.bn.running_var",
+    "model.22.cv3.2.0.0.bn.num_batches_tracked": "model.23.cv3.2.0.0.bn.num_batches_tracked",
+    "model.22.cv3.2.0.1.bn.num_batches_tracked": "model.23.cv3.2.0.1.bn.num_batches_tracked",
+    "model.22.cv3.2.1.0.bn.num_batches_tracked": "model.23.cv3.2.1.0.bn.num_batches_tracked",
+    "model.22.cv3.2.1.1.bn.num_batches_tracked": "model.23.cv3.2.1.1.bn.num_batches_tracked",
+    "model.22.dfl.conv.weight": "model.23.dfl.conv.weight"
+  },
+  "unexpected_after_load": [],
+  "applied": true,
+  "variant": "inceptiondw",
+  "experiment_name": "yolo11n_inceptiondw_fapn_640",
+  "model_yaml": "experiments/yolo11n_inceptiondw_fapn.yaml"
+}

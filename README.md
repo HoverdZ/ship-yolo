@@ -202,3 +202,31 @@ python tools/train_inceptiondw_c3k2_p23.py \
 
 See `docs/experiments/yolo11n_inceptiondw_c3k2_p23.md` for the exact scope,
 weight-inheritance audit, model statistics, and safe resume command.
+
+## Prepared Experiments: Original FaPN
+
+Two ICCV 2021 FaPN experiments are prepared without starting formal training:
+
+- `yolo11n_fapn_640`: official YOLO11n backbone plus original FaPN top-down.
+- `yolo11n_inceptiondw_fapn_640`: the validated InceptionDW backbone plus the
+  identical original FaPN top-down.
+
+Both retain the YOLO11 bottom-up PAN topology and Detect(P3, P4, P5), use
+`nc=1`, keep `deformable_groups=8`, and use Torchvision modulated DCNv2 rather
+than vendoring the legacy CUDA extension.
+
+```bash
+python tools/check_fapn_models.py --weights yolo11n.pt
+python tools/transfer_fapn_weights.py --weights yolo11n.pt
+pytest -q tests/test_fapn.py
+```
+
+Formal Colab entrypoints:
+
+```bash
+python tools/train_yolo11n_fapn.py --data /content/drive/MyDrive/ship_detection/data/data.yaml
+python tools/train_yolo11n_inceptiondw_fapn.py --data /content/drive/MyDrive/ship_detection/data/data.yaml
+```
+
+See `docs/fapn_porting_notes.md` for official-source mapping, topology,
+initialization, semantic weight transfer, statistics, and resume behavior.
