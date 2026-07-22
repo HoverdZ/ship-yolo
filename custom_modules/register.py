@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 2
+_PATCH_VERSION = 3
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -19,7 +19,7 @@ def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
 
 
 def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
-    """Add repository modules and FaPN's two-input channel inference."""
+    """Add repository modules and explicit custom channel inference."""
 
     parse_model = getattr(tasks, "parse_model", None)
     if parse_model is None:
@@ -28,7 +28,15 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         return
 
     source = inspect.getsource(parse_model)
-    required_names = ("C3k2_InceptionDW", "FaPNAlign", "FaPNLateral", "FaPNOutputConv", "SDWF")
+    required_names = (
+        "C3k2_InceptionDW",
+        "FaPNAlign",
+        "FaPNAlignmentOnly",
+        "FaPNFeatureSelectionKeep",
+        "FaPNLateral",
+        "FaPNOutputConv",
+        "SDWF",
+    )
     if all(name in source for name in required_names):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -56,7 +64,18 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     branch_marker = "        elif m is AIFI:"
     if branch_marker not in source:
         raise RuntimeError("Unable to locate parse_model AIFI branch for custom registration.")
-    custom_branches = """        elif m is FaPNAlign:
+    custom_branches = """        elif m is FaPNFeatureSelectionKeep:
+            if isinstance(f, (list, tuple)):
+                raise ValueError("FaPNFeatureSelectionKeep requires exactly one input index.")
+            c1 = c2 = ch[f]
+            args = [c1, *args]
+        elif m is FaPNAlignmentOnly:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("FaPNAlignmentOnly requires [selected_low, upsampled_high].")
+            c_low, c_high = ch[f[0]], ch[f[1]]
+            c2 = c_high
+            args = [c_low, c_high, *args]
+        elif m is FaPNAlign:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError("FaPNAlign requires exactly [lateral, top-down] input indices.")
             c_lateral, c_topdown = ch[f[0]], ch[f[1]]
@@ -89,6 +108,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._sa_dwpn_patched = True
     tasks.parse_model._inceptiondw_patched = True
     tasks.parse_model._fapn_patched = True
+    tasks.parse_model._fapn_prefusion_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -96,6 +116,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.fapn import FaPNAlign, FaPNLateral, FaPNOutputConv
+    from custom_modules.fapn_prefusion import FaPNAlignmentOnly, FaPNFeatureSelectionKeep
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
@@ -105,6 +126,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "DWDown": DWDown,
         "FaPNAlign": FaPNAlign,
+        "FaPNAlignmentOnly": FaPNAlignmentOnly,
+        "FaPNFeatureSelectionKeep": FaPNFeatureSelectionKeep,
         "FaPNLateral": FaPNLateral,
         "FaPNOutputConv": FaPNOutputConv,
         "SDWF": SDWF,
@@ -130,5 +153,11 @@ def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
 
 def register_fapn_modules(patch_parse_model: bool = True) -> None:
     """Register official FaPN port modules and shared repository modules."""
+
+    register_custom_modules(patch_parse_model=patch_parse_model)
+
+
+def register_fapn_prefusion_modules(patch_parse_model: bool = True) -> None:
+    """Register FaPN-Prefusion modules and the shared parser patch."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)

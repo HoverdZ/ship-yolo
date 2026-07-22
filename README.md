@@ -230,3 +230,29 @@ python tools/train_yolo11n_inceptiondw_fapn.py --data /content/drive/MyDrive/shi
 
 See `docs/fapn_porting_notes.md` for official-source mapping, topology,
 initialization, semantic weight transfer, statistics, and resume behavior.
+
+## Prepared Experiments: FaPN-Prefusion
+
+`feature/fapn-prefusion` isolates FaPN's shallow feature selection and
+high-feature DCNv2 alignment before the original YOLO11 fusion. Both official
+Nearest Upsample nodes, both top-down Concat+C3k2 blocks, the complete PAN,
+native T3/T4 channels, and Detect(P3,P4,P5) remain unchanged.
+
+- `yolo11n_fapn_prefusion_640`: official YOLO11n backbone.
+- `yolo11n_inceptiondw_fapn_prefusion_640`: the already validated InceptionDW
+  replacements at backbone layers 2 and 4 only.
+
+Neither formal 150-epoch experiment has been started. Prepare and audit the
+real pretrained initialization checkpoints before training:
+
+```bash
+python tools/fapn_prefusion_profile.py --variant all --imgsz 640
+python tools/prepare_fapn_prefusion_init.py --variant all --weights yolo11n.pt
+python tools/check_fapn_prefusion_models.py --variant all --weights yolo11n.pt
+python -m pytest tests/test_fapn_prefusion.py -q
+```
+
+See `docs/fapn_prefusion_design.md` for the exact ablation and
+`docs/colab_fapn_prefusion.md` for the six-cell formal Colab workflow. Formal
+training always starts from the manifested `*_pretrained_init.pt`, never from
+the custom YAML.
