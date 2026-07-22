@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "variant": "inceptiondw",
+  "experiment_name": "yolo11n_inceptiondw_fapn_prefusion_640",
+  "created_utc": "2026-07-22T04:01:09.940208+00:00",
+  "init_pt_absolute_path": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\artifacts\\yolo11n_inceptiondw_fapn_prefusion_pretrained_init.pt",
+  "init_pt_relative_path": "artifacts/yolo11n_inceptiondw_fapn_prefusion_pretrained_init.pt",
+  "model_yaml_absolute_path": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_fapn_prefusion.yaml",
+  "model_yaml_relative_path": "experiments/yolo11n_inceptiondw_fapn_prefusion.yaml",
+  "model_parameter_count": 2928339,
+  "yaml_sha256": "cf2d935faca06615cb3f238579f30968052b4a63b0fe8f5c41d199e7f5154bf6",
+  "git_commit": "917a0172727c74d37220221cef47bc96598e214a",
+  "ultralytics_version": "8.4.92",
+  "torch_version": "2.13.0+cpu",
+  "source_weights_absolute_path": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+  "source_weights_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+  "init_pt_sha256": "cf3b8403e27fdba5c049ccd20ff89e2114380847d96bb0a1a73a89b1b3ba4da1",
+  "critical_tensor_hashes": {
+    "backbone_layer0": {
+      "key": "model.0.conv.weight",
+      "shape": [
+        16,
+        3,
+        3,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "53a92c0ff09b990d47a8adfb694da57ee7db7d70bc47e7d358198065f0a3d410"
+    },
+    "backbone_layer4": {
+      "key": "model.4.cv1.conv.weight",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "fbec86ee52d5d78dd8ff8fd87c69ecb8e46aa12827bf5d036d1f492802dc5c77"
+    },
+    "backbone_layer6": {
+      "key": "model.6.cv1.conv.weight",
+      "shape": [
+        128,
+        128,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "5a6bfe5a47451b2a111595fc4ef4015d6136168d707f56ddfc01812bfe1a00d5"
+    },
+    "backbone_layer10": {
+      "key": "model.10.cv1.conv.weight",
+      "shape": [
+        256,
+        256,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "2b59cc28f2519d719c0ee9c34a57ab2abef031afe245cf0f145341435d20f113"
+    },
+    "top_down_c3k2_first": {
+      "key": "model.15.cv1.conv.weight",
+      "shape": [
+        128,
+        384,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "58ef265ea8a07552aad4473ab5b3c21fd61c99b89d8f6d4d85853d57954321e6"
+    },
+    "top_down_c3k2_second": {
+      "key": "model.20.cv1.conv.weight",
+      "shape": [
+        64,
+        256,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "a112941d5ec374e719f194145586ebe727e2b694490865dbf05bc2af105e0026"
+    },
+    "pan_c3k2_first": {
+      "key": "model.23.cv1.conv.weight",
+      "shape": [
+        128,
+        192,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "25d894e1fa6c0f734e8c4dee449ac4e74337a94d799fef894b6a3bd1d72016ca"
+    },
+    "pan_c3k2_second": {
+      "key": "model.26.cv1.conv.weight",
+      "shape": [
+        256,
+        384,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "9d76d1daa1e7175cec7043040171e875e819418a6f36319c028bc0222847f941"
+    },
+    "detect_box": {
+      "key": "model.27.cv2.0.0.conv.weight",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "c00e214078811abb78a84c639337bf0ccfc5c24ed49cc0c70bde77e0f40a80cb"
+    },
+    "fsm": {
+      "key": "model.12.conv_attention.weight",
+      "shape": [
+        128,
+        128,
+        1,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "d3c5f8f8dea5f237bb7d8461038e9d6931adc7a5a496bc4f1049c50933ee27ab"
+    },
+    "offset_mask": {
+      "key": "model.13.dcn.conv_offset_mask.weight",
+      "shape": [
+        216,
+        64,
+        3,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "8f2f7c9bda6a4b4c3362b07bec800e61af9f9f19eeec840b219281cf7a8b270b"
+    },
+    "depthwise_dcn": {
+      "key": "model.13.dcn.dcn.weight",
+      "shape": [
+        256,
+        1,
+        3,
+        3
+      ],
+      "dtype": "torch.float32",
+      "sha256": "8d66a05b899ac739547da5c3beb04edbfce2b321e8a2b81faf540a1536ab9d3c"
+    }
+  },
+  "weight_transfer_report": "artifacts/inceptiondw_fapn_prefusion_weight_transfer.json"
+}

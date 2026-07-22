@@ -1,0 +1,254 @@
+{
+  "imgsz": 640,
+  "profile_probe_imgsz": 64,
+  "spatial_scale_factor": 100.0,
+  "parameters": 2928339,
+  "trainable_parameters": 2928323,
+  "macs": 4389632000.0,
+  "gflops": 8.779264,
+  "per_top_level_module": [
+    {
+      "index": 0,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 464,
+      "gflops": 0.1015808
+    },
+    {
+      "index": 1,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 4672,
+      "gflops": 0.2424832
+    },
+    {
+      "index": 2,
+      "from": -1,
+      "type": "C3k2_InceptionDW",
+      "parameters": 5684,
+      "gflops": 0.3030016
+    },
+    {
+      "index": 3,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 36992,
+      "gflops": 0.475136
+    },
+    {
+      "index": 4,
+      "from": -1,
+      "type": "C3k2_InceptionDW",
+      "parameters": 22120,
+      "gflops": 0.2891264
+    },
+    {
+      "index": 5,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 147712,
+      "gflops": 0.4734976
+    },
+    {
+      "index": 6,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 87040,
+      "gflops": 0.2818048
+    },
+    {
+      "index": 7,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 295424,
+      "gflops": 0.2367488
+    },
+    {
+      "index": 8,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 346112,
+      "gflops": 0.278528
+    },
+    {
+      "index": 9,
+      "from": -1,
+      "type": "SPPF",
+      "parameters": 164608,
+      "gflops": 0.1323008
+    },
+    {
+      "index": 10,
+      "from": -1,
+      "type": "C2PSA",
+      "parameters": 249728,
+      "gflops": 0.2020352
+    },
+    {
+      "index": 11,
+      "from": -1,
+      "type": "Upsample",
+      "parameters": 0,
+      "gflops": 0.0008192
+    },
+    {
+      "index": 12,
+      "from": 6,
+      "type": "FaPNFeatureSelectionKeep",
+      "parameters": 16385,
+      "gflops": 0.0032768
+    },
+    {
+      "index": 13,
+      "from": [
+        12,
+        11
+      ],
+      "type": "FaPNAlignmentOnly",
+      "parameters": 159961,
+      "gflops": 0.5103616
+    },
+    {
+      "index": 14,
+      "from": [
+        12,
+        13
+      ],
+      "type": "Concat",
+      "parameters": 0,
+      "gflops": 0.0
+    },
+    {
+      "index": 15,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 111296,
+      "gflops": 0.3584
+    },
+    {
+      "index": 16,
+      "from": -1,
+      "type": "Upsample",
+      "parameters": 0,
+      "gflops": 0.0016384
+    },
+    {
+      "index": 17,
+      "from": 4,
+      "type": "FaPNFeatureSelectionKeep",
+      "parameters": 16385,
+      "gflops": 0.0032768
+    },
+    {
+      "index": 18,
+      "from": [
+        17,
+        16
+      ],
+      "type": "FaPNAlignmentOnly",
+      "parameters": 150489,
+      "gflops": 1.9218432
+    },
+    {
+      "index": 19,
+      "from": [
+        17,
+        18
+      ],
+      "type": "Concat",
+      "parameters": 0,
+      "gflops": 0.0
+    },
+    {
+      "index": 20,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 32096,
+      "gflops": 0.4153344
+    },
+    {
+      "index": 21,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 36992,
+      "gflops": 0.118784
+    },
+    {
+      "index": 22,
+      "from": [
+        -1,
+        15
+      ],
+      "type": "Concat",
+      "parameters": 0,
+      "gflops": 0.0
+    },
+    {
+      "index": 23,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 86720,
+      "gflops": 0.2797568
+    },
+    {
+      "index": 24,
+      "from": -1,
+      "type": "Conv",
+      "parameters": 147712,
+      "gflops": 0.1183744
+    },
+    {
+      "index": 25,
+      "from": [
+        -1,
+        10
+      ],
+      "type": "Concat",
+      "parameters": 0,
+      "gflops": 0.0
+    },
+    {
+      "index": 26,
+      "from": -1,
+      "type": "C3k2",
+      "parameters": 378880,
+      "gflops": 0.3047424
+    },
+    {
+      "index": 27,
+      "from": [
+        20,
+        23,
+        26
+      ],
+      "type": "Detect",
+      "parameters": 430867,
+      "gflops": 1.7264128
+    }
+  ],
+  "method": {
+    "deepcopy_used": false,
+    "thop_direct_forward": true,
+    "deform_conv_custom_op": "output_elements * kernel_h * kernel_w * in_channels / groups",
+    "gflops_convention": "2 FLOPs per MAC, matching Ultralytics model_info",
+    "dcn_sampling_note": "Reports convolution-equivalent DCNv2 MACs; interpolation/addressing overhead is not included, matching common THOP conventions."
+  },
+  "variant": "inceptiondw",
+  "experiment_name": "yolo11n_inceptiondw_fapn_prefusion_640",
+  "prefusion_parameters": 343220,
+  "prefusion_gflops": 2.4387584,
+  "comparison": {
+    "official_yolo11n_nc1": {
+      "parameters": 2590035,
+      "gflops": 6.4406016,
+      "parameter_delta": 338304,
+      "gflops_delta": 2.3386623999999996
+    },
+    "official_yolo11n_nc80": {
+      "parameters": 2624080,
+      "gflops": 6.614336,
+      "parameter_delta": 304259,
+      "gflops_delta": 2.1649279999999997
+    }
+  }
+}
