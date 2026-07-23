@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 3
+_PATCH_VERSION = 4
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -29,6 +29,22 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 
     source = inspect.getsource(parse_model)
     required_names = (
+        "ASCGDAlignC3",
+        "ASCGDAlignC4",
+        "ASCGDAlignC5",
+        "ASCGDChannelP4",
+        "ASCGDChannelP5",
+        "ASCGDDirectP3",
+        "ASCGDDirectP4",
+        "ASCGDDirectP5",
+        "ASCGDGather",
+        "ASCGDSpatialP3",
+        "ASCGDSwappedP3",
+        "ASCGDSwappedP4",
+        "ASCGDSwappedP5",
+        "ASCGDSymmetricP3",
+        "ASCGDSymmetricP4",
+        "ASCGDSymmetricP5",
         "C3k2_InceptionDW",
         "FaPNAlign",
         "FaPNAlignmentOnly",
@@ -64,7 +80,32 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     branch_marker = "        elif m is AIFI:"
     if branch_marker not in source:
         raise RuntimeError("Unable to locate parse_model AIFI branch for custom registration.")
-    custom_branches = """        elif m is FaPNFeatureSelectionKeep:
+    custom_branches = """        elif m in {ASCGDAlignC3, ASCGDAlignC4, ASCGDAlignC5}:
+            if isinstance(f, (list, tuple)):
+                raise ValueError(f"{m.__name__} requires exactly one input index.")
+            c1, c2 = ch[f], args[0]
+            args = [c1, *args]
+        elif m is ASCGDGather:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError("ASCGDGather requires [A3, A4, A5].")
+            c2 = args[0]
+            args = [[ch[x] for x in f], *args]
+        elif m in {ASCGDDirectP3, ASCGDSpatialP3, ASCGDSwappedP3, ASCGDSymmetricP3}:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError(f"{m.__name__} requires [C3, G].")
+            c2 = ch[f[0]]
+            args = [[ch[x] for x in f], *args]
+        elif m in {ASCGDDirectP4, ASCGDChannelP4, ASCGDSwappedP4, ASCGDSymmetricP4}:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError(f"{m.__name__} requires [A3, A4, G].")
+            c2 = ch[f[1]]
+            args = [[ch[x] for x in f], *args]
+        elif m in {ASCGDDirectP5, ASCGDChannelP5, ASCGDSwappedP5, ASCGDSymmetricP5}:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError(f"{m.__name__} requires [P4, C5, G].")
+            c2 = ch[f[1]]
+            args = [[ch[x] for x in f], *args]
+        elif m is FaPNFeatureSelectionKeep:
             if isinstance(f, (list, tuple)):
                 raise ValueError("FaPNFeatureSelectionKeep requires exactly one input index.")
             c1 = c2 = ch[f]
@@ -114,6 +155,24 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 def register_custom_modules(patch_parse_model: bool = True) -> None:
     """Register every repository-owned module through one idempotent path."""
 
+    from custom_modules.ascgd import (
+        ASCGDAlignC3,
+        ASCGDAlignC4,
+        ASCGDAlignC5,
+        ASCGDChannelP4,
+        ASCGDChannelP5,
+        ASCGDDirectP3,
+        ASCGDDirectP4,
+        ASCGDDirectP5,
+        ASCGDGather,
+        ASCGDSpatialP3,
+        ASCGDSwappedP3,
+        ASCGDSwappedP4,
+        ASCGDSwappedP5,
+        ASCGDSymmetricP3,
+        ASCGDSymmetricP4,
+        ASCGDSymmetricP5,
+    )
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.fapn import FaPNAlign, FaPNLateral, FaPNOutputConv
     from custom_modules.fapn_prefusion import FaPNAlignmentOnly, FaPNFeatureSelectionKeep
@@ -122,6 +181,22 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     import ultralytics.nn.tasks as tasks
 
     names = {
+        "ASCGDAlignC3": ASCGDAlignC3,
+        "ASCGDAlignC4": ASCGDAlignC4,
+        "ASCGDAlignC5": ASCGDAlignC5,
+        "ASCGDChannelP4": ASCGDChannelP4,
+        "ASCGDChannelP5": ASCGDChannelP5,
+        "ASCGDDirectP3": ASCGDDirectP3,
+        "ASCGDDirectP4": ASCGDDirectP4,
+        "ASCGDDirectP5": ASCGDDirectP5,
+        "ASCGDGather": ASCGDGather,
+        "ASCGDSpatialP3": ASCGDSpatialP3,
+        "ASCGDSwappedP3": ASCGDSwappedP3,
+        "ASCGDSwappedP4": ASCGDSwappedP4,
+        "ASCGDSwappedP5": ASCGDSwappedP5,
+        "ASCGDSymmetricP3": ASCGDSymmetricP3,
+        "ASCGDSymmetricP4": ASCGDSymmetricP4,
+        "ASCGDSymmetricP5": ASCGDSymmetricP5,
         "Align": Align,
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "DWDown": DWDown,
@@ -159,5 +234,11 @@ def register_fapn_modules(patch_parse_model: bool = True) -> None:
 
 def register_fapn_prefusion_modules(patch_parse_model: bool = True) -> None:
     """Register FaPN-Prefusion modules and the shared parser patch."""
+
+    register_custom_modules(patch_parse_model=patch_parse_model)
+
+
+def register_ascgd_modules(patch_parse_model: bool = True) -> None:
+    """Register ASCGD modules and the shared parser patch."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)

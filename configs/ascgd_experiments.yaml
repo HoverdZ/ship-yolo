@@ -1,0 +1,137 @@
+# Reproducible protocol for the seven InceptionDW + ASCGD neck ablations.
+
+runtime:
+  ultralytics: "8.4.92"
+  implementation: "standard PyTorch operators only"
+  formal_gpu: "NVIDIA L4"
+
+architecture:
+  backbone: "experiments/yolo11n_inceptiondw_c3k2_p23.yaml"
+  gather_dim: 128
+  heads: 4
+  window_size: 8
+  sgfn_expansion: 2.0
+  dual_aggregation_blocks: 1
+  detect_strides: [8, 16, 32]
+
+variants:
+  a_base:
+    yaml: "experiments/yolo11n_incdw_ascgd_a_base.yaml"
+    name: "yolo11n_incdw_ascgd_base_640"
+    gather: false
+    p3: "official YOLO FPN/PAN"
+    p4: "official YOLO FPN/PAN"
+    p5: "official YOLO FPN/PAN"
+  b_gather:
+    yaml: "experiments/yolo11n_incdw_ascgd_b_gather.yaml"
+    name: "yolo11n_incdw_ascgd_gather_640"
+    gather: true
+    p3: "direct residual"
+    p4: "direct residual"
+    p5: "direct residual"
+  c_sca:
+    yaml: "experiments/yolo11n_incdw_ascgd_c_sca.yaml"
+    name: "yolo11n_incdw_ascgd_sca_640"
+    gather: true
+    p3: "spatial cross-attention"
+    p4: "direct residual"
+    p5: "direct residual"
+  d_cca:
+    yaml: "experiments/yolo11n_incdw_ascgd_d_cca.yaml"
+    name: "yolo11n_incdw_ascgd_cca_640"
+    gather: true
+    p3: "direct residual"
+    p4: "channel cross-attention"
+    p5: "channel cross-attention"
+  e_full:
+    yaml: "experiments/yolo11n_incdw_ascgd_e_full.yaml"
+    name: "yolo11n_incdw_ascgd_full_640"
+    gather: true
+    p3: "spatial cross-attention"
+    p4: "channel cross-attention"
+    p5: "channel cross-attention"
+  f_swap:
+    yaml: "experiments/yolo11n_incdw_ascgd_f_swap.yaml"
+    name: "yolo11n_incdw_ascgd_swap_640"
+    gather: true
+    p3: "channel cross-attention"
+    p4: "spatial cross-attention"
+    p5: "spatial cross-attention"
+  g_symmetric:
+    yaml: "experiments/yolo11n_incdw_ascgd_g_symmetric.yaml"
+    name: "yolo11n_incdw_ascgd_symmetric_640"
+    gather: true
+    p3: "spatial + channel cross-attention"
+    p4: "spatial + channel cross-attention"
+    p5: "spatial + channel cross-attention"
+
+formal_training_priority: ["e_full"]
+
+training:
+  imgsz: 640
+  epochs: 150
+  batch: 8
+  workers: 2
+  device: 0
+  single_class: true
+  class_names: ["ship"]
+  seed: 0
+  deterministic: true
+  optimizer: "auto"
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  warmup_momentum: 0.8
+  warmup_bias_lr: 0.1
+  patience: 100
+  close_mosaic: 10
+  amp: true
+  cache: false
+  val: true
+  plots: true
+  augmentations:
+    hsv_h: 0.015
+    hsv_s: 0.7
+    hsv_v: 0.4
+    degrees: 0.0
+    translate: 0.1
+    scale: 0.5
+    shear: 0.0
+    perspective: 0.0
+    flipud: 0.0
+    fliplr: 0.5
+    mosaic: 1.0
+    mixup: 0.0
+    copy_paste: 0.0
+
+training_parameter_provenance:
+  recorded:
+    - "imgsz"
+    - "epochs"
+    - "batch"
+    - "workers"
+    - "seed"
+    - "optimizer"
+  fallback:
+    source: "Ultralytics 8.4.92 defaults used by the repository's formal InceptionDW entries"
+    reason: "No completed InceptionDW args.yaml is tracked in this repository."
+
+dataset_expected_images:
+  train: 2582
+  val: 842
+  test: 874
+
+initialization:
+  default: "official yolo11n.pt"
+  debug_only_option: "--init-from-inception-best"
+  inherit_backbone_by_name_and_shape: true
+  map_detect_explicitly: true
+  force_shape_adaptation: false
+
+artifact_policy:
+  do_not_commit_weights: true
+  do_not_commit_datasets: true
+  no_overwrite: true
+  resume_only_from_last_pt: true

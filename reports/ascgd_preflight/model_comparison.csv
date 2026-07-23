@@ -1,0 +1,8 @@
+variant,yaml,parameters,trainable_parameters,gflops,gflops_error,delta_parameters_vs_a,delta_gflops_vs_a,delta_parameters_vs_e,delta_gflops_vs_e
+a_base,experiments/yolo11n_incdw_ascgd_a_base.yaml,2585119,2585103,6.3405056,,0,0.0,-431134,-2.5391423999999994
+b_gather,experiments/yolo11n_incdw_ascgd_b_gather.yaml,2701837,2701821,7.034783999999999,,116718,0.6942783999999991,-314416,-1.8448640000000003
+c_sca,experiments/yolo11n_incdw_ascgd_c_sca.yaml,2827572,2827556,8.5241152,,242453,2.1836096000000005,-188681,-0.35553279999999887
+d_cca,experiments/yolo11n_incdw_ascgd_d_cca.yaml,2890518,2890502,7.390316800000001,,305399,1.0498112000000006,-125735,-1.4893311999999987
+e_full,experiments/yolo11n_incdw_ascgd_e_full.yaml,3016253,3016237,8.879648,,431134,2.5391423999999994,0,0.0
+f_swap,experiments/yolo11n_incdw_ascgd_f_swap.yaml,3072864,3072848,8.4739216,,487745,2.1334160000000004,56611,-0.40572639999999893
+g_symmetric,experiments/yolo11n_incdw_ascgd_g_symmetric.yaml,3418767,3418751,10.540686400000002,,833648,4.200180800000002,402514,1.6610384000000025

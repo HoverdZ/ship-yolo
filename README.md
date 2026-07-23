@@ -256,3 +256,31 @@ See `docs/fapn_prefusion_design.md` for the exact ablation and
 `docs/colab_fapn_prefusion.md` for the six-cell formal Colab workflow. Formal
 training always starts from the manifested `*_pretrained_init.pt`, never from
 the custom YAML.
+
+## Prepared Experiments: ASCGD-Neck
+
+Seven controlled neck ablations reuse the validated InceptionDW backbone
+without changing its implementation or layer-2/layer-4 placement. Variant E
+is the full asymmetric design: window spatial cross-attention distributes
+public semantics to P3, while cross-covariance channel attention distributes
+shallow geometry to P4 and P5. All variants retain Detect(P3,P4,P5).
+
+```bash
+python tools/build_ascgd_variants.py --variant all
+python tools/check_ascgd.py --all
+python -m pytest tests/test_ascgd.py -q
+```
+
+The first formal Colab run is intentionally E only:
+
+```bash
+python tools/train_ascgd_colab.py \
+  --variant e_full \
+  --data /content/datasets/ship/data.yaml \
+  --project /content/drive/MyDrive/ship_detection/organized_experiments \
+  --name yolo11n_incdw_ascgd_full_640
+```
+
+See `docs/ascgd_neck.md` for the exact A-G differences, initialization audit,
+resume protection, L4 benchmark, and result-summary commands. Formal training
+is not started during repository preparation.

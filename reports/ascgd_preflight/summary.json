@@ -1,0 +1,1148 @@
+{
+  "all_checks_passed": true,
+  "runtime": {
+    "python": "3.12.13",
+    "torch": "2.13.0+cpu",
+    "cuda_runtime": null,
+    "cuda_available": false,
+    "gpu": null,
+    "ultralytics": "8.4.92",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu_only_local_validation": true
+  },
+  "formal_training_started": false,
+  "variants": {
+    "a_base": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_a_base.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 23,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 2585119,
+        "trainable_parameters": 2585103,
+        "fp32_parameter_size_mib": 9.861446380615234,
+        "gflops": 6.3405056,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": []
+    },
+    "b_gather": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_b_gather.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 2701837,
+        "trainable_parameters": 2701821,
+        "fp32_parameter_size_mib": 10.306690216064453,
+        "gflops": 7.034783999999999,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    },
+    "c_sca": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_c_sca.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 2827572,
+        "trainable_parameters": 2827556,
+        "fp32_parameter_size_mib": 10.786331176757812,
+        "gflops": 8.5241152,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    },
+    "d_cca": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_d_cca.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 2890518,
+        "trainable_parameters": 2890502,
+        "fp32_parameter_size_mib": 11.026451110839844,
+        "gflops": 7.390316800000001,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma_g",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    },
+    "e_full": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_e_full.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 3016253,
+        "trainable_parameters": 3016237,
+        "fp32_parameter_size_mib": 11.506092071533203,
+        "gflops": 8.879648,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma_g",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    },
+    "f_swap": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_f_swap.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 3072864,
+        "trainable_parameters": 3072848,
+        "fp32_parameter_size_mib": 11.7220458984375,
+        "gflops": 8.4739216,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma_g",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    },
+    "g_symmetric": {
+      "yaml": "experiments/yolo11n_incdw_ascgd_g_symmetric.yaml",
+      "checks": {
+        "forward": true,
+        "detect_has_three_inputs": true,
+        "detect_channels": true,
+        "detect_shapes": true,
+        "detect_strides": true,
+        "finite": true,
+        "no_forbidden_modules": true,
+        "residual_gammas_in_state_dict": true,
+        "residual_gammas_start_at_point_one": true,
+        "gflops_profiled_or_error_recorded": true
+      },
+      "all_checks_passed": true,
+      "forward": {
+        "input_shape": [
+          2,
+          3,
+          640,
+          640
+        ],
+        "detect_index": 21,
+        "detect_input_shapes": [
+          [
+            2,
+            64,
+            80,
+            80
+          ],
+          [
+            2,
+            128,
+            40,
+            40
+          ],
+          [
+            2,
+            256,
+            20,
+            20
+          ]
+        ],
+        "detect_spatial_sizes": [
+          [
+            80,
+            80
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        "detect_strides": [
+          8.0,
+          16.0,
+          32.0
+        ],
+        "output_tree": [
+          [
+            2,
+            5,
+            8400
+          ],
+          {
+            "boxes": [
+              2,
+              64,
+              8400
+            ],
+            "scores": [
+              2,
+              1,
+              8400
+            ],
+            "feats": [
+              [
+                2,
+                64,
+                80,
+                80
+              ],
+              [
+                2,
+                128,
+                40,
+                40
+              ],
+              [
+                2,
+                256,
+                20,
+                20
+              ]
+            ]
+          }
+        ],
+        "tensor_count": 6,
+        "all_finite": true
+      },
+      "statistics": {
+        "parameters": 3418767,
+        "trainable_parameters": 3418751,
+        "fp32_parameter_size_mib": 13.041561126708984,
+        "gflops": 10.540686400000002,
+        "gflops_error": null,
+        "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+      },
+      "forbidden_modules": [],
+      "gamma_state_keys": [
+        "model.15.gamma3",
+        "model.17.gamma_g",
+        "model.17.gamma4",
+        "model.19.gamma5"
+      ]
+    }
+  },
+  "baseline_equivalence": {
+    "checks": {
+      "layer_structure": true,
+      "parameter_count": true,
+      "trainable_parameter_count": true,
+      "gflops": true,
+      "state_dict_keys": true,
+      "state_dict_shapes": true
+    },
+    "all_checks_passed": true,
+    "class_count": 1,
+    "baseline_nc_provenance": "The historical YAML stores nc=80, while formal ship data overrides it to nc=1. This comparison builds that effective one-class baseline.",
+    "baseline_statistics": {
+      "parameters": 2585119,
+      "trainable_parameters": 2585103,
+      "fp32_parameter_size_mib": 9.861446380615234,
+      "gflops": 6.3405056,
+      "gflops_error": null,
+      "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+    },
+    "candidate_statistics": {
+      "parameters": 2585119,
+      "trainable_parameters": 2585103,
+      "fp32_parameter_size_mib": 9.861446380615234,
+      "gflops": 6.3405056,
+      "gflops_error": null,
+      "gflops_method": "Ultralytics get_flops/THOP; attention matmul cost may be uncounted"
+    }
+  },
+  "backbone_fairness": {
+    "per_variant": {
+      "a_base": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "b_gather": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "c_sca": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "d_cca": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "e_full": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "f_swap": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      },
+      "g_symmetric": {
+        "layer_structure_matches": true,
+        "state_keys_and_shapes_match": true,
+        "yaml_backbone_matches": true,
+        "detect_type_matches": true,
+        "detect_state_shapes_match": true,
+        "detect_has_three_inputs": true,
+        "differences_confined_to_neck": true
+      }
+    },
+    "all_checks_passed": true
+  },
+  "window_padding_and_attention": {
+    "input_shape": [
+      2,
+      128,
+      37,
+      45
+    ],
+    "window_shape": [
+      60,
+      64,
+      128
+    ],
+    "restored_shape": [
+      2,
+      128,
+      37,
+      45
+    ],
+    "partition_reverse_exact": true,
+    "nonstandard_attention_shape": [
+      2,
+      128,
+      37,
+      45
+    ],
+    "nonstandard_attention_finite": true,
+    "input_gradient_finite": true,
+    "parameter_gradients_present": true,
+    "positive_channel_temperature": true
+  },
+  "window_check_passed": true,
+  "rectangular_e_full_forward": {
+    "input_shape": [
+      1,
+      3,
+      640,
+      672
+    ],
+    "detect_index": 21,
+    "detect_input_shapes": [
+      [
+        1,
+        64,
+        80,
+        84
+      ],
+      [
+        1,
+        128,
+        40,
+        42
+      ],
+      [
+        1,
+        256,
+        20,
+        21
+      ]
+    ],
+    "detect_spatial_sizes": [
+      [
+        80,
+        84
+      ],
+      [
+        40,
+        42
+      ],
+      [
+        20,
+        21
+      ]
+    ],
+    "detect_strides": [
+      8.0,
+      16.0,
+      32.0
+    ],
+    "output_tree": [
+      [
+        1,
+        5,
+        8820
+      ],
+      {
+        "boxes": [
+          1,
+          64,
+          8820
+        ],
+        "scores": [
+          1,
+          1,
+          8820
+        ],
+        "feats": [
+          [
+            1,
+            64,
+            80,
+            84
+          ],
+          [
+            1,
+            128,
+            40,
+            42
+          ],
+          [
+            1,
+            256,
+            20,
+            21
+          ]
+        ]
+      }
+    ],
+    "tensor_count": 6,
+    "all_finite": true
+  },
+  "rectangular_forward_passed": true,
+  "e_full_backward": {
+    "loss": 49.415283203125,
+    "differentiable_output_tensors": 5,
+    "trainable_parameter_tensors": 336,
+    "missing_gradient_keys": [],
+    "nonfinite_gradient_keys": [],
+    "zero_gradient_keys": [],
+    "all_trainable_parameters_have_gradients": true,
+    "all_gradients_finite": true
+  },
+  "gradient_check_passed": true,
+  "cuda_amp": {
+    "available": false,
+    "status": "not_run",
+    "reason": "torch.cuda.is_available() is false on this host"
+  },
+  "weight_transfer_summary": {
+    "a_base": {
+      "inherited_state_tensors": 446,
+      "total_state_tensors": 511,
+      "inherited_parameter_elements": 2540240,
+      "target_parameter_elements": 2585119,
+      "parameter_element_inheritance_ratio": 0.9826394839077041,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "b_gather": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 538,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 2701837,
+      "parameter_element_inheritance_ratio": 0.6464283374607721,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "c_sca": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 555,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 2827572,
+      "parameter_element_inheritance_ratio": 0.6176832986038906,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "d_cca": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 557,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 2890518,
+      "parameter_element_inheritance_ratio": 0.6042321826053323,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "e_full": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 574,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 3016253,
+      "parameter_element_inheritance_ratio": 0.5790442645229031,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "f_swap": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 584,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 3072864,
+      "parameter_element_inheritance_ratio": 0.5683766024139044,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    },
+    "g_symmetric": {
+      "inherited_state_tensors": 308,
+      "total_state_tensors": 615,
+      "inherited_parameter_elements": 1746544,
+      "target_parameter_elements": 3418767,
+      "parameter_element_inheritance_ratio": 0.5108695620380096,
+      "backbone_parameter_inheritance_ratio": 0.9993796653720979,
+      "detect_parameter_inheritance_ratio": 0.8977990888139495
+    }
+  }
+}
