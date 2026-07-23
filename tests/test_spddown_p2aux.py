@@ -141,6 +141,8 @@ def test_colab_uses_getpass_without_fixed_dataset_count_gate() -> None:
     ).read_text(encoding="utf-8")
     for source in (generator, notebook):
         assert "getpass.getpass(" in source
+        assert "#!/usr/bin/env python3" in source
+        assert "stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR" in source
         assert "EXPECTED_COUNTS" not in source
         assert "ENFORCE_EXPECTED_COUNTS" not in source
         assert "Dataset count mismatch" not in source

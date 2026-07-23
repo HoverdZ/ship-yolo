@@ -67,40 +67,74 @@ import os
 import stat
 import subprocess
 
-token = getpass.getpass("GitHub token (input hidden; never written to notebook): ")
+token = getpass.getpass("GitHub token (input hidden; never written to notebook): ").strip()
+if not token:
+    raise ValueError("GitHub token cannot be empty.")
+
 askpass = Path("/content/.ship_yolo_askpass.py")
 askpass.write_text(
+    "#!/usr/bin/env python3\\n"
     "import os, sys\\n"
-    "print('x-access-token' if 'Username' in sys.argv[1] else os.environ['SHIP_GITHUB_TOKEN'])\\n",
+    "prompt = sys.argv[1] if len(sys.argv) > 1 else ''\\n"
+    "print('x-access-token' if 'Username' in prompt else os.environ['SHIP_GITHUB_TOKEN'])\\n",
     encoding="utf-8",
 )
-askpass.chmod(askpass.stat().st_mode | stat.S_IXUSR)
+askpass.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 env = {
     **os.environ,
     "GIT_ASKPASS": str(askpass),
     "GIT_TERMINAL_PROMPT": "0",
     "SHIP_GITHUB_TOKEN": token,
 }
+
+def run_git(arguments, *, authenticated=False):
+    completed = subprocess.run(
+        ["git", *arguments],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env if authenticated else None,
+    )
+    output = completed.stdout + completed.stderr
+    if token:
+        output = output.replace(token, "[REDACTED]")
+    output = output.strip()
+    if completed.returncode:
+        command = "git " + " ".join(str(part) for part in arguments)
+        raise RuntimeError(
+            f"{command} failed with exit status {completed.returncode}.\\n"
+            f"{output or 'Git returned no diagnostic output.'}"
+        )
+    if output:
+        print(output)
+    return completed.stdout.strip()
+
 try:
     if REPO.exists():
-        remote = subprocess.check_output(
-            ["git", "-C", str(REPO), "remote", "get-url", "origin"], text=True
-        ).strip()
+        if not (REPO / ".git").is_dir():
+            if any(REPO.iterdir()):
+                raise RuntimeError(
+                    f"{REPO} exists but is not a Git clone. "
+                    "Move or remove that unrelated directory, then rerun Cell 2."
+                )
+            REPO.rmdir()
+
+    if REPO.exists():
+        remote = run_git(["-C", str(REPO), "remote", "get-url", "origin"])
         if remote.rstrip("/") not in {REPO_URL.rstrip("/"), REPO_URL.removesuffix(".git")}:
             raise RuntimeError(f"Refusing unrelated existing repository: {remote}")
-        subprocess.run(["git", "-C", str(REPO), "fetch", "origin", BRANCH], check=True, env=env)
-        subprocess.run(
-            ["git", "-C", str(REPO), "checkout", "-B", BRANCH, f"origin/{BRANCH}"],
-            check=True,
+        run_git(
+            ["-C", str(REPO), "fetch", "origin", BRANCH],
+            authenticated=True,
         )
+        run_git(["-C", str(REPO), "checkout", "-B", BRANCH, f"origin/{BRANCH}"])
     else:
-        subprocess.run(
+        run_git(
             [
-                "git", "-c", "credential.helper=", "clone", "--branch", BRANCH,
+                "-c", "credential.helper=", "clone", "--branch", BRANCH,
                 "--single-branch", REPO_URL, str(REPO),
             ],
-            check=True,
-            env=env,
+            authenticated=True,
         )
 finally:
     token = ""
@@ -108,10 +142,8 @@ finally:
     os.environ.pop("SHIP_GITHUB_TOKEN", None)
     askpass.unlink(missing_ok=True)
 
-PINNED_COMMIT = subprocess.check_output(
-    ["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True
-).strip()
-subprocess.run(["git", "-C", str(REPO), "checkout", "--detach", PINNED_COMMIT], check=True)
+PINNED_COMMIT = run_git(["-C", str(REPO), "rev-parse", "HEAD"])
+run_git(["-C", str(REPO), "checkout", "--detach", PINNED_COMMIT])
 print("Pinned commit:", PINNED_COMMIT)
 """
     ),
