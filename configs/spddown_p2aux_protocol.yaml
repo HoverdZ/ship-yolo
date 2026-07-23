@@ -1,0 +1,55 @@
+runtime:
+  ultralytics: "8.4.92"
+  formal_gpu: "NVIDIA L4 or equivalent"
+
+baseline:
+  yaml: "experiments/yolo11n_inceptiondw_c3k2_p23.yaml"
+  backbone: "InceptionDW at P2/P3 C3k2"
+  neck: "native YOLO11 FPN/PAN"
+  detect: [P3, P4, P5]
+
+variants:
+  spddown:
+    yaml: "experiments/yolo11n_inceptiondw_spddown_p3.yaml"
+    name: "yolo11n_inceptiondw_spddown_p3_640"
+    single_variable: "layer 3 C2->C3 Conv replaced by SPDDown"
+  p2_gaussian_aux:
+    yaml: "experiments/yolo11n_inceptiondw_p2_gaussian_aux.yaml"
+    name: "yolo11n_inceptiondw_p2_gaussian_aux_640"
+    single_variable: "training-only P2 Gaussian heatmap supervision"
+
+training:
+  weights: "official yolo11n.pt"
+  imgsz: 640
+  epochs: 150
+  batch: 8
+  workers: 2
+  device: 0
+  seed: 0
+  deterministic: true
+  optimizer: "auto"
+  patience: 100
+  amp: true
+  cache: false
+
+dataset:
+  drive_root: "/content/drive/MyDrive/ship_detection/data"
+  local_root: "/content/datasets/ship_detection"
+  legacy_expected_images:
+    train: 2582
+    val: 842
+    test: 874
+  note: "The local D:/lw2.zip audit found 2517/839/840; formal runs must record which copy is used."
+
+screening:
+  local_proxy_only: "5 epochs, imgsz 320, fixed subset; rejection only"
+  formal_gate_epoch: 30
+  reject_if:
+    - "Recall trails the matched InceptionDW baseline by more than 0.02"
+    - "mAP50-95 trails the matched InceptionDW baseline by more than 0.005"
+
+artifact_policy:
+  do_not_commit_weights: true
+  do_not_commit_datasets: true
+  no_overwrite: true
+  resume_only_from_last_pt: true

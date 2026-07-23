@@ -1,5 +1,18 @@
 # ship-yolo
 
+## InceptionDW small-ship experiments: SPDDown and P2 Gaussian auxiliary loss
+
+The `feature/spddown-p2-gaussian-aux` experiment suite keeps the validated
+InceptionDW backbone and native YOLO11 Neck, then prepares two independent
+single-variable ablations:
+
+- targeted `SPDDown` only at C2-to-C3 downsampling;
+- a training-only P2 Gaussian heatmap loss with native P3/P4/P5 inference.
+
+See [the design and pre-training audit](docs/spddown_p2_gaussian_aux_design.md)
+and `configs/spddown_p2aux_protocol.yaml`. No formal training is started by the
+repository code or notebook setup cells.
+
 Remote Sensing Ship Detection based on YOLO11.
 
 This repository manages reproducible research experiments for remote sensing ship detection using Ultralytics YOLO11. It is intended for long-term SCI paper experimentation, including baseline construction, model-structure improvement, ablation studies, experiment logging, and paper-related documentation.

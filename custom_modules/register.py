@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 4
+_PATCH_VERSION = 5
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -51,7 +51,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         "FaPNFeatureSelectionKeep",
         "FaPNLateral",
         "FaPNOutputConv",
+        "P2GaussianAuxDetect",
         "SDWF",
+        "SPDDown",
     )
     if all(name in source for name in required_names):
         parse_model._ship_yolo_patched = True
@@ -64,7 +66,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     source = source.replace(
         base_marker,
         "base_modules = frozenset(\n        {\n            Align,\n            C3k2_InceptionDW,\n"
-        "            DWDown,\n            FaPNLateral,\n            FaPNOutputConv,",
+        "            DWDown,\n            FaPNLateral,\n            FaPNOutputConv,\n"
+        "            SPDDown,",
         1,
     )
 
@@ -134,6 +137,21 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 """
     source = source.replace(branch_marker, custom_branches + branch_marker, 1)
 
+    head_marker = "        elif m is SemanticSegment:"
+    if head_marker not in source:
+        raise RuntimeError("Unable to locate parse_model SemanticSegment branch.")
+    source = source.replace(
+        head_marker,
+        """        elif m is P2GaussianAuxDetect:
+            if not isinstance(f, (list, tuple)) or len(f) != 4:
+                raise ValueError("P2GaussianAuxDetect requires [P2, P3, P4, P5].")
+            args.extend([reg_max, end2end, [ch[x] for x in f]])
+            m.legacy = legacy
+"""
+        + head_marker,
+        1,
+    )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -176,7 +194,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.fapn import FaPNAlign, FaPNLateral, FaPNOutputConv
     from custom_modules.fapn_prefusion import FaPNAlignmentOnly, FaPNFeatureSelectionKeep
+    from custom_modules.p2_gaussian_aux import P2GaussianAuxDetect
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
+    from custom_modules.spd import SPDDown
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -205,7 +225,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "FaPNFeatureSelectionKeep": FaPNFeatureSelectionKeep,
         "FaPNLateral": FaPNLateral,
         "FaPNOutputConv": FaPNOutputConv,
+        "P2GaussianAuxDetect": P2GaussianAuxDetect,
         "SDWF": SDWF,
+        "SPDDown": SPDDown,
     }
     _set_module_attrs(modules, names)
     _set_module_attrs(tasks, names)

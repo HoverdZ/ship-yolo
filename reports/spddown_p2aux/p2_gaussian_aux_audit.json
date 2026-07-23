@@ -1,0 +1,2194 @@
+{
+  "variant": "p2_gaussian_aux",
+  "experiment_name": "yolo11n_inceptiondw_p2_gaussian_aux_640",
+  "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_p2_gaussian_aux.yaml",
+  "ultralytics_version": "8.4.92",
+  "git_commit": "f5fba9b3cc5b3a68882c229e8249f18529d38376",
+  "checks": {
+    "yaml_scope": true,
+    "structure": true,
+    "forward": true,
+    "transfer_has_loaded_tensors": true,
+    "variant_specific": true
+  },
+  "all_checks_passed": true,
+  "yaml_scope": {
+    "checks": {
+      "same_layer_count": true,
+      "single_expected_difference": true
+    },
+    "all_checks_passed": true,
+    "differences": [
+      {
+        "index": 23,
+        "baseline": [
+          [
+            16,
+            19,
+            22
+          ],
+          1,
+          "Detect",
+          [
+            "nc"
+          ]
+        ],
+        "custom": [
+          [
+            2,
+            16,
+            19,
+            22
+          ],
+          1,
+          "P2GaussianAuxDetect",
+          [
+            "nc",
+            0.25,
+            0.25,
+            1.0,
+            3.0
+          ]
+        ]
+      }
+    ]
+  },
+  "structure": {
+    "checks": {
+      "detect_is_three_scale": true,
+      "detect_strides_are_8_16_32": true,
+      "spddown_scope": true,
+      "aux_scope": true,
+      "native_detect_sources_or_aux_contract": true,
+      "native_neck_layer_count": true,
+      "aux_weight_is_0_25": true,
+      "aux_is_one_channel": true,
+      "detect_channels_exclude_p2": true
+    },
+    "all_checks_passed": true,
+    "spddown_indices": [],
+    "aux_head_indices": [
+      23
+    ],
+    "head_sources": [
+      2,
+      16,
+      19,
+      22
+    ]
+  },
+  "forward": {
+    "checks": {
+      "eval_output_exists": true,
+      "three_native_detect_features": true,
+      "eval_does_not_execute_aux": true,
+      "train_aux_contract": true
+    },
+    "all_checks_passed": true,
+    "head_input_shapes": [
+      [
+        1,
+        64,
+        160,
+        160
+      ],
+      [
+        1,
+        64,
+        80,
+        80
+      ],
+      [
+        1,
+        128,
+        40,
+        40
+      ],
+      [
+        1,
+        256,
+        20,
+        20
+      ],
+      [
+        1,
+        64,
+        160,
+        160
+      ],
+      [
+        1,
+        64,
+        80,
+        80
+      ],
+      [
+        1,
+        128,
+        40,
+        40
+      ],
+      [
+        1,
+        256,
+        20,
+        20
+      ]
+    ],
+    "eval_auxiliary_calls": [],
+    "train_auxiliary_calls": [
+      [
+        1,
+        1,
+        160,
+        160
+      ]
+    ]
+  },
+  "statistics": {
+    "parameters": 2619229,
+    "trainable_parameters": 2619213,
+    "gflops_at_imgsz": 6.51424,
+    "imgsz": 640
+  },
+  "weight_transfer": {
+    "variant": "p2_gaussian_aux",
+    "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+    "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+    "loaded_state_tensors": 497,
+    "total_state_tensors": 513,
+    "loaded_parameter_tensors": 254,
+    "total_parameter_tensors": 270,
+    "loaded_target_parameter_elements": 2618320,
+    "total_target_parameter_elements": 2619229,
+    "random_initialized_parameter_keys": [
+      "model.2.m.0.cv2.inception.dwconv_h.bias",
+      "model.2.m.0.cv2.inception.dwconv_h.weight",
+      "model.2.m.0.cv2.inception.dwconv_hw.bias",
+      "model.2.m.0.cv2.inception.dwconv_hw.weight",
+      "model.2.m.0.cv2.inception.dwconv_w.bias",
+      "model.2.m.0.cv2.inception.dwconv_w.weight",
+      "model.2.m.0.cv2_adapter.weight",
+      "model.23.p2_aux.bias",
+      "model.23.p2_aux.weight",
+      "model.4.m.0.cv2.inception.dwconv_h.bias",
+      "model.4.m.0.cv2.inception.dwconv_h.weight",
+      "model.4.m.0.cv2.inception.dwconv_hw.bias",
+      "model.4.m.0.cv2.inception.dwconv_hw.weight",
+      "model.4.m.0.cv2.inception.dwconv_w.bias",
+      "model.4.m.0.cv2.inception.dwconv_w.weight",
+      "model.4.m.0.cv2_adapter.weight"
+    ],
+    "semantic_mapping": [],
+    "matched_source_to_target": [
+      {
+        "source": "model.0.bn.bias",
+        "target": "model.0.bn.bias"
+      },
+      {
+        "source": "model.0.bn.num_batches_tracked",
+        "target": "model.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.0.bn.running_mean",
+        "target": "model.0.bn.running_mean"
+      },
+      {
+        "source": "model.0.bn.running_var",
+        "target": "model.0.bn.running_var"
+      },
+      {
+        "source": "model.0.bn.weight",
+        "target": "model.0.bn.weight"
+      },
+      {
+        "source": "model.0.conv.weight",
+        "target": "model.0.conv.weight"
+      },
+      {
+        "source": "model.1.bn.bias",
+        "target": "model.1.bn.bias"
+      },
+      {
+        "source": "model.1.bn.num_batches_tracked",
+        "target": "model.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.1.bn.running_mean",
+        "target": "model.1.bn.running_mean"
+      },
+      {
+        "source": "model.1.bn.running_var",
+        "target": "model.1.bn.running_var"
+      },
+      {
+        "source": "model.1.bn.weight",
+        "target": "model.1.bn.weight"
+      },
+      {
+        "source": "model.1.conv.weight",
+        "target": "model.1.conv.weight"
+      },
+      {
+        "source": "model.10.cv1.bn.bias",
+        "target": "model.10.cv1.bn.bias"
+      },
+      {
+        "source": "model.10.cv1.bn.num_batches_tracked",
+        "target": "model.10.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.cv1.bn.running_mean",
+        "target": "model.10.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.10.cv1.bn.running_var",
+        "target": "model.10.cv1.bn.running_var"
+      },
+      {
+        "source": "model.10.cv1.bn.weight",
+        "target": "model.10.cv1.bn.weight"
+      },
+      {
+        "source": "model.10.cv1.conv.weight",
+        "target": "model.10.cv1.conv.weight"
+      },
+      {
+        "source": "model.10.cv2.bn.bias",
+        "target": "model.10.cv2.bn.bias"
+      },
+      {
+        "source": "model.10.cv2.bn.num_batches_tracked",
+        "target": "model.10.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.cv2.bn.running_mean",
+        "target": "model.10.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.10.cv2.bn.running_var",
+        "target": "model.10.cv2.bn.running_var"
+      },
+      {
+        "source": "model.10.cv2.bn.weight",
+        "target": "model.10.cv2.bn.weight"
+      },
+      {
+        "source": "model.10.cv2.conv.weight",
+        "target": "model.10.cv2.conv.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.bn.bias",
+        "target": "model.10.m.0.attn.pe.bn.bias"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.bn.num_batches_tracked",
+        "target": "model.10.m.0.attn.pe.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.bn.running_mean",
+        "target": "model.10.m.0.attn.pe.bn.running_mean"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.bn.running_var",
+        "target": "model.10.m.0.attn.pe.bn.running_var"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.bn.weight",
+        "target": "model.10.m.0.attn.pe.bn.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.pe.conv.weight",
+        "target": "model.10.m.0.attn.pe.conv.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.bn.bias",
+        "target": "model.10.m.0.attn.proj.bn.bias"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.bn.num_batches_tracked",
+        "target": "model.10.m.0.attn.proj.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.bn.running_mean",
+        "target": "model.10.m.0.attn.proj.bn.running_mean"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.bn.running_var",
+        "target": "model.10.m.0.attn.proj.bn.running_var"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.bn.weight",
+        "target": "model.10.m.0.attn.proj.bn.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.proj.conv.weight",
+        "target": "model.10.m.0.attn.proj.conv.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.bn.bias",
+        "target": "model.10.m.0.attn.qkv.bn.bias"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.bn.num_batches_tracked",
+        "target": "model.10.m.0.attn.qkv.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.bn.running_mean",
+        "target": "model.10.m.0.attn.qkv.bn.running_mean"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.bn.running_var",
+        "target": "model.10.m.0.attn.qkv.bn.running_var"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.bn.weight",
+        "target": "model.10.m.0.attn.qkv.bn.weight"
+      },
+      {
+        "source": "model.10.m.0.attn.qkv.conv.weight",
+        "target": "model.10.m.0.attn.qkv.conv.weight"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.bn.bias",
+        "target": "model.10.m.0.ffn.0.bn.bias"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.bn.num_batches_tracked",
+        "target": "model.10.m.0.ffn.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.bn.running_mean",
+        "target": "model.10.m.0.ffn.0.bn.running_mean"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.bn.running_var",
+        "target": "model.10.m.0.ffn.0.bn.running_var"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.bn.weight",
+        "target": "model.10.m.0.ffn.0.bn.weight"
+      },
+      {
+        "source": "model.10.m.0.ffn.0.conv.weight",
+        "target": "model.10.m.0.ffn.0.conv.weight"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.bn.bias",
+        "target": "model.10.m.0.ffn.1.bn.bias"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.bn.num_batches_tracked",
+        "target": "model.10.m.0.ffn.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.bn.running_mean",
+        "target": "model.10.m.0.ffn.1.bn.running_mean"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.bn.running_var",
+        "target": "model.10.m.0.ffn.1.bn.running_var"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.bn.weight",
+        "target": "model.10.m.0.ffn.1.bn.weight"
+      },
+      {
+        "source": "model.10.m.0.ffn.1.conv.weight",
+        "target": "model.10.m.0.ffn.1.conv.weight"
+      },
+      {
+        "source": "model.13.cv1.bn.bias",
+        "target": "model.13.cv1.bn.bias"
+      },
+      {
+        "source": "model.13.cv1.bn.num_batches_tracked",
+        "target": "model.13.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.13.cv1.bn.running_mean",
+        "target": "model.13.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.13.cv1.bn.running_var",
+        "target": "model.13.cv1.bn.running_var"
+      },
+      {
+        "source": "model.13.cv1.bn.weight",
+        "target": "model.13.cv1.bn.weight"
+      },
+      {
+        "source": "model.13.cv1.conv.weight",
+        "target": "model.13.cv1.conv.weight"
+      },
+      {
+        "source": "model.13.cv2.bn.bias",
+        "target": "model.13.cv2.bn.bias"
+      },
+      {
+        "source": "model.13.cv2.bn.num_batches_tracked",
+        "target": "model.13.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.13.cv2.bn.running_mean",
+        "target": "model.13.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.13.cv2.bn.running_var",
+        "target": "model.13.cv2.bn.running_var"
+      },
+      {
+        "source": "model.13.cv2.bn.weight",
+        "target": "model.13.cv2.bn.weight"
+      },
+      {
+        "source": "model.13.cv2.conv.weight",
+        "target": "model.13.cv2.conv.weight"
+      },
+      {
+        "source": "model.13.m.0.cv1.bn.bias",
+        "target": "model.13.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.13.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.13.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.13.m.0.cv1.bn.running_mean",
+        "target": "model.13.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.13.m.0.cv1.bn.running_var",
+        "target": "model.13.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.13.m.0.cv1.bn.weight",
+        "target": "model.13.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.13.m.0.cv1.conv.weight",
+        "target": "model.13.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.13.m.0.cv2.bn.bias",
+        "target": "model.13.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.13.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.13.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.13.m.0.cv2.bn.running_mean",
+        "target": "model.13.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.13.m.0.cv2.bn.running_var",
+        "target": "model.13.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.13.m.0.cv2.bn.weight",
+        "target": "model.13.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.13.m.0.cv2.conv.weight",
+        "target": "model.13.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.16.cv1.bn.bias",
+        "target": "model.16.cv1.bn.bias"
+      },
+      {
+        "source": "model.16.cv1.bn.num_batches_tracked",
+        "target": "model.16.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.16.cv1.bn.running_mean",
+        "target": "model.16.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.16.cv1.bn.running_var",
+        "target": "model.16.cv1.bn.running_var"
+      },
+      {
+        "source": "model.16.cv1.bn.weight",
+        "target": "model.16.cv1.bn.weight"
+      },
+      {
+        "source": "model.16.cv1.conv.weight",
+        "target": "model.16.cv1.conv.weight"
+      },
+      {
+        "source": "model.16.cv2.bn.bias",
+        "target": "model.16.cv2.bn.bias"
+      },
+      {
+        "source": "model.16.cv2.bn.num_batches_tracked",
+        "target": "model.16.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.16.cv2.bn.running_mean",
+        "target": "model.16.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.16.cv2.bn.running_var",
+        "target": "model.16.cv2.bn.running_var"
+      },
+      {
+        "source": "model.16.cv2.bn.weight",
+        "target": "model.16.cv2.bn.weight"
+      },
+      {
+        "source": "model.16.cv2.conv.weight",
+        "target": "model.16.cv2.conv.weight"
+      },
+      {
+        "source": "model.16.m.0.cv1.bn.bias",
+        "target": "model.16.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.16.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.16.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.16.m.0.cv1.bn.running_mean",
+        "target": "model.16.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.16.m.0.cv1.bn.running_var",
+        "target": "model.16.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.16.m.0.cv1.bn.weight",
+        "target": "model.16.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.16.m.0.cv1.conv.weight",
+        "target": "model.16.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.16.m.0.cv2.bn.bias",
+        "target": "model.16.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.16.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.16.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.16.m.0.cv2.bn.running_mean",
+        "target": "model.16.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.16.m.0.cv2.bn.running_var",
+        "target": "model.16.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.16.m.0.cv2.bn.weight",
+        "target": "model.16.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.16.m.0.cv2.conv.weight",
+        "target": "model.16.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.17.bn.bias",
+        "target": "model.17.bn.bias"
+      },
+      {
+        "source": "model.17.bn.num_batches_tracked",
+        "target": "model.17.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.17.bn.running_mean",
+        "target": "model.17.bn.running_mean"
+      },
+      {
+        "source": "model.17.bn.running_var",
+        "target": "model.17.bn.running_var"
+      },
+      {
+        "source": "model.17.bn.weight",
+        "target": "model.17.bn.weight"
+      },
+      {
+        "source": "model.17.conv.weight",
+        "target": "model.17.conv.weight"
+      },
+      {
+        "source": "model.19.cv1.bn.bias",
+        "target": "model.19.cv1.bn.bias"
+      },
+      {
+        "source": "model.19.cv1.bn.num_batches_tracked",
+        "target": "model.19.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.19.cv1.bn.running_mean",
+        "target": "model.19.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.19.cv1.bn.running_var",
+        "target": "model.19.cv1.bn.running_var"
+      },
+      {
+        "source": "model.19.cv1.bn.weight",
+        "target": "model.19.cv1.bn.weight"
+      },
+      {
+        "source": "model.19.cv1.conv.weight",
+        "target": "model.19.cv1.conv.weight"
+      },
+      {
+        "source": "model.19.cv2.bn.bias",
+        "target": "model.19.cv2.bn.bias"
+      },
+      {
+        "source": "model.19.cv2.bn.num_batches_tracked",
+        "target": "model.19.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.19.cv2.bn.running_mean",
+        "target": "model.19.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.19.cv2.bn.running_var",
+        "target": "model.19.cv2.bn.running_var"
+      },
+      {
+        "source": "model.19.cv2.bn.weight",
+        "target": "model.19.cv2.bn.weight"
+      },
+      {
+        "source": "model.19.cv2.conv.weight",
+        "target": "model.19.cv2.conv.weight"
+      },
+      {
+        "source": "model.19.m.0.cv1.bn.bias",
+        "target": "model.19.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.19.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.19.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.19.m.0.cv1.bn.running_mean",
+        "target": "model.19.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.19.m.0.cv1.bn.running_var",
+        "target": "model.19.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.19.m.0.cv1.bn.weight",
+        "target": "model.19.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.19.m.0.cv1.conv.weight",
+        "target": "model.19.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.19.m.0.cv2.bn.bias",
+        "target": "model.19.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.19.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.19.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.19.m.0.cv2.bn.running_mean",
+        "target": "model.19.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.19.m.0.cv2.bn.running_var",
+        "target": "model.19.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.19.m.0.cv2.bn.weight",
+        "target": "model.19.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.19.m.0.cv2.conv.weight",
+        "target": "model.19.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.2.cv1.bn.bias",
+        "target": "model.2.cv1.bn.bias"
+      },
+      {
+        "source": "model.2.cv1.bn.num_batches_tracked",
+        "target": "model.2.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.2.cv1.bn.running_mean",
+        "target": "model.2.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.2.cv1.bn.running_var",
+        "target": "model.2.cv1.bn.running_var"
+      },
+      {
+        "source": "model.2.cv1.bn.weight",
+        "target": "model.2.cv1.bn.weight"
+      },
+      {
+        "source": "model.2.cv1.conv.weight",
+        "target": "model.2.cv1.conv.weight"
+      },
+      {
+        "source": "model.2.cv2.bn.bias",
+        "target": "model.2.cv2.bn.bias"
+      },
+      {
+        "source": "model.2.cv2.bn.num_batches_tracked",
+        "target": "model.2.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.2.cv2.bn.running_mean",
+        "target": "model.2.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.2.cv2.bn.running_var",
+        "target": "model.2.cv2.bn.running_var"
+      },
+      {
+        "source": "model.2.cv2.bn.weight",
+        "target": "model.2.cv2.bn.weight"
+      },
+      {
+        "source": "model.2.cv2.conv.weight",
+        "target": "model.2.cv2.conv.weight"
+      },
+      {
+        "source": "model.2.m.0.cv1.bn.bias",
+        "target": "model.2.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.2.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.2.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.2.m.0.cv1.bn.running_mean",
+        "target": "model.2.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.2.m.0.cv1.bn.running_var",
+        "target": "model.2.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.2.m.0.cv1.bn.weight",
+        "target": "model.2.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.2.m.0.cv1.conv.weight",
+        "target": "model.2.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.2.m.0.cv2.bn.bias",
+        "target": "model.2.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.2.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.2.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.2.m.0.cv2.bn.running_mean",
+        "target": "model.2.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.2.m.0.cv2.bn.running_var",
+        "target": "model.2.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.2.m.0.cv2.bn.weight",
+        "target": "model.2.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.20.bn.bias",
+        "target": "model.20.bn.bias"
+      },
+      {
+        "source": "model.20.bn.num_batches_tracked",
+        "target": "model.20.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.20.bn.running_mean",
+        "target": "model.20.bn.running_mean"
+      },
+      {
+        "source": "model.20.bn.running_var",
+        "target": "model.20.bn.running_var"
+      },
+      {
+        "source": "model.20.bn.weight",
+        "target": "model.20.bn.weight"
+      },
+      {
+        "source": "model.20.conv.weight",
+        "target": "model.20.conv.weight"
+      },
+      {
+        "source": "model.22.cv1.bn.bias",
+        "target": "model.22.cv1.bn.bias"
+      },
+      {
+        "source": "model.22.cv1.bn.num_batches_tracked",
+        "target": "model.22.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.cv1.bn.running_mean",
+        "target": "model.22.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.22.cv1.bn.running_var",
+        "target": "model.22.cv1.bn.running_var"
+      },
+      {
+        "source": "model.22.cv1.bn.weight",
+        "target": "model.22.cv1.bn.weight"
+      },
+      {
+        "source": "model.22.cv1.conv.weight",
+        "target": "model.22.cv1.conv.weight"
+      },
+      {
+        "source": "model.22.cv2.bn.bias",
+        "target": "model.22.cv2.bn.bias"
+      },
+      {
+        "source": "model.22.cv2.bn.num_batches_tracked",
+        "target": "model.22.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.cv2.bn.running_mean",
+        "target": "model.22.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.22.cv2.bn.running_var",
+        "target": "model.22.cv2.bn.running_var"
+      },
+      {
+        "source": "model.22.cv2.bn.weight",
+        "target": "model.22.cv2.bn.weight"
+      },
+      {
+        "source": "model.22.cv2.conv.weight",
+        "target": "model.22.cv2.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.cv1.bn.bias",
+        "target": "model.22.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.22.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.cv1.bn.running_mean",
+        "target": "model.22.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.cv1.bn.running_var",
+        "target": "model.22.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.cv1.bn.weight",
+        "target": "model.22.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.cv1.conv.weight",
+        "target": "model.22.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.cv2.bn.bias",
+        "target": "model.22.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.22.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.cv2.bn.running_mean",
+        "target": "model.22.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.cv2.bn.running_var",
+        "target": "model.22.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.cv2.bn.weight",
+        "target": "model.22.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.cv2.conv.weight",
+        "target": "model.22.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.cv3.bn.bias",
+        "target": "model.22.m.0.cv3.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.cv3.bn.num_batches_tracked",
+        "target": "model.22.m.0.cv3.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.cv3.bn.running_mean",
+        "target": "model.22.m.0.cv3.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.cv3.bn.running_var",
+        "target": "model.22.m.0.cv3.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.cv3.bn.weight",
+        "target": "model.22.m.0.cv3.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.cv3.conv.weight",
+        "target": "model.22.m.0.cv3.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.bn.bias",
+        "target": "model.22.m.0.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.22.m.0.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.bn.running_mean",
+        "target": "model.22.m.0.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.bn.running_var",
+        "target": "model.22.m.0.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.bn.weight",
+        "target": "model.22.m.0.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv1.conv.weight",
+        "target": "model.22.m.0.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.bn.bias",
+        "target": "model.22.m.0.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.22.m.0.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.bn.running_mean",
+        "target": "model.22.m.0.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.bn.running_var",
+        "target": "model.22.m.0.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.bn.weight",
+        "target": "model.22.m.0.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.m.0.cv2.conv.weight",
+        "target": "model.22.m.0.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.bn.bias",
+        "target": "model.22.m.0.m.1.cv1.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.bn.num_batches_tracked",
+        "target": "model.22.m.0.m.1.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.bn.running_mean",
+        "target": "model.22.m.0.m.1.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.bn.running_var",
+        "target": "model.22.m.0.m.1.cv1.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.bn.weight",
+        "target": "model.22.m.0.m.1.cv1.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv1.conv.weight",
+        "target": "model.22.m.0.m.1.cv1.conv.weight"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.bn.bias",
+        "target": "model.22.m.0.m.1.cv2.bn.bias"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.bn.num_batches_tracked",
+        "target": "model.22.m.0.m.1.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.bn.running_mean",
+        "target": "model.22.m.0.m.1.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.bn.running_var",
+        "target": "model.22.m.0.m.1.cv2.bn.running_var"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.bn.weight",
+        "target": "model.22.m.0.m.1.cv2.bn.weight"
+      },
+      {
+        "source": "model.22.m.0.m.1.cv2.conv.weight",
+        "target": "model.22.m.0.m.1.cv2.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.0.0.bn.bias",
+        "target": "model.23.cv2.0.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.0.0.bn.num_batches_tracked",
+        "target": "model.23.cv2.0.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.0.0.bn.running_mean",
+        "target": "model.23.cv2.0.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.0.0.bn.running_var",
+        "target": "model.23.cv2.0.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.0.0.bn.weight",
+        "target": "model.23.cv2.0.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.0.0.conv.weight",
+        "target": "model.23.cv2.0.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.0.1.bn.bias",
+        "target": "model.23.cv2.0.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.0.1.bn.num_batches_tracked",
+        "target": "model.23.cv2.0.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.0.1.bn.running_mean",
+        "target": "model.23.cv2.0.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.0.1.bn.running_var",
+        "target": "model.23.cv2.0.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.0.1.bn.weight",
+        "target": "model.23.cv2.0.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.0.1.conv.weight",
+        "target": "model.23.cv2.0.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.0.2.bias",
+        "target": "model.23.cv2.0.2.bias"
+      },
+      {
+        "source": "model.23.cv2.0.2.weight",
+        "target": "model.23.cv2.0.2.weight"
+      },
+      {
+        "source": "model.23.cv2.1.0.bn.bias",
+        "target": "model.23.cv2.1.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.1.0.bn.num_batches_tracked",
+        "target": "model.23.cv2.1.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.1.0.bn.running_mean",
+        "target": "model.23.cv2.1.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.1.0.bn.running_var",
+        "target": "model.23.cv2.1.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.1.0.bn.weight",
+        "target": "model.23.cv2.1.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.1.0.conv.weight",
+        "target": "model.23.cv2.1.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.1.1.bn.bias",
+        "target": "model.23.cv2.1.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.1.1.bn.num_batches_tracked",
+        "target": "model.23.cv2.1.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.1.1.bn.running_mean",
+        "target": "model.23.cv2.1.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.1.1.bn.running_var",
+        "target": "model.23.cv2.1.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.1.1.bn.weight",
+        "target": "model.23.cv2.1.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.1.1.conv.weight",
+        "target": "model.23.cv2.1.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.1.2.bias",
+        "target": "model.23.cv2.1.2.bias"
+      },
+      {
+        "source": "model.23.cv2.1.2.weight",
+        "target": "model.23.cv2.1.2.weight"
+      },
+      {
+        "source": "model.23.cv2.2.0.bn.bias",
+        "target": "model.23.cv2.2.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.2.0.bn.num_batches_tracked",
+        "target": "model.23.cv2.2.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.2.0.bn.running_mean",
+        "target": "model.23.cv2.2.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.2.0.bn.running_var",
+        "target": "model.23.cv2.2.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.2.0.bn.weight",
+        "target": "model.23.cv2.2.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.2.0.conv.weight",
+        "target": "model.23.cv2.2.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.2.1.bn.bias",
+        "target": "model.23.cv2.2.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv2.2.1.bn.num_batches_tracked",
+        "target": "model.23.cv2.2.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv2.2.1.bn.running_mean",
+        "target": "model.23.cv2.2.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv2.2.1.bn.running_var",
+        "target": "model.23.cv2.2.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv2.2.1.bn.weight",
+        "target": "model.23.cv2.2.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv2.2.1.conv.weight",
+        "target": "model.23.cv2.2.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv2.2.2.bias",
+        "target": "model.23.cv2.2.2.bias"
+      },
+      {
+        "source": "model.23.cv2.2.2.weight",
+        "target": "model.23.cv2.2.2.weight"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.bn.bias",
+        "target": "model.23.cv3.0.0.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.0.0.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.bn.running_mean",
+        "target": "model.23.cv3.0.0.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.bn.running_var",
+        "target": "model.23.cv3.0.0.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.bn.weight",
+        "target": "model.23.cv3.0.0.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.0.0.0.conv.weight",
+        "target": "model.23.cv3.0.0.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.bn.bias",
+        "target": "model.23.cv3.0.0.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.0.0.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.bn.running_mean",
+        "target": "model.23.cv3.0.0.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.bn.running_var",
+        "target": "model.23.cv3.0.0.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.bn.weight",
+        "target": "model.23.cv3.0.0.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.0.0.1.conv.weight",
+        "target": "model.23.cv3.0.0.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.bn.bias",
+        "target": "model.23.cv3.0.1.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.0.1.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.bn.running_mean",
+        "target": "model.23.cv3.0.1.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.bn.running_var",
+        "target": "model.23.cv3.0.1.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.bn.weight",
+        "target": "model.23.cv3.0.1.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.0.1.0.conv.weight",
+        "target": "model.23.cv3.0.1.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.bn.bias",
+        "target": "model.23.cv3.0.1.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.0.1.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.bn.running_mean",
+        "target": "model.23.cv3.0.1.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.bn.running_var",
+        "target": "model.23.cv3.0.1.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.bn.weight",
+        "target": "model.23.cv3.0.1.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.0.1.1.conv.weight",
+        "target": "model.23.cv3.0.1.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.0.2.bias",
+        "target": "model.23.cv3.0.2.bias"
+      },
+      {
+        "source": "model.23.cv3.0.2.weight",
+        "target": "model.23.cv3.0.2.weight"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.bn.bias",
+        "target": "model.23.cv3.1.0.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.1.0.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.bn.running_mean",
+        "target": "model.23.cv3.1.0.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.bn.running_var",
+        "target": "model.23.cv3.1.0.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.bn.weight",
+        "target": "model.23.cv3.1.0.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.1.0.0.conv.weight",
+        "target": "model.23.cv3.1.0.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.bn.bias",
+        "target": "model.23.cv3.1.0.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.1.0.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.bn.running_mean",
+        "target": "model.23.cv3.1.0.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.bn.running_var",
+        "target": "model.23.cv3.1.0.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.bn.weight",
+        "target": "model.23.cv3.1.0.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.1.0.1.conv.weight",
+        "target": "model.23.cv3.1.0.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.bn.bias",
+        "target": "model.23.cv3.1.1.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.1.1.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.bn.running_mean",
+        "target": "model.23.cv3.1.1.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.bn.running_var",
+        "target": "model.23.cv3.1.1.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.bn.weight",
+        "target": "model.23.cv3.1.1.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.1.1.0.conv.weight",
+        "target": "model.23.cv3.1.1.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.bn.bias",
+        "target": "model.23.cv3.1.1.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.1.1.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.bn.running_mean",
+        "target": "model.23.cv3.1.1.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.bn.running_var",
+        "target": "model.23.cv3.1.1.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.bn.weight",
+        "target": "model.23.cv3.1.1.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.1.1.1.conv.weight",
+        "target": "model.23.cv3.1.1.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.1.2.bias",
+        "target": "model.23.cv3.1.2.bias"
+      },
+      {
+        "source": "model.23.cv3.1.2.weight",
+        "target": "model.23.cv3.1.2.weight"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.bn.bias",
+        "target": "model.23.cv3.2.0.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.2.0.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.bn.running_mean",
+        "target": "model.23.cv3.2.0.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.bn.running_var",
+        "target": "model.23.cv3.2.0.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.bn.weight",
+        "target": "model.23.cv3.2.0.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.2.0.0.conv.weight",
+        "target": "model.23.cv3.2.0.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.bn.bias",
+        "target": "model.23.cv3.2.0.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.2.0.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.bn.running_mean",
+        "target": "model.23.cv3.2.0.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.bn.running_var",
+        "target": "model.23.cv3.2.0.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.bn.weight",
+        "target": "model.23.cv3.2.0.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.2.0.1.conv.weight",
+        "target": "model.23.cv3.2.0.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.bn.bias",
+        "target": "model.23.cv3.2.1.0.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.bn.num_batches_tracked",
+        "target": "model.23.cv3.2.1.0.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.bn.running_mean",
+        "target": "model.23.cv3.2.1.0.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.bn.running_var",
+        "target": "model.23.cv3.2.1.0.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.bn.weight",
+        "target": "model.23.cv3.2.1.0.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.2.1.0.conv.weight",
+        "target": "model.23.cv3.2.1.0.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.bn.bias",
+        "target": "model.23.cv3.2.1.1.bn.bias"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.bn.num_batches_tracked",
+        "target": "model.23.cv3.2.1.1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.bn.running_mean",
+        "target": "model.23.cv3.2.1.1.bn.running_mean"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.bn.running_var",
+        "target": "model.23.cv3.2.1.1.bn.running_var"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.bn.weight",
+        "target": "model.23.cv3.2.1.1.bn.weight"
+      },
+      {
+        "source": "model.23.cv3.2.1.1.conv.weight",
+        "target": "model.23.cv3.2.1.1.conv.weight"
+      },
+      {
+        "source": "model.23.cv3.2.2.bias",
+        "target": "model.23.cv3.2.2.bias"
+      },
+      {
+        "source": "model.23.cv3.2.2.weight",
+        "target": "model.23.cv3.2.2.weight"
+      },
+      {
+        "source": "model.23.dfl.conv.weight",
+        "target": "model.23.dfl.conv.weight"
+      },
+      {
+        "source": "model.3.bn.bias",
+        "target": "model.3.bn.bias"
+      },
+      {
+        "source": "model.3.bn.num_batches_tracked",
+        "target": "model.3.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.3.bn.running_mean",
+        "target": "model.3.bn.running_mean"
+      },
+      {
+        "source": "model.3.bn.running_var",
+        "target": "model.3.bn.running_var"
+      },
+      {
+        "source": "model.3.bn.weight",
+        "target": "model.3.bn.weight"
+      },
+      {
+        "source": "model.3.conv.weight",
+        "target": "model.3.conv.weight"
+      },
+      {
+        "source": "model.4.cv1.bn.bias",
+        "target": "model.4.cv1.bn.bias"
+      },
+      {
+        "source": "model.4.cv1.bn.num_batches_tracked",
+        "target": "model.4.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.4.cv1.bn.running_mean",
+        "target": "model.4.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.4.cv1.bn.running_var",
+        "target": "model.4.cv1.bn.running_var"
+      },
+      {
+        "source": "model.4.cv1.bn.weight",
+        "target": "model.4.cv1.bn.weight"
+      },
+      {
+        "source": "model.4.cv1.conv.weight",
+        "target": "model.4.cv1.conv.weight"
+      },
+      {
+        "source": "model.4.cv2.bn.bias",
+        "target": "model.4.cv2.bn.bias"
+      },
+      {
+        "source": "model.4.cv2.bn.num_batches_tracked",
+        "target": "model.4.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.4.cv2.bn.running_mean",
+        "target": "model.4.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.4.cv2.bn.running_var",
+        "target": "model.4.cv2.bn.running_var"
+      },
+      {
+        "source": "model.4.cv2.bn.weight",
+        "target": "model.4.cv2.bn.weight"
+      },
+      {
+        "source": "model.4.cv2.conv.weight",
+        "target": "model.4.cv2.conv.weight"
+      },
+      {
+        "source": "model.4.m.0.cv1.bn.bias",
+        "target": "model.4.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.4.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.4.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.4.m.0.cv1.bn.running_mean",
+        "target": "model.4.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.4.m.0.cv1.bn.running_var",
+        "target": "model.4.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.4.m.0.cv1.bn.weight",
+        "target": "model.4.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.4.m.0.cv1.conv.weight",
+        "target": "model.4.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.4.m.0.cv2.bn.bias",
+        "target": "model.4.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.4.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.4.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.4.m.0.cv2.bn.running_mean",
+        "target": "model.4.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.4.m.0.cv2.bn.running_var",
+        "target": "model.4.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.4.m.0.cv2.bn.weight",
+        "target": "model.4.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.5.bn.bias",
+        "target": "model.5.bn.bias"
+      },
+      {
+        "source": "model.5.bn.num_batches_tracked",
+        "target": "model.5.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.5.bn.running_mean",
+        "target": "model.5.bn.running_mean"
+      },
+      {
+        "source": "model.5.bn.running_var",
+        "target": "model.5.bn.running_var"
+      },
+      {
+        "source": "model.5.bn.weight",
+        "target": "model.5.bn.weight"
+      },
+      {
+        "source": "model.5.conv.weight",
+        "target": "model.5.conv.weight"
+      },
+      {
+        "source": "model.6.cv1.bn.bias",
+        "target": "model.6.cv1.bn.bias"
+      },
+      {
+        "source": "model.6.cv1.bn.num_batches_tracked",
+        "target": "model.6.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.cv1.bn.running_mean",
+        "target": "model.6.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.6.cv1.bn.running_var",
+        "target": "model.6.cv1.bn.running_var"
+      },
+      {
+        "source": "model.6.cv1.bn.weight",
+        "target": "model.6.cv1.bn.weight"
+      },
+      {
+        "source": "model.6.cv1.conv.weight",
+        "target": "model.6.cv1.conv.weight"
+      },
+      {
+        "source": "model.6.cv2.bn.bias",
+        "target": "model.6.cv2.bn.bias"
+      },
+      {
+        "source": "model.6.cv2.bn.num_batches_tracked",
+        "target": "model.6.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.cv2.bn.running_mean",
+        "target": "model.6.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.6.cv2.bn.running_var",
+        "target": "model.6.cv2.bn.running_var"
+      },
+      {
+        "source": "model.6.cv2.bn.weight",
+        "target": "model.6.cv2.bn.weight"
+      },
+      {
+        "source": "model.6.cv2.conv.weight",
+        "target": "model.6.cv2.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.cv1.bn.bias",
+        "target": "model.6.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.6.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.cv1.bn.running_mean",
+        "target": "model.6.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.cv1.bn.running_var",
+        "target": "model.6.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.cv1.bn.weight",
+        "target": "model.6.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.cv1.conv.weight",
+        "target": "model.6.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.cv2.bn.bias",
+        "target": "model.6.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.6.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.cv2.bn.running_mean",
+        "target": "model.6.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.cv2.bn.running_var",
+        "target": "model.6.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.cv2.bn.weight",
+        "target": "model.6.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.cv2.conv.weight",
+        "target": "model.6.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.cv3.bn.bias",
+        "target": "model.6.m.0.cv3.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.cv3.bn.num_batches_tracked",
+        "target": "model.6.m.0.cv3.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.cv3.bn.running_mean",
+        "target": "model.6.m.0.cv3.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.cv3.bn.running_var",
+        "target": "model.6.m.0.cv3.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.cv3.bn.weight",
+        "target": "model.6.m.0.cv3.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.cv3.conv.weight",
+        "target": "model.6.m.0.cv3.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.bn.bias",
+        "target": "model.6.m.0.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.6.m.0.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.bn.running_mean",
+        "target": "model.6.m.0.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.bn.running_var",
+        "target": "model.6.m.0.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.bn.weight",
+        "target": "model.6.m.0.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv1.conv.weight",
+        "target": "model.6.m.0.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.bn.bias",
+        "target": "model.6.m.0.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.6.m.0.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.bn.running_mean",
+        "target": "model.6.m.0.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.bn.running_var",
+        "target": "model.6.m.0.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.bn.weight",
+        "target": "model.6.m.0.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.m.0.cv2.conv.weight",
+        "target": "model.6.m.0.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.bn.bias",
+        "target": "model.6.m.0.m.1.cv1.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.bn.num_batches_tracked",
+        "target": "model.6.m.0.m.1.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.bn.running_mean",
+        "target": "model.6.m.0.m.1.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.bn.running_var",
+        "target": "model.6.m.0.m.1.cv1.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.bn.weight",
+        "target": "model.6.m.0.m.1.cv1.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv1.conv.weight",
+        "target": "model.6.m.0.m.1.cv1.conv.weight"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.bn.bias",
+        "target": "model.6.m.0.m.1.cv2.bn.bias"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.bn.num_batches_tracked",
+        "target": "model.6.m.0.m.1.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.bn.running_mean",
+        "target": "model.6.m.0.m.1.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.bn.running_var",
+        "target": "model.6.m.0.m.1.cv2.bn.running_var"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.bn.weight",
+        "target": "model.6.m.0.m.1.cv2.bn.weight"
+      },
+      {
+        "source": "model.6.m.0.m.1.cv2.conv.weight",
+        "target": "model.6.m.0.m.1.cv2.conv.weight"
+      },
+      {
+        "source": "model.7.bn.bias",
+        "target": "model.7.bn.bias"
+      },
+      {
+        "source": "model.7.bn.num_batches_tracked",
+        "target": "model.7.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.7.bn.running_mean",
+        "target": "model.7.bn.running_mean"
+      },
+      {
+        "source": "model.7.bn.running_var",
+        "target": "model.7.bn.running_var"
+      },
+      {
+        "source": "model.7.bn.weight",
+        "target": "model.7.bn.weight"
+      },
+      {
+        "source": "model.7.conv.weight",
+        "target": "model.7.conv.weight"
+      },
+      {
+        "source": "model.8.cv1.bn.bias",
+        "target": "model.8.cv1.bn.bias"
+      },
+      {
+        "source": "model.8.cv1.bn.num_batches_tracked",
+        "target": "model.8.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.cv1.bn.running_mean",
+        "target": "model.8.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.8.cv1.bn.running_var",
+        "target": "model.8.cv1.bn.running_var"
+      },
+      {
+        "source": "model.8.cv1.bn.weight",
+        "target": "model.8.cv1.bn.weight"
+      },
+      {
+        "source": "model.8.cv1.conv.weight",
+        "target": "model.8.cv1.conv.weight"
+      },
+      {
+        "source": "model.8.cv2.bn.bias",
+        "target": "model.8.cv2.bn.bias"
+      },
+      {
+        "source": "model.8.cv2.bn.num_batches_tracked",
+        "target": "model.8.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.cv2.bn.running_mean",
+        "target": "model.8.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.8.cv2.bn.running_var",
+        "target": "model.8.cv2.bn.running_var"
+      },
+      {
+        "source": "model.8.cv2.bn.weight",
+        "target": "model.8.cv2.bn.weight"
+      },
+      {
+        "source": "model.8.cv2.conv.weight",
+        "target": "model.8.cv2.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.cv1.bn.bias",
+        "target": "model.8.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.8.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.cv1.bn.running_mean",
+        "target": "model.8.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.cv1.bn.running_var",
+        "target": "model.8.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.cv1.bn.weight",
+        "target": "model.8.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.cv1.conv.weight",
+        "target": "model.8.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.cv2.bn.bias",
+        "target": "model.8.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.8.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.cv2.bn.running_mean",
+        "target": "model.8.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.cv2.bn.running_var",
+        "target": "model.8.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.cv2.bn.weight",
+        "target": "model.8.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.cv2.conv.weight",
+        "target": "model.8.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.cv3.bn.bias",
+        "target": "model.8.m.0.cv3.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.cv3.bn.num_batches_tracked",
+        "target": "model.8.m.0.cv3.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.cv3.bn.running_mean",
+        "target": "model.8.m.0.cv3.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.cv3.bn.running_var",
+        "target": "model.8.m.0.cv3.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.cv3.bn.weight",
+        "target": "model.8.m.0.cv3.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.cv3.conv.weight",
+        "target": "model.8.m.0.cv3.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.bn.bias",
+        "target": "model.8.m.0.m.0.cv1.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.bn.num_batches_tracked",
+        "target": "model.8.m.0.m.0.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.bn.running_mean",
+        "target": "model.8.m.0.m.0.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.bn.running_var",
+        "target": "model.8.m.0.m.0.cv1.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.bn.weight",
+        "target": "model.8.m.0.m.0.cv1.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv1.conv.weight",
+        "target": "model.8.m.0.m.0.cv1.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.bn.bias",
+        "target": "model.8.m.0.m.0.cv2.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.bn.num_batches_tracked",
+        "target": "model.8.m.0.m.0.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.bn.running_mean",
+        "target": "model.8.m.0.m.0.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.bn.running_var",
+        "target": "model.8.m.0.m.0.cv2.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.bn.weight",
+        "target": "model.8.m.0.m.0.cv2.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.m.0.cv2.conv.weight",
+        "target": "model.8.m.0.m.0.cv2.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.bn.bias",
+        "target": "model.8.m.0.m.1.cv1.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.bn.num_batches_tracked",
+        "target": "model.8.m.0.m.1.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.bn.running_mean",
+        "target": "model.8.m.0.m.1.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.bn.running_var",
+        "target": "model.8.m.0.m.1.cv1.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.bn.weight",
+        "target": "model.8.m.0.m.1.cv1.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv1.conv.weight",
+        "target": "model.8.m.0.m.1.cv1.conv.weight"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.bn.bias",
+        "target": "model.8.m.0.m.1.cv2.bn.bias"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.bn.num_batches_tracked",
+        "target": "model.8.m.0.m.1.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.bn.running_mean",
+        "target": "model.8.m.0.m.1.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.bn.running_var",
+        "target": "model.8.m.0.m.1.cv2.bn.running_var"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.bn.weight",
+        "target": "model.8.m.0.m.1.cv2.bn.weight"
+      },
+      {
+        "source": "model.8.m.0.m.1.cv2.conv.weight",
+        "target": "model.8.m.0.m.1.cv2.conv.weight"
+      },
+      {
+        "source": "model.9.cv1.bn.bias",
+        "target": "model.9.cv1.bn.bias"
+      },
+      {
+        "source": "model.9.cv1.bn.num_batches_tracked",
+        "target": "model.9.cv1.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.9.cv1.bn.running_mean",
+        "target": "model.9.cv1.bn.running_mean"
+      },
+      {
+        "source": "model.9.cv1.bn.running_var",
+        "target": "model.9.cv1.bn.running_var"
+      },
+      {
+        "source": "model.9.cv1.bn.weight",
+        "target": "model.9.cv1.bn.weight"
+      },
+      {
+        "source": "model.9.cv1.conv.weight",
+        "target": "model.9.cv1.conv.weight"
+      },
+      {
+        "source": "model.9.cv2.bn.bias",
+        "target": "model.9.cv2.bn.bias"
+      },
+      {
+        "source": "model.9.cv2.bn.num_batches_tracked",
+        "target": "model.9.cv2.bn.num_batches_tracked"
+      },
+      {
+        "source": "model.9.cv2.bn.running_mean",
+        "target": "model.9.cv2.bn.running_mean"
+      },
+      {
+        "source": "model.9.cv2.bn.running_var",
+        "target": "model.9.cv2.bn.running_var"
+      },
+      {
+        "source": "model.9.cv2.bn.weight",
+        "target": "model.9.cv2.bn.weight"
+      },
+      {
+        "source": "model.9.cv2.conv.weight",
+        "target": "model.9.cv2.conv.weight"
+      }
+    ],
+    "applied": true,
+    "loaded_tensor_ratio": 0.9688109161793372,
+    "loaded_target_parameter_element_ratio": 0.9996529513074267
+  },
+  "auxiliary_gradient": {
+    "checks": {
+      "four_loss_items": true,
+      "finite_positive_total": true,
+      "positive_auxiliary_loss": true,
+      "aux_head_has_finite_gradient": true,
+      "p2_backbone_receives_aux_gradient": true
+    },
+    "all_checks_passed": true,
+    "total_loss": 3.533957004547119,
+    "loss_items": [
+      1.011763155894796e-12,
+      0.638359785079956,
+      5.319821731568364e-13,
+      1.1286187171936035
+    ]
+  }
+}
