@@ -107,6 +107,33 @@ def test_gaussian_targets_have_unit_centers_and_soft_neighborhood() -> None:
     assert logits.grad is not None and torch.isfinite(logits.grad).all()
 
 
+@pytest.mark.parametrize("dtype", [torch.float16, torch.float32])
+def test_gaussian_focal_loss_is_finite_for_saturated_logits(dtype: torch.dtype) -> None:
+    logits = torch.tensor(
+        [[[[-100.0, -20.0, -10.0, 0.0, 10.0, 20.0, 100.0]]]],
+        dtype=dtype,
+        requires_grad=True,
+    )
+    target = torch.tensor(
+        [[[[1.0, 0.75, 0.25, 0.0, 0.0, 0.0, 0.0]]]],
+        dtype=dtype,
+    )
+    loss = dense_gaussian_focal_loss(logits, target)
+    assert loss.dtype == torch.float32
+    assert torch.isfinite(loss)
+    loss.backward()
+    assert logits.grad is not None
+    assert torch.isfinite(logits.grad).all()
+
+
+def test_gaussian_focal_low_precision_matches_fp32() -> None:
+    logits_fp32 = torch.linspace(-12, 12, 257, dtype=torch.float32).view(1, 1, 1, -1)
+    target_fp32 = torch.linspace(1, 0, 257, dtype=torch.float32).view(1, 1, 1, -1)
+    reference = dense_gaussian_focal_loss(logits_fp32, target_fp32)
+    low_precision = dense_gaussian_focal_loss(logits_fp32.half(), target_fp32.half())
+    assert torch.allclose(low_precision, reference, atol=2e-3, rtol=2e-3)
+
+
 def test_auxiliary_is_training_only_and_backpropagates() -> None:
     forward = forward_report("p2_gaussian_aux", imgsz=128)
     assert forward["all_checks_passed"], forward
@@ -139,7 +166,13 @@ def test_colab_uses_getpass_without_fixed_dataset_count_gate() -> None:
     notebook = (
         ROOT / "notebooks" / "YOLO11n_InceptionDW_SPDDown_P2GaussianAux.ipynb"
     ).read_text(encoding="utf-8")
-    for source in (generator, notebook):
+    stable_generator = (
+        ROOT / "tools" / "build_p2_gaussian_aux_ampstable_colab.py"
+    ).read_text(encoding="utf-8")
+    stable_notebook = (
+        ROOT / "notebooks" / "YOLO11n_InceptionDW_P2GaussianAux_AMPStable.ipynb"
+    ).read_text(encoding="utf-8")
+    for source in (generator, notebook, stable_notebook):
         assert "getpass.getpass(" in source
         assert "#!/usr/bin/env python3" in source
         assert "stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR" in source
@@ -147,6 +180,10 @@ def test_colab_uses_getpass_without_fixed_dataset_count_gate() -> None:
         assert "ENFORCE_EXPECTED_COUNTS" not in source
         assert "Dataset count mismatch" not in source
         assert "shutil.copyfile(" in source
+    for source in (stable_generator, stable_notebook):
+        assert "p2_gaussian_aux_ampstable_640" in source
+        assert "logsigmoid" in source
+        assert "Never substitute the invalid" in source
 
 
 def test_training_guards_missing_data_and_existing_artifacts(tmp_path: Path) -> None:

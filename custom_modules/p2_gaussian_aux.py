@@ -106,14 +106,30 @@ def gaussian_heatmap_targets(
 
 
 def dense_gaussian_focal_loss(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    """Balanced dense focal BCE for soft Gaussian targets."""
+    """Balanced dense focal BCE for soft Gaussian targets, evaluated in FP32.
 
-    probability = logits.sigmoid().clamp(1e-6, 1 - 1e-6)
-    positive_mass = target.sum().clamp_min(1.0)
-    positive = -(target * (1 - probability).square() * probability.log()).sum() / positive_mass
-    negative_weight = (1 - target).pow(4)
+    Keeping the logits in FP16 is unsafe: ``1 - 1e-6`` rounds to ``1.0`` and
+    saturated sigmoid values make ``log(1 - p)`` infinite. FP32 log-sigmoid
+    identities remain finite for all finite logits while preserving AMP for
+    the rest of the model.
+    """
+
+    if logits.shape != target.shape:
+        raise ValueError(f"Logit/target shape mismatch: {logits.shape} != {target.shape}.")
+    logits_fp32 = logits.float()
+    target_fp32 = target.float()
+    probability = logits_fp32.sigmoid()
+    positive_mass = target_fp32.sum().clamp_min(1.0)
+    positive = -(
+        target_fp32
+        * (1 - probability).square()
+        * F.logsigmoid(logits_fp32)
+    ).sum() / positive_mass
+    negative_weight = (1 - target_fp32).pow(4)
     negative = -(
-        negative_weight * probability.square() * (1 - probability).log()
+        negative_weight
+        * probability.square()
+        * F.logsigmoid(-logits_fp32)
     ).mean()
     return positive + negative
 

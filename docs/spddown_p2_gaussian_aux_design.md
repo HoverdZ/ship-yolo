@@ -92,6 +92,19 @@ Inference output, detection strides, and the number of detection heads remain
 native YOLO11 values. The auxiliary parameters remain in a training
 checkpoint, but contribute zero inference operations.
 
+### AMP stability correction
+
+The first formal P2 run was invalid: its recorded auxiliary loss was `inf` at
+epoch 1 and `nan` from epoch 2 onward. The cause was an FP16 sigmoid followed
+by `clamp(1e-6, 1 - 1e-6)` and `log(1 - p)`. In FP16 the upper clamp rounds to
+`1.0`, so a saturated positive logit evaluates `log(0)`.
+
+The corrected auxiliary loss casts only its loss calculation to FP32 and uses
+`F.logsigmoid(z)` and `F.logsigmoid(-z)`. Model forward and native YOLO losses
+remain under normal AMP. The invalid checkpoint must not be resumed; the
+corrected experiment starts from a clean initialization in a new run
+directory.
+
 The nc=80 initialization audit loads 497/513 state tensors and
 2,618,320/2,619,229 target parameter elements. The only additional random
 parameters are the auxiliary 1x1 head, alongside the already intentional

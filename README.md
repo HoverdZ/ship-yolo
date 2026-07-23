@@ -13,6 +13,11 @@ See [the design and pre-training audit](docs/spddown_p2_gaussian_aux_design.md)
 and `configs/spddown_p2aux_protocol.yaml`. No formal training is started by the
 repository code or notebook setup cells.
 
+The corrected P2-only Colab entrypoint is
+`notebooks/YOLO11n_InceptionDW_P2GaussianAux_AMPStable.ipynb`. It uses a new
+run directory and must not resume the earlier checkpoint whose auxiliary loss
+became non-finite under FP16.
+
 Remote Sensing Ship Detection based on YOLO11.
 
 This repository manages reproducible research experiments for remote sensing ship detection using Ultralytics YOLO11. It is intended for long-term SCI paper experimentation, including baseline construction, model-structure improvement, ablation studies, experiment logging, and paper-related documentation.
