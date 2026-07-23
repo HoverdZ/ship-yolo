@@ -35,11 +35,7 @@ training:
 dataset:
   drive_root: "/content/drive/MyDrive/ship_detection/data"
   local_root: "/content/datasets/ship_detection"
-  legacy_expected_images:
-    train: 2582
-    val: 842
-    test: 874
-  note: "The local D:/lw2.zip audit found 2517/839/840; formal runs must record which copy is used."
+  note: "The cloud dataset is authoritative. Log discovered split counts for provenance without comparing them with fixed historical counts."
 
 screening:
   local_proxy_only: "5 epochs, imgsz 320, fixed subset; rejection only"

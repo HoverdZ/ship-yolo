@@ -134,6 +134,19 @@ def test_training_entry_is_direct_process_and_cli_help_works() -> None:
     assert "--resume" in result.stdout
 
 
+def test_colab_uses_getpass_without_fixed_dataset_count_gate() -> None:
+    generator = (ROOT / "tools" / "build_spddown_p2aux_colab.py").read_text(encoding="utf-8")
+    notebook = (
+        ROOT / "notebooks" / "YOLO11n_InceptionDW_SPDDown_P2GaussianAux.ipynb"
+    ).read_text(encoding="utf-8")
+    for source in (generator, notebook):
+        assert "getpass.getpass(" in source
+        assert "EXPECTED_COUNTS" not in source
+        assert "ENFORCE_EXPECTED_COUNTS" not in source
+        assert "Dataset count mismatch" not in source
+        assert "shutil.copyfile(" in source
+
+
 def test_training_guards_missing_data_and_existing_artifacts(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         validate_data_yaml(tmp_path / "missing.yaml")

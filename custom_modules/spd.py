@@ -1,4 +1,11 @@
-"""Targeted space-to-depth downsampling for small-object feature preservation."""
+"""YOLO11 adaptation of the open-source SPD-Conv space-to-depth operation.
+
+The phase rearrangement follows the authors' MIT-licensed reference code:
+https://github.com/LabSAINT/SPD-Conv
+
+This file is an Ultralytics YOLO11-compatible adaptation, not a verbatim copy
+of the reference YOLOv5 implementation.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +17,10 @@ from ultralytics.nn.modules import Conv
 
 class SPDDown(nn.Module):
     """Space-to-depth by 2 followed by a non-strided Ultralytics Conv.
+
+    The core rearrangement matches the official SPD-Conv implementation. This
+    wrapper adds YOLO11 channel handling, validation, and a fused non-strided
+    Ultralytics Conv for use as a single YAML module.
 
     The phase order is explicit and stable so a stride-2 3x3 convolution can
     be mapped exactly into the non-strided 3x3 convolution for pretrained

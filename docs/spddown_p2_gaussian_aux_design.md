@@ -17,11 +17,19 @@ the native YOLO11 Neck and change one variable at a time.
 Primary references:
 
 - SPD-Conv: <https://arxiv.org/abs/2208.03641>
+- authors' official MIT-licensed code: <https://github.com/LabSAINT/SPD-Conv>
 - RFLA: <https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/3138_ECCV_2022_paper.php>
 - TTFNet Gaussian encoding: <https://ojs.aaai.org/index.php/AAAI/article/view/6838>
 
 The implementation is an experiment-specific adaptation, not a claim of
 bit-for-bit reproduction of an entire detector from those papers.
+
+`custom_modules/spd.py` is not a verbatim copy of the authors' YOLOv5 code.
+It is a YOLO11/Ultralytics-compatible adaptation. Its four-phase
+space-to-depth order exactly matches the official `space_to_depth` operation,
+then the wrapper applies a non-strided Ultralytics `Conv`. It additionally
+provides input validation and deterministic pretrained-weight mapping needed
+by this repository.
 
 ## Experiment A: targeted SPDDown
 
@@ -123,11 +131,10 @@ The copy cell uses `ThreadPoolExecutor` plus `shutil.copyfile`. It does not
 train from mounted Drive. A new local `data.yaml` is generated after detecting
 either `train/images` or `images/train` layout.
 
-The repository's historical protocol expects 2582/842/874 images, while the
-inspected `D:/lw2.zip` copy contains 2517/839/840. The notebook prints and
-checks counts before any initialization or training. A mismatch must be
-resolved deliberately; it must not be silently accepted for a formal
-comparison.
+The cloud dataset at the configured Drive path is authoritative. The notebook
+prints the discovered split counts for provenance, but does not compare them
+with local or historical fixed counts and does not reject a valid cloud copy
+because its counts differ.
 
 ## Required order
 
