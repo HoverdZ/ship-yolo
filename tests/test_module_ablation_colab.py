@@ -24,9 +24,9 @@ def test_notebook_is_valid_and_chinese_documented() -> None:
     text = "\n".join(
         "".join(cell.get("source", [])) for cell in notebook["cells"]
     )
-    assert "一次只训练一个实验" in text
+    assert "当前固定运行 `yolo11n-inceptiondw-dd`" in text
     assert "drive.mount(\"/content/drive\")" in text
-    assert "EXPERIMENT_NAME = \"yolo11n-dd\"" in text
+    assert "EXPERIMENT_NAME = \"yolo11n-inceptiondw-dd\"" in text
     assert "%pip install -e /content/ship-yolo" in text
     assert "start_training(config, data_yaml)" in text
     assert "resume_training(LAST_PT)" in text

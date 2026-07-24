@@ -45,7 +45,7 @@ EXPERIMENTS = {
 class TrainingConfig:
     """首批正式实验的统一训练协议。"""
 
-    experiment_name: str = "yolo11n-dd"
+    experiment_name: str = "yolo11n-inceptiondw-dd"
     data_yaml_relative: str = "data.yaml"
     baseline_results_csv: str = ""
     weights: str = "yolo11n.pt"
