@@ -1,0 +1,48 @@
+protocol: badc_scg_sgta_screening_v1
+ultralytics_version: 8.4.92
+baseline:
+  experiment: yolo11n_inceptiondw_c3k2_p23_640
+  reuse_existing_150_epoch_run: true
+  comparison_window_epochs: 80
+screening:
+  variants: [badc, scg, sgta]
+  stage_epochs: 80
+  scheduler_total_epochs: 150
+  full_model_enabled_by_default: false
+  initialization: yolo11n.pt
+  imgsz: 640
+  batch: 8
+  workers: 2
+  device: "0"
+  seed: 0
+  optimizer: auto
+continuation:
+  start_epoch: 81
+  final_total_epochs: 150
+  checkpoint: weights/stage80_resume.pt
+  require_optimizer_state: true
+  require_ema_state: true
+  require_same_scheduler_horizon: true
+dataset:
+  drive_path: /content/drive/MyDrive/ship_detection/data
+  local_path: /content/datasets/ship_detection
+  fixed_count_gate: false
+  copy_method: threaded_shutil_copyfile
+  live_progress: [files, bytes, throughput, eta]
+guardrails:
+  detect_scales: [P3, P4, P5]
+  detect_strides: [8, 16, 32]
+  no_p2_detect_head: true
+  no_dcn: true
+  no_subprocess_training: true
+  no_formal_training_during_preparation: true
+metrics:
+  required:
+    - metrics/precision(B)
+    - metrics/recall(B)
+    - metrics/mAP50(B)
+    - metrics/mAP50-95(B)
+  diagnostic:
+    - train/box_loss
+    - train/cls_loss
+    - train/dfl_loss

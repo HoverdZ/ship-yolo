@@ -1,0 +1,439 @@
+{
+  "all_checks_passed": true,
+  "variants": {
+    "badc": {
+      "variant": "badc",
+      "experiment_name": "yolo11n_badc_p23_640",
+      "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_badc_p23.yaml",
+      "uses_sgta": false,
+      "screening": true,
+      "ultralytics_version": "8.4.92",
+      "git_commit": "f13e90e42f63dec2281c0a24a4f3deeac18aa5e0",
+      "checks": {
+        "structure": true,
+        "forward": true,
+        "weight_transfer": true
+      },
+      "all_checks_passed": true,
+      "structure": {
+        "checks": {
+          "badc_scope": true,
+          "scg_scope": true,
+          "detect_three_scale": true,
+          "detect_stride": true
+        },
+        "all_checks_passed": true,
+        "badc_indices": [
+          2,
+          4
+        ],
+        "scg_indices": [],
+        "detect_sources": [
+          16,
+          19,
+          22
+        ]
+      },
+      "forward": {
+        "checks": {
+          "finite_output": true,
+          "three_scale_detect": true,
+          "stride_8_16_32": true
+        },
+        "all_checks_passed": true,
+        "prediction_shape": [
+          1,
+          84,
+          1344
+        ],
+        "feature_shapes": [
+          [
+            1,
+            64,
+            32,
+            32
+          ],
+          [
+            1,
+            128,
+            16,
+            16
+          ],
+          [
+            1,
+            256,
+            8,
+            8
+          ]
+        ]
+      },
+      "statistics": {
+        "parameters": 2620564,
+        "trainable_parameters": 2620548,
+        "gflops_at_imgsz": 6.551027199999999,
+        "imgsz": 640
+      },
+      "weight_transfer": {
+        "variant": "badc",
+        "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+        "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+        "loaded_state_tensors": 487,
+        "total_state_tensors": 511,
+        "loaded_parameter_tensors": 250,
+        "total_parameter_tensors": 268,
+        "loaded_target_parameter_elements": 2618224,
+        "total_target_parameter_elements": 2620564,
+        "random_initialized_parameter_keys": [
+          "model.2.m.0.cv2.horizontal.weight",
+          "model.2.m.0.cv2.layer_scale",
+          "model.2.m.0.cv2.local.weight",
+          "model.2.m.0.cv2.norm.bias",
+          "model.2.m.0.cv2.norm.weight",
+          "model.2.m.0.cv2.spatial_gate.bias",
+          "model.2.m.0.cv2.spatial_gate.weight",
+          "model.2.m.0.cv2.vertical.weight",
+          "model.2.m.0.cv2_adapter.weight",
+          "model.4.m.0.cv2.horizontal.weight",
+          "model.4.m.0.cv2.layer_scale",
+          "model.4.m.0.cv2.local.weight",
+          "model.4.m.0.cv2.norm.bias",
+          "model.4.m.0.cv2.norm.weight",
+          "model.4.m.0.cv2.spatial_gate.bias",
+          "model.4.m.0.cv2.spatial_gate.weight",
+          "model.4.m.0.cv2.vertical.weight",
+          "model.4.m.0.cv2_adapter.weight"
+        ],
+        "applied": true,
+        "loaded_tensor_ratio": 0.9530332681017613,
+        "loaded_target_parameter_element_ratio": 0.9991070624491522
+      }
+    },
+    "scg": {
+      "variant": "scg",
+      "experiment_name": "yolo11n_inceptiondw_scg_p3_640",
+      "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_scg_p3.yaml",
+      "uses_sgta": false,
+      "screening": true,
+      "ultralytics_version": "8.4.92",
+      "git_commit": "f13e90e42f63dec2281c0a24a4f3deeac18aa5e0",
+      "checks": {
+        "structure": true,
+        "forward": true,
+        "weight_transfer": true
+      },
+      "all_checks_passed": true,
+      "structure": {
+        "checks": {
+          "badc_scope": true,
+          "scg_scope": true,
+          "detect_three_scale": true,
+          "detect_stride": true
+        },
+        "all_checks_passed": true,
+        "badc_indices": [],
+        "scg_indices": [
+          15
+        ],
+        "detect_sources": [
+          16,
+          19,
+          22
+        ]
+      },
+      "forward": {
+        "checks": {
+          "finite_output": true,
+          "three_scale_detect": true,
+          "stride_8_16_32": true
+        },
+        "all_checks_passed": true,
+        "prediction_shape": [
+          1,
+          84,
+          1344
+        ],
+        "feature_shapes": [
+          [
+            1,
+            64,
+            32,
+            32
+          ],
+          [
+            1,
+            128,
+            16,
+            16
+          ],
+          [
+            1,
+            256,
+            8,
+            8
+          ]
+        ]
+      },
+      "statistics": {
+        "parameters": 2627773,
+        "trainable_parameters": 2627757,
+        "gflops_at_imgsz": 6.626060799999999,
+        "imgsz": 640
+      },
+      "weight_transfer": {
+        "variant": "scg",
+        "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+        "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+        "loaded_state_tensors": 497,
+        "total_state_tensors": 525,
+        "loaded_parameter_tensors": 254,
+        "total_parameter_tensors": 276,
+        "loaded_target_parameter_elements": 2618320,
+        "total_target_parameter_elements": 2627773,
+        "random_initialized_parameter_keys": [
+          "model.15.local_projection.0.weight",
+          "model.15.local_projection.1.bias",
+          "model.15.local_projection.1.weight",
+          "model.15.mask.bias",
+          "model.15.mask.weight",
+          "model.15.semantic_projection.0.weight",
+          "model.15.semantic_projection.1.bias",
+          "model.15.semantic_projection.1.weight",
+          "model.2.m.0.cv2.inception.dwconv_h.bias",
+          "model.2.m.0.cv2.inception.dwconv_h.weight",
+          "model.2.m.0.cv2.inception.dwconv_hw.bias",
+          "model.2.m.0.cv2.inception.dwconv_hw.weight",
+          "model.2.m.0.cv2.inception.dwconv_w.bias",
+          "model.2.m.0.cv2.inception.dwconv_w.weight",
+          "model.2.m.0.cv2_adapter.weight",
+          "model.4.m.0.cv2.inception.dwconv_h.bias",
+          "model.4.m.0.cv2.inception.dwconv_h.weight",
+          "model.4.m.0.cv2.inception.dwconv_hw.bias",
+          "model.4.m.0.cv2.inception.dwconv_hw.weight",
+          "model.4.m.0.cv2.inception.dwconv_w.bias",
+          "model.4.m.0.cv2.inception.dwconv_w.weight",
+          "model.4.m.0.cv2_adapter.weight"
+        ],
+        "applied": true,
+        "loaded_tensor_ratio": 0.9466666666666667,
+        "loaded_target_parameter_element_ratio": 0.996402657307157
+      }
+    },
+    "sgta": {
+      "variant": "sgta",
+      "experiment_name": "yolo11n_inceptiondw_sgta_640",
+      "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_sgta.yaml",
+      "uses_sgta": true,
+      "screening": true,
+      "ultralytics_version": "8.4.92",
+      "git_commit": "f13e90e42f63dec2281c0a24a4f3deeac18aa5e0",
+      "checks": {
+        "structure": true,
+        "forward": true,
+        "weight_transfer": true
+      },
+      "all_checks_passed": true,
+      "structure": {
+        "checks": {
+          "badc_scope": true,
+          "scg_scope": true,
+          "detect_three_scale": true,
+          "detect_stride": true
+        },
+        "all_checks_passed": true,
+        "badc_indices": [],
+        "scg_indices": [],
+        "detect_sources": [
+          16,
+          19,
+          22
+        ]
+      },
+      "forward": {
+        "checks": {
+          "finite_output": true,
+          "three_scale_detect": true,
+          "stride_8_16_32": true
+        },
+        "all_checks_passed": true,
+        "prediction_shape": [
+          1,
+          84,
+          1344
+        ],
+        "feature_shapes": [
+          [
+            1,
+            64,
+            32,
+            32
+          ],
+          [
+            1,
+            128,
+            16,
+            16
+          ],
+          [
+            1,
+            256,
+            8,
+            8
+          ]
+        ]
+      },
+      "statistics": {
+        "parameters": 2619164,
+        "trainable_parameters": 2619148,
+        "gflops_at_imgsz": 6.51424,
+        "imgsz": 640
+      },
+      "weight_transfer": {
+        "variant": "sgta",
+        "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+        "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+        "loaded_state_tensors": 497,
+        "total_state_tensors": 511,
+        "loaded_parameter_tensors": 254,
+        "total_parameter_tensors": 268,
+        "loaded_target_parameter_elements": 2618320,
+        "total_target_parameter_elements": 2619164,
+        "random_initialized_parameter_keys": [
+          "model.2.m.0.cv2.inception.dwconv_h.bias",
+          "model.2.m.0.cv2.inception.dwconv_h.weight",
+          "model.2.m.0.cv2.inception.dwconv_hw.bias",
+          "model.2.m.0.cv2.inception.dwconv_hw.weight",
+          "model.2.m.0.cv2.inception.dwconv_w.bias",
+          "model.2.m.0.cv2.inception.dwconv_w.weight",
+          "model.2.m.0.cv2_adapter.weight",
+          "model.4.m.0.cv2.inception.dwconv_h.bias",
+          "model.4.m.0.cv2.inception.dwconv_h.weight",
+          "model.4.m.0.cv2.inception.dwconv_hw.bias",
+          "model.4.m.0.cv2.inception.dwconv_hw.weight",
+          "model.4.m.0.cv2.inception.dwconv_w.bias",
+          "model.4.m.0.cv2.inception.dwconv_w.weight",
+          "model.4.m.0.cv2_adapter.weight"
+        ],
+        "applied": true,
+        "loaded_tensor_ratio": 0.9726027397260274,
+        "loaded_target_parameter_element_ratio": 0.9996777597737293
+      }
+    },
+    "full": {
+      "variant": "full",
+      "experiment_name": "yolo11n_badc_scg_sgta_full_640",
+      "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_badc_scg_sgta_full.yaml",
+      "uses_sgta": true,
+      "screening": false,
+      "ultralytics_version": "8.4.92",
+      "git_commit": "f13e90e42f63dec2281c0a24a4f3deeac18aa5e0",
+      "checks": {
+        "structure": true,
+        "forward": true,
+        "weight_transfer": true
+      },
+      "all_checks_passed": true,
+      "structure": {
+        "checks": {
+          "badc_scope": true,
+          "scg_scope": true,
+          "detect_three_scale": true,
+          "detect_stride": true
+        },
+        "all_checks_passed": true,
+        "badc_indices": [
+          2,
+          4
+        ],
+        "scg_indices": [
+          15
+        ],
+        "detect_sources": [
+          16,
+          19,
+          22
+        ]
+      },
+      "forward": {
+        "checks": {
+          "finite_output": true,
+          "three_scale_detect": true,
+          "stride_8_16_32": true
+        },
+        "all_checks_passed": true,
+        "prediction_shape": [
+          1,
+          84,
+          1344
+        ],
+        "feature_shapes": [
+          [
+            1,
+            64,
+            32,
+            32
+          ],
+          [
+            1,
+            128,
+            16,
+            16
+          ],
+          [
+            1,
+            256,
+            8,
+            8
+          ]
+        ]
+      },
+      "statistics": {
+        "parameters": 2629173,
+        "trainable_parameters": 2629157,
+        "gflops_at_imgsz": 6.662848,
+        "imgsz": 640
+      },
+      "weight_transfer": {
+        "variant": "full",
+        "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+        "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+        "loaded_state_tensors": 487,
+        "total_state_tensors": 525,
+        "loaded_parameter_tensors": 250,
+        "total_parameter_tensors": 276,
+        "loaded_target_parameter_elements": 2618224,
+        "total_target_parameter_elements": 2629173,
+        "random_initialized_parameter_keys": [
+          "model.15.local_projection.0.weight",
+          "model.15.local_projection.1.bias",
+          "model.15.local_projection.1.weight",
+          "model.15.mask.bias",
+          "model.15.mask.weight",
+          "model.15.semantic_projection.0.weight",
+          "model.15.semantic_projection.1.bias",
+          "model.15.semantic_projection.1.weight",
+          "model.2.m.0.cv2.horizontal.weight",
+          "model.2.m.0.cv2.layer_scale",
+          "model.2.m.0.cv2.local.weight",
+          "model.2.m.0.cv2.norm.bias",
+          "model.2.m.0.cv2.norm.weight",
+          "model.2.m.0.cv2.spatial_gate.bias",
+          "model.2.m.0.cv2.spatial_gate.weight",
+          "model.2.m.0.cv2.vertical.weight",
+          "model.2.m.0.cv2_adapter.weight",
+          "model.4.m.0.cv2.horizontal.weight",
+          "model.4.m.0.cv2.layer_scale",
+          "model.4.m.0.cv2.local.weight",
+          "model.4.m.0.cv2.norm.bias",
+          "model.4.m.0.cv2.norm.weight",
+          "model.4.m.0.cv2.spatial_gate.bias",
+          "model.4.m.0.cv2.spatial_gate.weight",
+          "model.4.m.0.cv2.vertical.weight",
+          "model.4.m.0.cv2_adapter.weight"
+        ],
+        "applied": true,
+        "loaded_tensor_ratio": 0.9276190476190476,
+        "loaded_target_parameter_element_ratio": 0.9958355726306333
+      }
+    }
+  }
+}

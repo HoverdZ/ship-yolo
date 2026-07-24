@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 5
+_PATCH_VERSION = 6
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -45,6 +45,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         "ASCGDSymmetricP3",
         "ASCGDSymmetricP4",
         "ASCGDSymmetricP5",
+        "C3k2_BADC",
         "C3k2_InceptionDW",
         "FaPNAlign",
         "FaPNAlignmentOnly",
@@ -52,6 +53,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         "FaPNLateral",
         "FaPNOutputConv",
         "P2GaussianAuxDetect",
+        "SemanticConfirmationGate",
         "SDWF",
         "SPDDown",
     )
@@ -65,7 +67,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("Unable to locate parse_model base_modules block for custom registration.")
     source = source.replace(
         base_marker,
-        "base_modules = frozenset(\n        {\n            Align,\n            C3k2_InceptionDW,\n"
+        "base_modules = frozenset(\n        {\n            Align,\n            C3k2_BADC,\n"
+        "            C3k2_InceptionDW,\n"
         "            DWDown,\n            FaPNLateral,\n            FaPNOutputConv,\n"
         "            SPDDown,",
         1,
@@ -76,7 +79,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("Unable to locate parse_model repeat_modules block.")
     source = source.replace(
         repeat_marker,
-        "repeat_modules = frozenset(  # modules with 'repeat' arguments\n        {\n            C3k2_InceptionDW,",
+        "repeat_modules = frozenset(  # modules with 'repeat' arguments\n        {\n"
+        "            C3k2_BADC,\n            C3k2_InceptionDW,",
         1,
     )
 
@@ -134,6 +138,11 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, c2, *args[1:]]
+        elif m is SemanticConfirmationGate:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("SemanticConfirmationGate requires [C3, upsampled P4].")
+            c2 = sum(ch[x] for x in f)
+            args = [[ch[x] for x in f], *args]
 """
     source = source.replace(branch_marker, custom_branches + branch_marker, 1)
 
@@ -191,10 +200,12 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         ASCGDSymmetricP4,
         ASCGDSymmetricP5,
     )
+    from custom_modules.badc import C3k2_BADC
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.fapn import FaPNAlign, FaPNLateral, FaPNOutputConv
     from custom_modules.fapn_prefusion import FaPNAlignmentOnly, FaPNFeatureSelectionKeep
     from custom_modules.p2_gaussian_aux import P2GaussianAuxDetect
+    from custom_modules.scg import SemanticConfirmationGate
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
     from custom_modules.spd import SPDDown
     import ultralytics.nn.modules as modules
@@ -218,6 +229,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "ASCGDSymmetricP4": ASCGDSymmetricP4,
         "ASCGDSymmetricP5": ASCGDSymmetricP5,
         "Align": Align,
+        "C3k2_BADC": C3k2_BADC,
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "DWDown": DWDown,
         "FaPNAlign": FaPNAlign,
@@ -226,6 +238,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "FaPNLateral": FaPNLateral,
         "FaPNOutputConv": FaPNOutputConv,
         "P2GaussianAuxDetect": P2GaussianAuxDetect,
+        "SemanticConfirmationGate": SemanticConfirmationGate,
         "SDWF": SDWF,
         "SPDDown": SPDDown,
     }

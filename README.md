@@ -302,3 +302,26 @@ python tools/train_ascgd_colab.py \
 See `docs/ascgd_neck.md` for the exact A-G differences, initialization audit,
 resume protection, L4 benchmark, and result-summary commands. Formal training
 is not started during repository preparation.
+
+## Prepared Experiments: BADC / SCG / SGTA
+
+Three independent 80-epoch screens reuse the first 80 epochs of the existing
+150-epoch InceptionDW run as the matched reference:
+
+- `badc`: background-aware directional contrast at shallow P2/P3.
+- `scg`: bounded P4 semantic confirmation replacing the native P3 concat.
+- `sgta`: training-only scale-adaptive CIoU/NWD assignment and regression.
+
+The complete `full` model is implemented and audited but blocked in the default
+Colab notebook until the three independent screens are reviewed.
+
+```bash
+python tools/check_badc_scg_sgta.py --weights yolo11n.pt --imgsz 640
+python -m pytest tests/test_badc_scg_sgta.py -q
+python tools/build_badc_scg_sgta_colab.py
+```
+
+Training uses a 150-epoch scheduler, pauses after epoch 80, and preserves the
+raw optimizer/scheduler/EMA state as `weights/stage80_resume.pt`. The optional
+continuation resumes that checkpoint through epoch 150; it is not a new
+70-epoch fine-tune. See `docs/badc_scg_sgta_design.md`.
