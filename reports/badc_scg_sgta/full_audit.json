@@ -5,7 +5,7 @@
   "uses_sgta": true,
   "screening": false,
   "ultralytics_version": "8.4.92",
-  "git_commit": "f13e90e42f63dec2281c0a24a4f3deeac18aa5e0",
+  "git_commit": "636da4324d359da996cb3e65f3f9525c95c3bbee",
   "checks": {
     "structure": true,
     "forward": true,
