@@ -214,6 +214,16 @@ data/
 artifacts/heatmaps/raw/
 artifacts/gate_analysis/raw/
 
+# Local ship-detection data and temporary authentication material
+ship_detection/
+data_local.yaml
+.git-credentials
+.netrc
+*.token
+*.credentials
+credentials.json
+auth.json
+
 # Ruff stuff:
 .ruff_cache/
 
