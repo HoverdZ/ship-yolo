@@ -1,0 +1,15 @@
+{
+  "all_checks_passed": true,
+  "experiment_name": "yolo11n_inceptiondw_scshared_head_640",
+  "statistics": {
+    "parameters": 2269986,
+    "trainable_parameters": 2269970,
+    "gflops_at_imgsz": 6.0154368,
+    "imgsz": 640
+  },
+  "weight_transfer": {
+    "loaded_state_tensors": 383,
+    "total_state_tensors": 421,
+    "loaded_target_parameter_element_ratio": 0.9541486158945474
+  }
+}

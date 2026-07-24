@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 6
+_PATCH_VERSION = 7
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -53,6 +53,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         "FaPNLateral",
         "FaPNOutputConv",
         "P2GaussianAuxDetect",
+        "SCSharedDetect",
         "SemanticConfirmationGate",
         "SDWF",
         "SPDDown",
@@ -156,6 +157,11 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
                 raise ValueError("P2GaussianAuxDetect requires [P2, P3, P4, P5].")
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             m.legacy = legacy
+        elif m is SCSharedDetect:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError("SCSharedDetect requires [P3, P4, P5].")
+            args.extend([reg_max, end2end, [ch[x] for x in f]])
+            m.legacy = legacy
 """
         + head_marker,
         1,
@@ -205,6 +211,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.fapn import FaPNAlign, FaPNLateral, FaPNOutputConv
     from custom_modules.fapn_prefusion import FaPNAlignmentOnly, FaPNFeatureSelectionKeep
     from custom_modules.p2_gaussian_aux import P2GaussianAuxDetect
+    from custom_modules.scshared_head import SCSharedDetect
     from custom_modules.scg import SemanticConfirmationGate
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
     from custom_modules.spd import SPDDown
@@ -238,6 +245,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "FaPNLateral": FaPNLateral,
         "FaPNOutputConv": FaPNOutputConv,
         "P2GaussianAuxDetect": P2GaussianAuxDetect,
+        "SCSharedDetect": SCSharedDetect,
         "SemanticConfirmationGate": SemanticConfirmationGate,
         "SDWF": SDWF,
         "SPDDown": SPDDown,

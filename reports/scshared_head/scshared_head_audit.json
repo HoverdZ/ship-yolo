@@ -1,0 +1,164 @@
+{
+  "experiment_name": "yolo11n_inceptiondw_scshared_head_640",
+  "model_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_scshared_head.yaml",
+  "baseline_yaml": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\experiments\\yolo11n_inceptiondw_c3k2_p23.yaml",
+  "ultralytics_version": "8.4.92",
+  "git_commit": "7f0761e3664c7d59c49ddf669200acec225d7e36",
+  "checks": {
+    "structure": true,
+    "forward": true,
+    "weight_transfer": true,
+    "head_mapping": true,
+    "non_head_random_scope": true,
+    "parameter_element_inheritance": true
+  },
+  "all_checks_passed": true,
+  "structure": {
+    "checks": {
+      "inceptiondw_scope": true,
+      "head_type": true,
+      "three_scale_detect": true,
+      "detect_stride": true,
+      "shared_channels": true,
+      "two_shared_blocks": true,
+      "three_scale_calibrators": true,
+      "single_class": true
+    },
+    "all_checks_passed": true,
+    "inceptiondw_indices": [
+      2,
+      4
+    ],
+    "detect_sources": [
+      16,
+      19,
+      22
+    ],
+    "head_class": "SCSharedDetect",
+    "scale_values": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "forward": {
+    "checks": {
+      "training_dict": true,
+      "boxes_finite": true,
+      "scores_finite": true,
+      "three_training_features": true,
+      "shared_stem_gradient": true,
+      "inference_finite": true,
+      "prediction_channels": true,
+      "three_inference_features": true
+    },
+    "all_checks_passed": true,
+    "training_box_shape": [
+      2,
+      64,
+      1344
+    ],
+    "training_score_shape": [
+      2,
+      1,
+      1344
+    ],
+    "inference_shape": [
+      1,
+      5,
+      1344
+    ],
+    "feature_shapes": [
+      [
+        1,
+        64,
+        32,
+        32
+      ],
+      [
+        1,
+        128,
+        16,
+        16
+      ],
+      [
+        1,
+        256,
+        8,
+        8
+      ]
+    ]
+  },
+  "statistics": {
+    "parameters": 2269986,
+    "trainable_parameters": 2269970,
+    "gflops_at_imgsz": 6.0154368,
+    "imgsz": 640
+  },
+  "weight_transfer": {
+    "source_weights": "C:\\Users\\zhm\\Documents\\Codex\\2026-06-18\\edge-github-sci-github-ship-yolo\\work\\ship-yolo\\yolo11n.pt",
+    "source_sha256": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+    "source_state_tensors": 499,
+    "total_state_tensors": 421,
+    "loaded_state_tensors": 383,
+    "exact_name_state_tensors": 377,
+    "mapped_native_detect_output_tensors": 6,
+    "loaded_parameter_tensors": 194,
+    "total_parameter_tensors": 232,
+    "loaded_target_parameter_elements": 2165904,
+    "total_target_parameter_elements": 2269986,
+    "mapped_head_keys": {
+      "model.23.cv2.0.bias": "model.23.cv2.0.2.bias",
+      "model.23.cv2.0.weight": "model.23.cv2.0.2.weight",
+      "model.23.cv2.1.bias": "model.23.cv2.1.2.bias",
+      "model.23.cv2.1.weight": "model.23.cv2.1.2.weight",
+      "model.23.cv2.2.bias": "model.23.cv2.2.2.bias",
+      "model.23.cv2.2.weight": "model.23.cv2.2.2.weight"
+    },
+    "random_initialized_head_parameter_keys": [
+      "model.23.cv3.0.bias",
+      "model.23.cv3.0.weight",
+      "model.23.cv3.1.bias",
+      "model.23.cv3.1.weight",
+      "model.23.cv3.2.bias",
+      "model.23.cv3.2.weight",
+      "model.23.input_adapters.0.conv.weight",
+      "model.23.input_adapters.0.norm.bias",
+      "model.23.input_adapters.0.norm.weight",
+      "model.23.input_adapters.1.conv.weight",
+      "model.23.input_adapters.1.norm.bias",
+      "model.23.input_adapters.1.norm.weight",
+      "model.23.input_adapters.2.conv.weight",
+      "model.23.input_adapters.2.norm.bias",
+      "model.23.input_adapters.2.norm.weight",
+      "model.23.scale_calibration.0.log_scale",
+      "model.23.scale_calibration.1.log_scale",
+      "model.23.scale_calibration.2.log_scale",
+      "model.23.shared_stem.0.conv.weight",
+      "model.23.shared_stem.0.norm.bias",
+      "model.23.shared_stem.0.norm.weight",
+      "model.23.shared_stem.1.conv.weight",
+      "model.23.shared_stem.1.norm.bias",
+      "model.23.shared_stem.1.norm.weight"
+    ],
+    "random_initialized_non_head_parameter_keys": [
+      "model.2.m.0.cv2.inception.dwconv_h.bias",
+      "model.2.m.0.cv2.inception.dwconv_h.weight",
+      "model.2.m.0.cv2.inception.dwconv_hw.bias",
+      "model.2.m.0.cv2.inception.dwconv_hw.weight",
+      "model.2.m.0.cv2.inception.dwconv_w.bias",
+      "model.2.m.0.cv2.inception.dwconv_w.weight",
+      "model.2.m.0.cv2_adapter.weight",
+      "model.4.m.0.cv2.inception.dwconv_h.bias",
+      "model.4.m.0.cv2.inception.dwconv_h.weight",
+      "model.4.m.0.cv2.inception.dwconv_hw.bias",
+      "model.4.m.0.cv2.inception.dwconv_hw.weight",
+      "model.4.m.0.cv2.inception.dwconv_w.bias",
+      "model.4.m.0.cv2.inception.dwconv_w.weight",
+      "model.4.m.0.cv2_adapter.weight"
+    ],
+    "applied": true,
+    "loaded_tensor_ratio": 0.9097387173396675,
+    "loaded_target_parameter_element_ratio": 0.9541486158945474
+  }
+}

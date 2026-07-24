@@ -1,5 +1,14 @@
 # ship-yolo
 
+## Current screening experiment
+
+`YOLO11n-InceptionDW-SCSharedHead` keeps the validated InceptionDW P2/P3
+backbone change and replaces only the native P3/P4/P5 Detect head with a
+scale-calibrated shared Conv-GN head. See
+`docs/scshared_head_design.md` for the paper comparison, weight-transfer scope,
+preflight checks, and staged 80/150-epoch protocol. Formal training has not
+started.
+
 ## InceptionDW small-ship experiments: SPDDown and P2 Gaussian auxiliary loss
 
 The `feature/spddown-p2-gaussian-aux` experiment suite keeps the validated
