@@ -63,9 +63,12 @@ name-and-shape matching against the same official checkpoint.
 
 ## Baseline-controlled training settings
 
-Formal runs use the real baseline recipe: 150 epochs, image size 640, batch 8,
-workers 2, seed 0, deterministic mode, optimizer `auto`, patience 150,
-`cache=ram`, and `close_mosaic=10`. All remaining augmentation and loss
+Formal runs use 150 epochs, image size 640, batch 8, workers 2, seed 0,
+optimizer `auto`, patience 150, `cache=disk`, and `close_mosaic=10`. DySample
+depends on CUDA `grid_sample` backward, for which PyTorch has no deterministic
+implementation. These experiments therefore set `deterministic=False` instead
+of enabling warn-only deterministic mode, whose autograd warning stack would
+break the official tqdm epoch display. All remaining augmentation and loss
 arguments are explicitly pinned in `tools/train_cumulative_models.py`.
 
 Run exactly one experiment:

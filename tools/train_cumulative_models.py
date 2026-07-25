@@ -66,6 +66,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument(
+        "--cache",
+        choices=("ram", "disk", "none"),
+        default="disk",
+    )
+    parser.add_argument(
+        "--deterministic",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+    )
     return parser.parse_args()
 
 
@@ -81,6 +91,8 @@ def train_experiment(
     imgsz: int = 640,
     batch: int = 8,
     workers: int = 2,
+    cache: str | bool | None = "disk",
+    deterministic: bool = False,
 ) -> None:
     """Train one experiment in the current Python process.
 
@@ -92,6 +104,12 @@ def train_experiment(
             f"Unknown experiment {experiment!r}; "
             f"choose one of {tuple(EXPERIMENTS)}."
         )
+    if cache not in {"ram", "disk", "none", False, None}:
+        raise ValueError(
+            "cache must be 'ram', 'disk', 'none', False, or None; "
+            f"got {cache!r}."
+        )
+    resolved_cache = None if cache in {"none", False, None} else cache
     args = argparse.Namespace(
         experiment=experiment,
         data=str(data),
@@ -103,6 +121,8 @@ def train_experiment(
         imgsz=imgsz,
         batch=batch,
         workers=workers,
+        cache=resolved_cache,
+        deterministic=bool(deterministic),
     )
     data_yaml = Path(args.data).expanduser().resolve()
     dataset_nc = read_dataset_nc(data_yaml)
@@ -163,7 +183,8 @@ def train_experiment(
         "device": args.device,
         "seed": 0,
         "optimizer": "auto",
-        "cache": "ram",
+        "cache": args.cache,
+        "deterministic": args.deterministic,
         "inheritance_report": str(inheritance_path),
     }
     write_json(run_dir / "resolved_args.json", resolved)
@@ -223,10 +244,13 @@ def train_experiment(
         name=name,
         exist_ok=True,
         patience=150,
-        cache="ram",
+        cache=args.cache,
         optimizer="auto",
         seed=0,
-        deterministic=True,
+        # DySample uses CUDA grid_sample backward, for which PyTorch has no
+        # deterministic implementation. Setting this False prevents PyTorch's
+        # warning stack from corrupting the official tqdm epoch display.
+        deterministic=args.deterministic,
         pretrained=True,
         resume=False,
         amp=True,

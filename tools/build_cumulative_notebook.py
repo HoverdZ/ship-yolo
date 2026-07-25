@@ -180,6 +180,10 @@ else:
         imgsz=640,
         batch=8,
         workers=2,
+        cache="disk",
+        # CUDA grid_sample backward used by DySample is non-deterministic.
+        # False prevents PyTorch warning stacks from breaking the tqdm display.
+        deterministic=False,
     )
 """
         ),

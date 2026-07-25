@@ -30,6 +30,8 @@ def test_colab_training_is_not_launched_in_a_subprocess() -> None:
     source = training_cells[0]
     assert "train_experiment(" in source
     assert "RUN_TRAINING = True" in source
+    assert 'cache="disk"' in source
+    assert "deterministic=False" in source
     assert "subprocess.run" not in source
     assert "!python" not in source
     assert "%run" not in source
