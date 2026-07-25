@@ -19,6 +19,7 @@ from custom_modules.register import register_module_ablation_modules
 ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS = {
     "yolo11n-c3cross": ROOT / "experiments/yolo11n-c3cross.yaml",
+    "yolo11n-c3cross-p23": ROOT / "experiments/yolo11n-c3cross-p23.yaml",
     "yolo11n-dd": ROOT / "experiments/yolo11n-dd.yaml",
     "yolo11n-cgfm": ROOT / "experiments/yolo11n-cgfm.yaml",
     "yolo11n-inceptiondw-dd": ROOT / "experiments/yolo11n-inceptiondw-dd.yaml",
@@ -159,6 +160,7 @@ def structure_report(model: YOLO, experiment_name: str) -> dict[str, Any]:
 
     expected = {
         "yolo11n-c3cross": ([2, 4, 6, 8], [], [], [], []),
+        "yolo11n-c3cross-p23": ([2, 4], [], [], [], []),
         "yolo11n-dd": ([], [1, 3, 5, 7], [], [], []),
         "yolo11n-cgfm": ([], [], [12], [], []),
         "yolo11n-inceptiondw-dd": ([], [1, 3, 5, 7], [], [], [2, 4]),
