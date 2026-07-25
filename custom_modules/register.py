@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 3
+_PATCH_VERSION = 4
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -34,12 +34,17 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     has_inception = "C3k2_InceptionDW" in source
     has_sa_dwpn = "elif m is SDWF:" in source and "DWDown" in source
-    if has_ablation and has_inception and has_sa_dwpn:
+    has_cumulative = (
+        "elif m is DySample:" in source
+        and "elif m is SCAM:" in source
+    )
+    if has_ablation and has_inception and has_sa_dwpn and has_cumulative:
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
         parse_model._sa_dwpn_patched = True
         parse_model._inceptiondw_patched = True
         parse_model._module_ablation_patched = True
+        parse_model._cumulative_models_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -109,6 +114,31 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 """
         source = source.replace(branch_marker, sdwf_branch + branch_marker, 1)
 
+    if not has_cumulative:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for DySample/SCAM registration."
+            )
+        cumulative_branch = """        elif m is DySample:
+            if isinstance(f, (list, tuple)):
+                raise ValueError("DySample expects exactly one input feature.")
+            c1 = ch[f]
+            c2 = c1
+            args = [c1, *args]
+        elif m is SCAM:
+            if isinstance(f, (list, tuple)):
+                raise ValueError("SCAM expects exactly one input feature.")
+            c1 = ch[f]
+            c2 = c1
+            args = [c1, *args]
+"""
+        source = source.replace(
+            branch_marker,
+            cumulative_branch + branch_marker,
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -124,6 +154,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._sa_dwpn_patched = True
     tasks.parse_model._inceptiondw_patched = True
     tasks.parse_model._module_ablation_patched = True
+    tasks.parse_model._cumulative_models_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -133,7 +164,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.cgfm import AlignConcat, CGFM
     from custom_modules.dd import DD
+    from custom_modules.dysample import DySample
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
+    from custom_modules.scam import SCAM
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -144,7 +177,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "CGFM": CGFM,
         "DD": DD,
+        "DySample": DySample,
         "DWDown": DWDown,
+        "SCAM": SCAM,
         "SDWF": SDWF,
     }
     _set_module_attrs(modules, names)
@@ -168,5 +203,11 @@ def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
 
 def register_module_ablation_modules(patch_parse_model: bool = True) -> None:
     """Register CrossConv, DD, CGFM, and shared repository modules."""
+
+    register_custom_modules(patch_parse_model=patch_parse_model)
+
+
+def register_cumulative_modules(patch_parse_model: bool = True) -> None:
+    """Register DySample, SCAM, InceptionDW, and shared repository modules."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
