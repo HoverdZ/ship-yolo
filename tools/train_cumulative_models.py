@@ -69,8 +69,41 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
+def train_experiment(
+    *,
+    experiment: str,
+    data: str | Path,
+    weights: str | Path = "yolo11n.pt",
+    project: str | Path = "/content/drive/MyDrive/ship_detection/runs",
+    name: str | None = None,
+    device: str = "0",
+    epochs: int = 150,
+    imgsz: int = 640,
+    batch: int = 8,
+    workers: int = 2,
+) -> None:
+    """Train one experiment in the current Python process.
+
+    This callable is the Colab entrypoint. Keeping training in the notebook
+    kernel preserves Ultralytics' live per-epoch logging and progress bars.
+    """
+    if experiment not in EXPERIMENTS:
+        raise ValueError(
+            f"Unknown experiment {experiment!r}; "
+            f"choose one of {tuple(EXPERIMENTS)}."
+        )
+    args = argparse.Namespace(
+        experiment=experiment,
+        data=str(data),
+        weights=str(weights),
+        project=str(project),
+        name=name,
+        device=device,
+        epochs=epochs,
+        imgsz=imgsz,
+        batch=batch,
+        workers=workers,
+    )
     data_yaml = Path(args.data).expanduser().resolve()
     dataset_nc = read_dataset_nc(data_yaml)
     project = Path(args.project).expanduser().resolve()
@@ -230,6 +263,12 @@ def main() -> None:
     )
     if not verification["executed"] or not verification["passed"]:
         raise RuntimeError("Trainer weight verification did not pass.")
+
+
+def main() -> None:
+    """CLI wrapper around the same in-process training function."""
+
+    train_experiment(**vars(parse_args()))
 
 
 if __name__ == "__main__":

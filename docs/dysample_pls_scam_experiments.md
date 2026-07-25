@@ -108,5 +108,8 @@ The Google Colab workflow is
 `colab/YOLO11n_Cumulative_DySample_PLS_SCAM.ipynb`. It installs
 `ultralytics==8.4.92`, securely clones this private branch using a Colab
 secret, copies Drive data with 16 concurrent `shutil.copyfile` workers and
-file/byte progress, runs the preflight, and leaves formal training disabled by
-default.
+file/byte progress, and runs the preflight before training. `RUN_TRAINING`
+defaults to `True`. Training calls `train_experiment()` directly in the current
+Colab kernel and reaches the official Ultralytics `YOLO.train(...)` API; it is
+never launched through a subprocess, so live per-epoch output and progress bars
+remain attached to the training cell.

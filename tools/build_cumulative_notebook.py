@@ -42,8 +42,8 @@ This notebook runs exactly one independently initialized experiment at a time:
 3. `incdw_dysample_pls_scam`
 
 Every run inherits compatible tensors from the same official `yolo11n.pt`.
-It never loads another experiment's `best.pt`. Formal training is disabled
-until the preflight report has passed and `RUN_TRAINING` is explicitly enabled.
+It never loads another experiment's `best.pt`. The preflight runs first, then
+`RUN_TRAINING=True` starts the official Ultralytics `YOLO.train(...)` path.
 """
         ),
         markdown("## 1. Install the pinned environment"),
@@ -161,26 +161,25 @@ print("Preflight report:", AUDIT_PATH)
         markdown("## 5. Train only after reviewing the preflight"),
         code(
             """
-RUN_TRAINING = False
+from tools.train_cumulative_models import train_experiment
+
+RUN_TRAINING = True
 if not RUN_TRAINING:
-    print("Training is disabled. Review the preflight, then set RUN_TRAINING=True.")
+    print("Training is disabled.")
 else:
-    subprocess.run(
-        [
-            sys.executable,
-            "tools/train_cumulative_models.py",
-            "--experiment", EXPERIMENT,
-            "--data", str(DATA_YAML),
-            "--weights", "yolo11n.pt",
-            "--project", "/content/drive/MyDrive/ship_detection/runs",
-            "--name", RUN_NAME,
-            "--device", "0",
-            "--epochs", "150",
-            "--imgsz", "640",
-            "--batch", "8",
-            "--workers", "2",
-        ],
-        check=True,
+    # Direct call in the current Colab kernel: per-epoch logs and progress
+    # bars remain visible in this cell. Never launch training in a subprocess.
+    train_experiment(
+        experiment=EXPERIMENT,
+        data=DATA_YAML,
+        weights="yolo11n.pt",
+        project="/content/drive/MyDrive/ship_detection/runs",
+        name=RUN_NAME,
+        device="0",
+        epochs=150,
+        imgsz=640,
+        batch=8,
+        workers=2,
     )
 """
         ),

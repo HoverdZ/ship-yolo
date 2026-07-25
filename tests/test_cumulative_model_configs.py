@@ -16,6 +16,25 @@ from tools.cumulative_models_utils import (
 )
 
 
+def test_colab_training_is_not_launched_in_a_subprocess() -> None:
+    from tools.build_cumulative_notebook import build_notebook
+
+    notebook = build_notebook()
+    training_cells = [
+        cell.source
+        for cell in notebook.cells
+        if cell.cell_type == "code"
+        and "RUN_TRAINING" in cell.source
+    ]
+    assert len(training_cells) == 1
+    source = training_cells[0]
+    assert "train_experiment(" in source
+    assert "RUN_TRAINING = True" in source
+    assert "subprocess.run" not in source
+    assert "!python" not in source
+    assert "%run" not in source
+
+
 def test_registration_is_idempotent_and_exposes_custom_modules() -> None:
     register_cumulative_modules()
     first_parser = None
