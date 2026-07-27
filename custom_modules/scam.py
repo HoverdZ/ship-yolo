@@ -72,7 +72,9 @@ class SCAM(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def compute_context_residual(self, x: torch.Tensor) -> torch.Tensor:
+        """Return the original FFCA-YOLO context residual before ``x + y``."""
+
         if x.ndim != 4:
             raise ValueError(
                 f"SCAM expects a BCHW tensor, got {tuple(x.shape)}."
@@ -126,4 +128,7 @@ class SCAM(nn.Module):
         )
 
         y = self.m(channel_context) * self.m2(spatial_context).sigmoid()
-        return x + y
+        return y
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.compute_context_residual(x)

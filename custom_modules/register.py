@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 5
+_PATCH_VERSION = 6
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -36,7 +36,13 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_sa_dwpn = "elif m is SDWF:" in source and "DWDown" in source
     has_cumulative = (
         "elif m is DySample:" in source
-        and "elif m is SCAM:" in source
+        and (
+            "elif m is SCAM:" in source
+            or "elif m in {SCAM, CASCAM}:" in source
+        )
+    )
+    has_calibrated_scam = (
+        "elif m in {SCAM, CASCAM}:" in source
     )
     has_adaptive = (
         "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
@@ -47,6 +53,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_sa_dwpn
         and has_cumulative
         and has_adaptive
+        and has_calibrated_scam
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -55,6 +62,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._module_ablation_patched = True
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
+        parse_model._calibrated_scam_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -136,9 +144,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
-        elif m is SCAM:
+        elif m in {SCAM, CASCAM}:
             if isinstance(f, (list, tuple)):
-                raise ValueError("SCAM expects exactly one input feature.")
+                raise ValueError(f"{m.__name__} expects exactly one input feature.")
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
@@ -146,6 +154,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         source = source.replace(
             branch_marker,
             cumulative_branch + branch_marker,
+            1,
+        )
+    elif not has_calibrated_scam:
+        source = source.replace(
+            "        elif m is SCAM:",
+            "        elif m in {SCAM, CASCAM}:",
             1,
         )
 
@@ -189,6 +203,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._module_ablation_patched = True
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
+    tasks.parse_model._calibrated_scam_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -196,6 +211,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     from custom_modules.c3k2_crossconv import C3k2CrossConv
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
+    from custom_modules.calibrated_scam import CASCAM
     from custom_modules.cgfm import AlignConcat, CGFM
     from custom_modules.dd import DD
     from custom_modules.dysample import DySample
@@ -211,6 +227,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "AlignConcat": AlignConcat,
         "C3k2CrossConv": C3k2CrossConv,
         "C3k2_InceptionDW": C3k2_InceptionDW,
+        "CASCAM": CASCAM,
         "CGFM": CGFM,
         "DD": DD,
         "DySample": DySample,
@@ -253,5 +270,13 @@ def register_cumulative_modules(patch_parse_model: bool = True) -> None:
 
 def register_adaptive_preprocessors(patch_parse_model: bool = True) -> None:
     """Register ERUP/VGUP and every shared repository module."""
+
+    register_custom_modules(patch_parse_model=patch_parse_model)
+
+
+def register_calibrated_scam_modules(
+    patch_parse_model: bool = True,
+) -> None:
+    """Register CA-SCAM and every shared repository module."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
