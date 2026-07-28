@@ -8,7 +8,7 @@ import nbformat
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "colab" / "formal_ablation_v1"
-PINNED_COMMIT = "ece6844085f687ee37e38a9b057a825c57d1eaaf"
+PINNED_COMMIT = "39d0e2a3a62c25680cd4d6195608fac6bae3dcda"
 
 NOTEBOOKS = {
     "A0_yolo11n": "A0_YOLO11n_Baseline.ipynb",
