@@ -99,6 +99,19 @@ def test_dataset_yaml_parent_fallback_audit_and_copy_are_read_only(tmp_path: Pat
     assert yaml.safe_load(local_yaml.read_text(encoding="utf-8"))["path"] == str(tmp_path / "local")
 
 
+def test_dataset_copy_reports_progress_in_completion_order() -> None:
+    from tools.paper_artifacts.formal_protocol import copy_dataset_to_local
+
+    source = inspect.getsource(copy_dataset_to_local)
+    assert "concurrent.futures.as_completed" in source
+    assert "pool.map(" not in source
+    assert 'desc="Reading source sizes"' in source
+    assert "file=sys.stdout" in source
+    assert "flush=True" in source
+    assert "files_bar.refresh()" in source
+    assert "bytes_bar.refresh()" in source
+
+
 def test_resume_guards_cross_experiment_and_completed_runs(tmp_path: Path) -> None:
     config = FormalConfig(
         experiment_id="A0_yolo11n",

@@ -357,23 +357,84 @@ def _copy_one(pair: tuple[Path, Path]) -> tuple[int, bool]:
 def copy_dataset_to_local(config: FormalConfig) -> Path:
     payload, source_root, _ = resolve_dataset(config)
     destination_root = Path(config.local_data_root)
-    source_files = sorted(path for path in source_root.rglob("*") if path.is_file())
+    print(f"Scanning Drive dataset: {source_root}", flush=True)
+    source_files: list[Path] = []
+    discovered = 0
+    for current_root, _directories, filenames in os.walk(source_root):
+        current = Path(current_root)
+        for filename in filenames:
+            source_files.append(current / filename)
+            discovered += 1
+            if discovered % 250 == 0:
+                print(
+                    f"\rDiscovered {discovered:,} files...",
+                    end="",
+                    flush=True,
+                )
+    source_files.sort()
+    print(f"\rDiscovered {len(source_files):,} files.          ", flush=True)
     if not source_files:
         raise FileNotFoundError(f"No dataset files under {source_root}")
     jobs = [(source, destination_root / source.relative_to(source_root)) for source in source_files]
-    total_bytes = sum(source.stat().st_size for source in source_files)
+    sizes: dict[Path, int] = {}
+    with tqdm(
+        source_files,
+        unit="file",
+        desc="Reading source sizes",
+        dynamic_ncols=True,
+        mininterval=0.1,
+        file=sys.stdout,
+        leave=True,
+    ) as size_bar:
+        for source in size_bar:
+            sizes[source] = source.stat().st_size
+    total_bytes = sum(sizes.values())
     copied_files = copied_bytes = 0
+    print(
+        f"Copying {len(jobs):,} files ({total_bytes / 1024**3:.2f} GiB) "
+        f"with {config.copy_workers} threads...",
+        flush=True,
+    )
     with (
-        tqdm(total=len(jobs), unit="file", desc="Dataset files") as files_bar,
-        tqdm(total=total_bytes, unit="B", unit_scale=True, desc="Dataset bytes") as bytes_bar,
+        tqdm(
+            total=len(jobs),
+            unit="file",
+            desc="Dataset files",
+            dynamic_ncols=True,
+            mininterval=0.1,
+            file=sys.stdout,
+            leave=True,
+        ) as files_bar,
+        tqdm(
+            total=total_bytes,
+            unit="B",
+            unit_scale=True,
+            desc="Dataset bytes",
+            dynamic_ncols=True,
+            mininterval=0.1,
+            file=sys.stdout,
+            leave=True,
+        ) as bytes_bar,
         concurrent.futures.ThreadPoolExecutor(max_workers=config.copy_workers) as pool,
     ):
-        for size, copied in pool.map(_copy_one, jobs, chunksize=8):
+        futures = {
+            pool.submit(_copy_one, job): job[0]
+            for job in jobs
+        }
+        for future in concurrent.futures.as_completed(futures):
+            source = futures[future]
+            try:
+                size, copied = future.result()
+            except Exception as error:
+                raise IOError(f"Dataset copy failed for {source}: {error}") from error
             files_bar.update(1)
             bytes_bar.update(size)
             copied_files += int(copied)
             copied_bytes += size if copied else 0
             files_bar.set_postfix(copied=copied_files, workers=config.copy_workers, refresh=False)
+            files_bar.refresh()
+            bytes_bar.refresh()
+    print("Dataset copy and size verification finished.", flush=True)
     missing = [str(destination) for _, destination in jobs if not destination.is_file()]
     mismatched = [str(destination) for source, destination in jobs if destination.is_file() and source.stat().st_size != destination.stat().st_size]
     report = {
