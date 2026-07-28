@@ -102,7 +102,7 @@ def validate() -> dict[str, Any]:
             "fixed_commit": commit_match is not None,
             "no_forbidden_content": not forbidden,
             "python_syntax": not syntax_errors,
-            "drive_output": "ShipPaper/formal_ablation_v1" in text,
+            "drive_output": "ShipPaper/formal_ablation_v2" in text,
             "safe_existing_repo_guard": "start a fresh runtime instead of deleting blindly" in text,
         }
         reports.append({"file": str(path), "checks": checks, "syntax_errors": syntax_errors, "forbidden": forbidden, "passed": all(checks.values())})
