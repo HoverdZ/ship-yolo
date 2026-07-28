@@ -7,15 +7,19 @@ import ast
 import inspect
 import json
 import re
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
 import nbformat
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from tools.paper_artifacts.formal_protocol import EXPERIMENTS, FormalConfig, restore_or_guard_run
 
-ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK_DIR = ROOT / "colab" / "formal_ablation_v1"
 EXPECTED_FILES = {
     "A0_yolo11n": "A0_YOLO11n_Baseline.ipynb",

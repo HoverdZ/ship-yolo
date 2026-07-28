@@ -174,4 +174,3 @@ def evaluate_per_image(config: FormalConfig, model) -> dict[str, Any]:
 
 
 __all__ = ["evaluate_per_image"]
-

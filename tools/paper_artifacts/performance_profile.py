@@ -70,4 +70,3 @@ def profile_model(config: FormalConfig, model) -> dict[str, Any]:
 
 
 __all__ = ["profile_model"]
-

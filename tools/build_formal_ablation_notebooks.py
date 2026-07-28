@@ -8,7 +8,7 @@ import nbformat
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "colab" / "formal_ablation_v1"
-PINNED_COMMIT = "__FORMAL_CODE_COMMIT__"
+PINNED_COMMIT = "ece6844085f687ee37e38a9b057a825c57d1eaaf"
 
 NOTEBOOKS = {
     "A0_yolo11n": "A0_YOLO11n_Baseline.ipynb",
@@ -99,6 +99,7 @@ subprocess.run(
         "pandas",
         "openpyxl",
         "matplotlib",
+        "tabulate",
         "tqdm",
     ],
     check=True,
@@ -112,6 +113,7 @@ assert ultralytics.__version__ == "8.4.92"
         markdown("## 3. Clone the private repository and check out the pinned code commit"),
         code(
             """
+import base64
 import os
 import shutil
 import subprocess
@@ -129,7 +131,8 @@ if not token:
     )
 git_env = os.environ.copy()
 git_env["GIT_TERMINAL_PROMPT"] = "0"
-header = f"AUTHORIZATION: bearer {token}"
+credential = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+header = f"AUTHORIZATION: basic {credential}"
 
 if REPO_DIR.exists():
     if not (REPO_DIR / ".git").is_dir():
@@ -163,7 +166,7 @@ actual_commit = subprocess.run(
     env=git_env,
 ).stdout.strip()
 assert actual_commit == FORMAL_CODE_COMMIT
-del token, header
+del token, credential, header
 os.chdir(REPO_DIR)
 print("Pinned commit:", actual_commit)
 """,

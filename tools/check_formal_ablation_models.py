@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import tempfile
 from pathlib import Path
 
 import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from tools.paper_artifacts.formal_protocol import (
     EXPERIMENTS,
@@ -16,9 +21,6 @@ from tools.paper_artifacts.formal_protocol import (
     build_and_initialize,
     write_json,
 )
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 def run(weights: str | Path, imgsz: int = 64) -> dict:
     reports = {}

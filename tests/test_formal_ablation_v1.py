@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import inspect
 import json
-import time
 from pathlib import Path
 
 import pytest
@@ -19,6 +18,10 @@ from tools.paper_artifacts.formal_protocol import (
     restore_or_guard_run,
     train_foreground,
 )
+from tools.paper_artifacts.compare_per_image_predictions import compare
+from tools.paper_artifacts.export_experiment_bundle import export_bundle
+from tools.paper_artifacts.select_visual_examples import select
+from tools.paper_artifacts.summarize_ablation import summarize
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -151,3 +154,51 @@ def test_formal_notebooks_have_unique_ids_and_no_training_subprocess() -> None:
         assert "train_foreground(" in training_text
         assert "subprocess" not in training_text
     assert ids == set(EXPERIMENTS)
+
+
+def test_cross_run_summary_selection_and_bundle_tools(tmp_path: Path) -> None:
+    root = tmp_path / "formal"
+    for index, (experiment_id, spec) in enumerate(EXPERIMENTS.items()):
+        run = root / experiment_id
+        run.mkdir(parents=True)
+        metrics = {
+            "precision": 0.80 + index * 0.001,
+            "recall": 0.70 + index * 0.001,
+            "map50": 0.77 + index * 0.001,
+            "map75": 0.30 + index * 0.001,
+            "map50_95": 0.32 + index * 0.001,
+        }
+        (run / "run_manifest.json").write_text(
+            json.dumps({"best_metrics": metrics}),
+            encoding="utf-8",
+        )
+        (run / "complexity.json").write_text(
+            json.dumps(
+                {
+                    "parameters": 2_500_000 + index,
+                    "gflops": 6.5 + index * 0.1,
+                    "model_size_bytes": 5_000_000 + index,
+                    "pytorch_fp32": {"mean_ms": 5.0 + index},
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run / "best_epoch_summary.json").write_text(
+            json.dumps({"best_epoch": 100 + index, "training_time_seconds": 3600 + index}),
+            encoding="utf-8",
+        )
+        (run / "val_image_metrics.csv").write_text(
+            "image,tp,fp,fn,precision,recall\n"
+            f"val/images/a.jpg,1,{index % 2},{1 if index < 2 else 0},0.5,0.5\n",
+            encoding="utf-8",
+        )
+    frame = summarize(root)
+    assert len(frame) == 6
+    assert (
+        (root / "paper_summary" / "formal_ablation_results.xlsx").is_file()
+        or (root / "paper_summary" / "formal_ablation_results.xlsx.unavailable.txt").is_file()
+    )
+    assert len(compare(root)) == 1
+    assert not select(root).empty
+    bundle = export_bundle(root / "A0_yolo11n", tmp_path / "A0.zip")
+    assert bundle.is_file() and bundle.stat().st_size > 0
