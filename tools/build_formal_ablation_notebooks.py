@@ -60,7 +60,8 @@ FORMAL_CODE_COMMIT = "{PINNED_COMMIT}"
 DRIVE_DATA_YAML = "/content/drive/MyDrive/ship_detection/data/data.yaml"
 DRIVE_DATA_ROOT = None
 LOCAL_DATA_ROOT = "/content/datasets/ship_clean_v1"
-DRIVE_EXPERIMENT_ROOT = "/content/drive/MyDrive/ShipPaper/formal_ablation_v1"
+LOCAL_RUNS_ROOT = "/content/formal_runs_v2"
+DRIVE_EXPERIMENT_ROOT = "/content/drive/MyDrive/ShipPaper/formal_ablation_v2"
 
 RUN_TRAINING = True
 RUN_TEST_EVALUATION = False
@@ -186,6 +187,7 @@ config = FormalConfig(
     drive_data_yaml=DRIVE_DATA_YAML,
     drive_data_root=DRIVE_DATA_ROOT,
     local_data_root=LOCAL_DATA_ROOT,
+    local_runs_root=LOCAL_RUNS_ROOT,
     drive_experiment_root=DRIVE_EXPERIMENT_ROOT,
     epochs=EPOCHS,
     imgsz=IMGSZ,

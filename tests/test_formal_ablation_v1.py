@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+import torch
 import yaml
 from PIL import Image
 
@@ -13,6 +14,7 @@ from tools.paper_artifacts.formal_protocol import (
     AtomicDriveMirror,
     FormalConfig,
     audit_dataset,
+    audit_model,
     build_and_initialize,
     copy_dataset_to_local,
     restore_or_guard_run,
@@ -40,6 +42,7 @@ def test_formal_model_builds_with_exact_stride_and_detect_inputs(experiment_id: 
     )
     model, transfer = build_and_initialize(config, ROOT / "yolo11n.pt")
     assert transfer["passed"]
+    assert model.ckpt and model.ckpt["formal_pretrained_transfer"] is True
     assert [float(value) for value in model.model.stride] == config.spec["strides"]
     assert list(model.model.model[-1].f) == config.spec["detect_from"]
 
@@ -105,11 +108,29 @@ def test_dataset_copy_reports_progress_in_completion_order() -> None:
     source = inspect.getsource(copy_dataset_to_local)
     assert "concurrent.futures.as_completed" in source
     assert "pool.map(" not in source
-    assert 'desc="Reading source sizes"' in source
+    assert "Reading source sizes" not in source
+    assert 'desc="Processed bytes"' in source
     assert "file=sys.stdout" in source
     assert "flush=True" in source
-    assert "files_bar.refresh()" in source
-    assert "bytes_bar.refresh()" in source
+
+
+def test_cpu_audit_does_not_mutate_weights_buffers_or_leave_gradients(tmp_path: Path) -> None:
+    config = FormalConfig(
+        experiment_id="A0_yolo11n",
+        local_runs_root=str(tmp_path / "runs"),
+        local_data_root=str(tmp_path / "dataset"),
+    )
+    config.local_yaml.parent.mkdir(parents=True, exist_ok=True)
+    config.local_yaml.write_text(
+        yaml.safe_dump({"path": str(tmp_path), "train": "x", "val": "x", "test": "x", "nc": 1, "names": {0: "ship"}}),
+        encoding="utf-8",
+    )
+    model, _transfer = build_and_initialize(config, ROOT / "yolo11n.pt")
+    before = {key: value.detach().cpu().clone() for key, value in model.model.state_dict().items()}
+    audit_model(config, model, backward_imgsz=64)
+    after = model.model.state_dict()
+    assert all(torch.equal(before[key], after[key].detach().cpu()) for key in before)
+    assert all(parameter.grad is None for parameter in model.model.parameters())
 
 
 def test_resume_guards_cross_experiment_and_completed_runs(tmp_path: Path) -> None:
@@ -131,6 +152,25 @@ def test_resume_guards_cross_experiment_and_completed_runs(tmp_path: Path) -> No
         restore_or_guard_run(config)
 
 
+def test_run_id_selects_an_independent_directory_and_guards_resume(tmp_path: Path) -> None:
+    config = FormalConfig(
+        experiment_id="A0_yolo11n",
+        run_id="A0_yolo11n_v2",
+        local_runs_root=str(tmp_path / "runs"),
+        drive_experiment_root=str(tmp_path / "drive"),
+    )
+    assert config.run_dir.name == "A0_yolo11n_v2"
+    assert config.drive_dir.name == "A0_yolo11n_v2"
+    (config.run_dir / "weights").mkdir(parents=True)
+    (config.run_dir / "weights" / "last.pt").write_bytes(b"checkpoint")
+    (config.run_dir / "experiment_state.json").write_text(
+        json.dumps({"experiment_id": config.experiment_id, "run_id": "wrong_run"}),
+        encoding="utf-8",
+    )
+    with pytest.raises(RuntimeError, match="cross-run"):
+        restore_or_guard_run(config)
+
+
 def test_atomic_mirror_replaces_complete_files(tmp_path: Path) -> None:
     local = tmp_path / "local"
     drive = tmp_path / "drive"
@@ -149,6 +189,10 @@ def test_training_is_direct_and_protocol_is_staged() -> None:
     assert "subprocess" not in source
     assert "exist_ok=False" in source
     assert "on_pretrain_routine_start" in source
+    assert "on_pretrain_routine_end" in source
+    assert "pretrained=True" in source
+    assert "pretrained=False" not in source
+    assert "_verify_trainer_handoff" in source
 
 
 def test_specialty_artifact_code_covers_required_module_evidence() -> None:
@@ -183,6 +227,8 @@ def test_formal_notebooks_have_unique_ids_and_no_training_subprocess() -> None:
         training_text = "".join(training[0]["source"])
         assert "train_foreground(" in training_text
         assert "subprocess" not in training_text
+        assert 'LOCAL_RUNS_ROOT = "/content/formal_runs_v2"' in text
+        assert 'DRIVE_EXPERIMENT_ROOT = "/content/drive/MyDrive/ShipPaper/formal_ablation_v2"' in text
     assert ids == set(EXPERIMENTS)
 
 

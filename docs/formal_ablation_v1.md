@@ -44,9 +44,11 @@ instance, invalid-row, and class counts for train/val/test. It never cleans
 labels or modifies splits.
 
 The full resolved dataset is copied independently to Colab local storage using
-16 `shutil.copyfile` threads. Two progress bars report completed files and
-bytes. Source/destination file sizes are checked, and a new local YAML points
-to `/content/datasets/ship_clean_v1`.
+32 `shutil.copyfile` threads. Live output reports discovery, completed files,
+and processed bytes without a separate slow Drive size scan. Each copied file
+is size-checked, and a new local YAML points to
+`/content/datasets/ship_clean_v1`. The full label audit runs against this
+verified local copy instead of repeatedly parsing labels through Drive FUSE.
 
 All six experiments use Python 3.12.x, Ultralytics 8.4.92, 150 epochs,
 640 pixels, batch 8, workers 2, seed 0, `cache=disk`,
@@ -59,12 +61,17 @@ use exact-name/exact-shape matching. A4/A5 insert an RGB preprocessor at layer
 shift before the same shape check. Only tensors that actually originate in
 the official checkpoint count as inherited. Newly introduced module
 parameters remain randomly initialized. No trained ablation checkpoint is
-used to initialize another ablation.
+used to initialize another ablation. Before epoch 1, the runner asserts that
+every tensor in the initialized model—and every tensor traced to the official
+checkpoint—survived the Ultralytics trainer handoff exactly. Training stops
+before consuming an epoch if this assertion fails.
 
 ## Mirroring and recovery
 
-Local runs are `/content/formal_runs/<EXP_ID>` and Drive mirrors are
-`MyDrive/ShipPaper/formal_ablation_v1/<EXP_ID>`. At each epoch and checkpoint,
+The corrected weight-handoff runs use fresh paths:
+`/content/formal_runs_v2/<EXP_ID>` locally and
+`MyDrive/ShipPaper/formal_ablation_v2/<EXP_ID>` in Drive. The original v1
+directories are preserved and never resumed by these notebooks. At each epoch and checkpoint,
 the callback snapshots `results.csv`, `args.yaml`, the console log, state,
 `last.pt`, `best.pt`, and periodic `epoch*.pt`. A same-process worker writes
 snapshots to temporary Drive files and atomically replaces the destination.

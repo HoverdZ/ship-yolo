@@ -21,6 +21,7 @@ training:
 initialization:
   weights: yolo11n.pt
   policy: official weights only; same-name/same-shape transfer with an audited source-key layer shift for input preprocessors
+  trainer_handoff: pretrained=true plus an exact all-tensor pre-epoch assertion
   staged_checkpoints_prohibited: true
 dataset:
   drive_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
@@ -28,8 +29,8 @@ dataset:
   source_is_read_only: true
   clean_or_repartition: false
 outputs:
-  local_root: /content/formal_runs
-  drive_root: /content/drive/MyDrive/ShipPaper/formal_ablation_v1
+  local_root: /content/formal_runs_v2
+  drive_root: /content/drive/MyDrive/ShipPaper/formal_ablation_v2
 experiments:
   A0_yolo11n: experiments/formal_ablation_v1/A0_yolo11n.yaml
   A1_inceptiondw: experiments/formal_ablation_v1/A1_inceptiondw.yaml

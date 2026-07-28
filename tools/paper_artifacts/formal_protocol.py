@@ -21,7 +21,7 @@ import sys
 import threading
 import time
 import traceback
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, TextIO
@@ -128,6 +128,7 @@ def git_output(*args: str) -> str:
 @dataclass(frozen=True)
 class FormalConfig:
     experiment_id: str
+    run_id: str | None = None
     drive_data_yaml: str = "/content/drive/MyDrive/ship_detection/data/data.yaml"
     drive_data_root: str | None = None
     local_data_root: str = "/content/datasets/ship_clean_v1"
@@ -142,7 +143,7 @@ class FormalConfig:
     cache: str = "disk"
     deterministic: bool = False
     save_period: int = 10
-    copy_workers: int = 16
+    copy_workers: int = 32
     run_training: bool = True
     run_test_evaluation: bool = False
     conf: float = 0.25
@@ -153,6 +154,9 @@ class FormalConfig:
     def __post_init__(self) -> None:
         if self.experiment_id not in EXPERIMENTS:
             raise ValueError(f"Unknown experiment_id: {self.experiment_id}")
+        run_name = self.run_name
+        if not run_name or Path(run_name).name != run_name or run_name in {".", ".."}:
+            raise ValueError(f"run_id must be one safe directory name, found: {run_name!r}")
         fixed = {
             "epochs": 150,
             "imgsz": 640,
@@ -172,20 +176,24 @@ class FormalConfig:
         return EXPERIMENTS[self.experiment_id]
 
     @property
+    def run_name(self) -> str:
+        return self.run_id or self.experiment_id
+
+    @property
     def model_yaml(self) -> Path:
         return ROOT / self.spec["yaml"]
 
     @property
     def run_dir(self) -> Path:
-        return Path(self.local_runs_root) / self.experiment_id
+        return Path(self.local_runs_root) / self.run_name
 
     @property
     def drive_dir(self) -> Path:
-        return Path(self.drive_experiment_root) / self.experiment_id
+        return Path(self.drive_experiment_root) / self.run_name
 
     @property
     def protocol_staging_dir(self) -> Path:
-        return Path(self.local_runs_root) / ".protocol_staging" / self.experiment_id
+        return Path(self.local_runs_root) / ".protocol_staging" / self.run_name
 
     @property
     def local_yaml(self) -> Path:
@@ -351,6 +359,9 @@ def _copy_one(pair: tuple[Path, Path]) -> tuple[int, bool]:
     if destination.is_file() and destination.stat().st_size == size:
         return size, False
     shutil.copyfile(source, destination)
+    copied_size = destination.stat().st_size
+    if copied_size != size:
+        raise IOError(f"Size mismatch after copy: {source} -> {destination} ({size} != {copied_size})")
     return size, True
 
 
@@ -376,23 +387,11 @@ def copy_dataset_to_local(config: FormalConfig) -> Path:
     if not source_files:
         raise FileNotFoundError(f"No dataset files under {source_root}")
     jobs = [(source, destination_root / source.relative_to(source_root)) for source in source_files]
-    sizes: dict[Path, int] = {}
-    with tqdm(
-        source_files,
-        unit="file",
-        desc="Reading source sizes",
-        dynamic_ncols=True,
-        mininterval=0.1,
-        file=sys.stdout,
-        leave=True,
-    ) as size_bar:
-        for source in size_bar:
-            sizes[source] = source.stat().st_size
-    total_bytes = sum(sizes.values())
-    copied_files = copied_bytes = 0
+    copied_files = copied_bytes = source_bytes = 0
+    started = time.perf_counter()
     print(
-        f"Copying {len(jobs):,} files ({total_bytes / 1024**3:.2f} GiB) "
-        f"with {config.copy_workers} threads...",
+        f"Copying {len(jobs):,} files with {config.copy_workers} threads "
+        "(one Drive stat per file, no slow size pre-scan)...",
         flush=True,
     )
     with (
@@ -406,10 +405,10 @@ def copy_dataset_to_local(config: FormalConfig) -> Path:
             leave=True,
         ) as files_bar,
         tqdm(
-            total=total_bytes,
+            total=None,
             unit="B",
             unit_scale=True,
-            desc="Dataset bytes",
+            desc="Processed bytes",
             dynamic_ncols=True,
             mininterval=0.1,
             file=sys.stdout,
@@ -431,26 +430,33 @@ def copy_dataset_to_local(config: FormalConfig) -> Path:
             bytes_bar.update(size)
             copied_files += int(copied)
             copied_bytes += size if copied else 0
-            files_bar.set_postfix(copied=copied_files, workers=config.copy_workers, refresh=False)
-            files_bar.refresh()
-            bytes_bar.refresh()
-    print("Dataset copy and size verification finished.", flush=True)
-    missing = [str(destination) for _, destination in jobs if not destination.is_file()]
-    mismatched = [str(destination) for source, destination in jobs if destination.is_file() and source.stat().st_size != destination.stat().st_size]
+            source_bytes += size
+            files_bar.set_postfix(
+                copied=copied_files,
+                workers=config.copy_workers,
+                GiB=f"{source_bytes / 1024**3:.2f}",
+                refresh=False,
+            )
+    elapsed = time.perf_counter() - started
+    print(
+        f"Dataset copy verified: {len(jobs):,} files, "
+        f"{source_bytes / 1024**3:.2f} GiB processed in {elapsed:.1f}s.",
+        flush=True,
+    )
     report = {
         "generated_at": utc_now(),
         "source": str(source_root),
         "destination": str(destination_root),
         "source_files": len(source_files),
-        "source_bytes": total_bytes,
+        "source_bytes": source_bytes,
         "copied_files": copied_files,
         "copied_bytes": copied_bytes,
-        "missing_after_copy": missing,
-        "size_mismatches": mismatched,
+        "verified_files": len(jobs),
+        "elapsed_seconds": elapsed,
+        "missing_after_copy": [],
+        "size_mismatches": [],
         "workers": config.copy_workers,
     }
-    if missing or mismatched:
-        raise IOError(f"Dataset copy verification failed: {report}")
     protocol_dir = config.protocol_staging_dir
     write_json(protocol_dir / "dataset_copy_report.json", report)
     local = dict(payload)
@@ -544,6 +550,8 @@ def _apply_mapping(target, source_state: dict[str, torch.Tensor], mapping: dict[
         "missing_after_load": list(result.missing_keys),
         "unexpected_after_load": list(result.unexpected_keys),
         "verification_failures": verification_failures,
+        "loaded_target_keys": sorted(compatible),
+        "loaded_source_mapping": dict(sorted(mapping.items())),
         "sample_mapping": dict(list(sorted(mapping.items()))[:30]),
         "passed": not result.unexpected_keys and not verification_failures and set(result.missing_keys).issubset(set(unmatched)),
     }
@@ -561,6 +569,15 @@ def build_and_initialize(config: FormalConfig, official_weights: str | Path = "y
         report = _direct_official_transfer(model, official_weights)
     if not report["passed"]:
         raise RuntimeError(f"Official pretrained transfer failed: {report['verification_failures']}")
+    # Ultralytics 8.4.92 only forwards an already-built in-memory model into
+    # DetectionTrainer when YOLO.ckpt is truthy. Mark this wrapper as carrying
+    # initialized weights; train_foreground also passes pretrained=True.
+    model.ckpt = {
+        "model": model.model,
+        "epoch": -1,
+        "optimizer": None,
+        "formal_pretrained_transfer": True,
+    }
     output_dir = config.protocol_staging_dir
     write_json(output_dir / "pretrained_transfer_report.json", report)
     lines = [
@@ -611,7 +628,9 @@ def audit_model(config: FormalConfig, model, *, backward_imgsz: int = 64) -> dic
         "vgup_count": len(vgup) == (1 if config.spec["specialty"] in {"vgup", "ca_scam"} else 0),
         "ca_scam_replaces_scam": not (scam and ca_scam),
     }
-    network = model.model.cpu().train()
+    network = model.model.cpu()
+    original_training = network.training
+    network.eval()
     generator = torch.Generator(device="cpu").manual_seed(config.seed)
     image = torch.randn(1, 3, backward_imgsz, backward_imgsz, generator=generator, requires_grad=True)
     output = network(image)
@@ -643,6 +662,10 @@ def audit_model(config: FormalConfig, model, *, backward_imgsz: int = 64) -> dic
     write_json(config.protocol_staging_dir / "model_structure_audit.json", report)
     if not report["passed"]:
         raise AssertionError(f"Model audit failed: {report}")
+    # The audit must not alter BatchNorm running statistics or leak synthetic
+    # gradients into the real optimizer's first update.
+    network.zero_grad(set_to_none=True)
+    network.train(original_training)
     model.model.to(config.device if torch.cuda.is_available() else "cpu")
     return report
 
@@ -791,6 +814,9 @@ def restore_or_guard_run(config: FormalConfig) -> str:
         state = json.loads(state_path.read_text(encoding="utf-8"))
         if state.get("experiment_id") != config.experiment_id:
             raise RuntimeError(f"Refusing cross-experiment resume: {state.get('experiment_id')} != {config.experiment_id}")
+        recorded_run = state.get("run_id", state.get("experiment_id"))
+        if recorded_run != config.run_name:
+            raise RuntimeError(f"Refusing cross-run resume: {recorded_run} != {config.run_name}")
         return "resume"
     training_artifacts = []
     if config.run_dir.is_dir():
@@ -802,9 +828,100 @@ def restore_or_guard_run(config: FormalConfig) -> str:
 
 
 def _state(config: FormalConfig, status: str, **extra: Any) -> dict[str, Any]:
-    payload = {"experiment_id": config.experiment_id, "status": status, "updated_at": utc_now(), **extra}
+    payload = {
+        "experiment_id": config.experiment_id,
+        "run_id": config.run_name,
+        "status": status,
+        "updated_at": utc_now(),
+        **extra,
+    }
     write_json(config.run_dir / "experiment_state.json", payload)
     return payload
+
+
+def _unwrap_training_model(model):
+    while hasattr(model, "module"):
+        model = model.module
+    if hasattr(model, "_orig_mod"):
+        model = model._orig_mod
+    return model
+
+
+def _state_sha256(state: dict[str, torch.Tensor]) -> str:
+    digest = hashlib.sha256()
+    for key in sorted(state):
+        tensor = state[key].detach().cpu().contiguous()
+        digest.update(key.encode("utf-8"))
+        digest.update(str(tensor.dtype).encode("ascii"))
+        digest.update(str(tuple(tensor.shape)).encode("ascii"))
+        try:
+            digest.update(tensor.numpy().tobytes())
+        except TypeError:
+            digest.update(tensor.float().numpy().tobytes())
+    return digest.hexdigest()
+
+
+def _verify_trainer_handoff(
+    config: FormalConfig,
+    trainer_model,
+    expected_state: dict[str, torch.Tensor],
+    official_keys: list[str],
+) -> dict[str, Any]:
+    actual_model = _unwrap_training_model(trainer_model)
+    actual_state = actual_model.state_dict()
+    missing = sorted(set(expected_state) - set(actual_state))
+    unexpected = sorted(set(actual_state) - set(expected_state))
+    shape_mismatches = sorted(
+        key
+        for key in set(expected_state).intersection(actual_state)
+        if tuple(expected_state[key].shape) != tuple(actual_state[key].shape)
+    )
+    value_mismatches = sorted(
+        key
+        for key in set(expected_state).intersection(actual_state)
+        if key not in shape_mismatches
+        and not torch.equal(expected_state[key], actual_state[key].detach().cpu())
+    )
+    all_mismatches = set(missing) | set(shape_mismatches) | set(value_mismatches)
+    official_mismatches = sorted(set(official_keys).intersection(all_mismatches))
+    report = {
+        "experiment_id": config.experiment_id,
+        "run_id": config.run_name,
+        "expected_tensors": len(expected_state),
+        "actual_tensors": len(actual_state),
+        "exact_tensors": len(expected_state) - len(missing) - len(shape_mismatches) - len(value_mismatches),
+        "official_pretrained_tensors_expected": len(official_keys),
+        "official_pretrained_tensors_preserved": len(official_keys) - len(official_mismatches),
+        "missing": missing,
+        "unexpected": unexpected,
+        "shape_mismatches": shape_mismatches,
+        "value_mismatches": value_mismatches,
+        "official_pretrained_mismatches": official_mismatches,
+        "expected_state_sha256": _state_sha256(expected_state),
+        "actual_state_sha256": _state_sha256(actual_state),
+    }
+    report["passed"] = not any((missing, unexpected, shape_mismatches, value_mismatches))
+    write_json(config.protocol_staging_dir / "trainer_handoff_report.json", report)
+    write_json(config.run_dir / "protocol" / "trainer_handoff_report.json", report)
+    if not report["passed"]:
+        raise RuntimeError(
+            "Initialized weights were not preserved by Ultralytics trainer; "
+            f"missing={len(missing)}, unexpected={len(unexpected)}, "
+            f"shape_mismatches={len(shape_mismatches)}, value_mismatches={len(value_mismatches)}, "
+            f"official_mismatches={len(official_mismatches)}"
+        )
+    print(
+        "Trainer handoff exact tensors:",
+        f"{report['exact_tensors']}/{report['expected_tensors']}",
+        flush=True,
+    )
+    print(
+        "Official pretrained tensors preserved:",
+        f"{report['official_pretrained_tensors_preserved']}/"
+        f"{report['official_pretrained_tensors_expected']}",
+        flush=True,
+    )
+    return report
 
 
 def train_foreground(config: FormalConfig, initialized_model=None):
@@ -849,7 +966,19 @@ def train_foreground(config: FormalConfig, initialized_model=None):
             if initialized_model is None:
                 initialized_model, _ = build_and_initialize(config)
             model = initialized_model
+        expected_state = {
+            key: value.detach().cpu().clone()
+            for key, value in model.model.state_dict().items()
+        }
+        transfer_path = config.protocol_staging_dir / "pretrained_transfer_report.json"
+        transfer_report = json.loads(transfer_path.read_text(encoding="utf-8")) if transfer_path.is_file() else {}
+        official_keys = list(transfer_report.get("loaded_target_keys", []))
+
+        def verify_handoff(trainer) -> None:
+            _verify_trainer_handoff(config, trainer.model, expected_state, official_keys)
+
         model.add_callback("on_pretrain_routine_start", initialize_run)
+        model.add_callback("on_pretrain_routine_end", verify_handoff)
         model.add_callback("on_fit_epoch_end", sync_epoch)
         model.add_callback("on_model_save", sync_checkpoint)
         with tee_console(console_path):
@@ -870,9 +999,11 @@ def train_foreground(config: FormalConfig, initialized_model=None):
                     save=True,
                     save_period=config.save_period,
                     project=config.local_runs_root,
-                    name=config.experiment_id,
+                    name=config.run_name,
                     exist_ok=False,
-                    pretrained=False,
+                    # Required for Ultralytics 8.4.92 to pass the already
+                    # initialized in-memory model into DetectionTrainer.
+                    pretrained=True,
                 )
         if console_path.is_file() and console_path != config.run_dir / "train_console.log":
             shutil.copyfile(console_path, config.run_dir / "train_console.log")
@@ -1043,8 +1174,20 @@ def prepare_experiment(config: FormalConfig):
     """Mounting/cloning happens in the notebook; this prepares all local inputs."""
     config.protocol_staging_dir.mkdir(parents=True, exist_ok=True)
     capture_environment(config, "start")
-    audit = audit_dataset(config)
     local_yaml = copy_dataset_to_local(config)
+    # Audit the byte-verified local copy. Reading and parsing thousands of
+    # labels through the Drive FUSE mount is needlessly slow.
+    local_audit_config = replace(
+        config,
+        drive_data_yaml=str(local_yaml),
+        drive_data_root=str(Path(config.local_data_root).resolve()),
+    )
+    print("Auditing the verified local dataset copy...", flush=True)
+    audit = audit_dataset(local_audit_config)
+    audit["audit_execution_root"] = "verified_local_copy"
+    audit["original_drive_data_yaml"] = config.drive_data_yaml
+    write_json(config.protocol_staging_dir / "dataset_runtime_audit.json", audit)
+    shutil.copyfile(config.drive_data_yaml, config.protocol_staging_dir / "data_original.yaml")
     model, transfer = build_and_initialize(config)
     structure = audit_model(config, model)
     write_json(config.protocol_staging_dir / "formal_config.json", asdict(config))
