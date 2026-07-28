@@ -138,6 +138,23 @@ def test_training_is_direct_and_protocol_is_staged() -> None:
     assert "on_pretrain_routine_start" in source
 
 
+def test_specialty_artifact_code_covers_required_module_evidence() -> None:
+    from tools.paper_artifacts import generate_specialty_artifacts as specialty
+
+    source = inspect.getsource(specialty)
+    for required in (
+        "P{level}_local_contrast.png",
+        "P{level}_contrast_gate.png",
+        "P{level}_context_residual.png",
+        "P{level}_scam_input_energy.png",
+        "P{level}_scam_output_energy.png",
+        "vgup_luminance_histogram.png",
+        "vgup_spatial_visibility_gate.png",
+        "input_reference.png",
+    ):
+        assert required in source
+
+
 def test_formal_notebooks_have_unique_ids_and_no_training_subprocess() -> None:
     notebooks = sorted((ROOT / "colab" / "formal_ablation_v1").glob("*.ipynb"))
     assert len(notebooks) == 6

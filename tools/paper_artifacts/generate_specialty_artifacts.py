@@ -23,6 +23,18 @@ def _load(path: str, imgsz: int, device: torch.device) -> tuple[torch.Tensor, Im
     return tensor, image
 
 
+def _save_scalar_map(value: torch.Tensor, output: Path) -> None:
+    array = value.detach().float().squeeze().cpu().numpy()
+    array -= array.min()
+    array /= max(float(array.max()), 1e-8)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(np.uint8(array * 255)).save(output)
+
+
+def _save_feature_energy(value: torch.Tensor, output: Path) -> None:
+    _save_scalar_map(value.detach().float().square().mean(dim=1, keepdim=True), output)
+
+
 def _draw(record: dict[str, Any], output: Path, mode: str) -> None:
     image = Image.open(record["source_path"]).convert("RGB")
     draw = ImageDraw.Draw(image)
@@ -123,6 +135,7 @@ def _vgup_stats(config: FormalConfig, model, records: list[dict[str, Any]], outp
         }
         rows.append(row)
         if not visual_saved:
+            luminance: dict[str, np.ndarray] = {}
             for name, value in {
                 "original": tensor,
                 "bpw": debug["bpw_image"],
@@ -132,8 +145,25 @@ def _vgup_stats(config: FormalConfig, model, records: list[dict[str, Any]], outp
             }.items():
                 array = value[0].detach().clamp(0, 1).permute(1, 2, 0).cpu().numpy()
                 Image.fromarray(np.uint8(array * 255)).save(output_dir / f"{name}.png")
+                luminance[name] = array.mean(axis=2)
             gate_array = debug["spatial_gate"][0, 0].detach().cpu().numpy()
             Image.fromarray(np.uint8(gate_array * 255)).save(output_dir / "vgup_spatial_visibility_gate.png")
+            try:
+                import matplotlib.pyplot as plt
+
+                figure, axis = plt.subplots(figsize=(7, 4))
+                for name in ("original", "bpw", "gated_bpw", "kbl", "vgup_output"):
+                    axis.hist(luminance[name].ravel(), bins=64, range=(0, 1), density=True, histtype="step", label=name)
+                axis.set(xlabel="Normalized luminance", ylabel="Density", title="VGUP luminance distribution")
+                axis.legend(fontsize=7)
+                figure.tight_layout()
+                figure.savefig(output_dir / "vgup_luminance_histogram.png", dpi=300)
+                plt.close(figure)
+            except Exception as error:
+                (output_dir / "vgup_luminance_histogram.failed.txt").write_text(
+                    f"{type(error).__name__}: {error}\n",
+                    encoding="utf-8",
+                )
             visual_saved = True
     with (config.run_dir / "vgup_gate_statistics.csv").open("w", newline="", encoding="utf-8-sig") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ["image"])
@@ -147,6 +177,7 @@ def _scam_stats(config: FormalConfig, model, records: list[dict[str, Any]], outp
     device = next(network.parameters()).device
     modules = [(index, layer) for index, layer in enumerate(network.model) if type(layer).__name__ in ({"CASCAM"} if calibrated else {"SCAM"})]
     rows = []
+    maps_saved = False
     for record in records:
         tensor, _ = _load(record["source_path"], config.imgsz, device)
         captured: dict[int, torch.Tensor] = {}
@@ -178,7 +209,19 @@ def _scam_stats(config: FormalConfig, model, records: list[dict[str, Any]], outp
                         "contrast_gate_mean": float(contrast_map.mean()),
                         "residual_after_mean": float(residual_after.abs().mean()),
                     })
+                    if not maps_saved:
+                        _save_scalar_map(local_contrast, output_dir / f"P{level}_local_contrast.png")
+                        _save_scalar_map(contrast_map, output_dir / f"P{level}_contrast_gate.png")
+                        _save_feature_energy(residual_after, output_dir / f"P{level}_calibrated_residual.png")
+                if not maps_saved:
+                    _save_feature_energy(feature, output_dir / f"P{level}_scam_input_energy.png")
+                    _save_feature_energy(residual, output_dir / f"P{level}_context_residual.png")
+                    output_feature = feature + (
+                        ((1 + beta * contrast_map) * residual) if calibrated else residual
+                    )
+                    _save_feature_energy(output_feature, output_dir / f"P{level}_scam_output_energy.png")
             rows.append(row)
+        maps_saved = True
     filename = "ca_scam_statistics.csv" if calibrated else "scam_statistics.csv"
     with (config.run_dir / filename).open("w", newline="", encoding="utf-8-sig") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ["image", "level"])
@@ -208,11 +251,41 @@ def generate_specialty_artifacts(config: FormalConfig, model, predictions: dict[
 
     network = model.model
     detect_from = config.spec["detect_from"]
-    feature_rows = _feature_stats(model, selected, detect_from, root / "module", config.imgsz)
+    specialty = config.spec["specialty"]
+    specialty_layers = {
+        "baseline": detect_from,
+        "inceptiondw": [2, 4],
+        "dpls": detect_from,
+        "scam": [14, 17, 20, *detect_from],
+        "vgup": [15, 18, 21, *detect_from],
+        "ca_scam": [15, 18, 21, *detect_from],
+    }[specialty]
+    if selected:
+        Image.open(selected[0][1]["source_path"]).convert("RGB").save(root / "module" / "input_reference.png")
+    feature_rows = _feature_stats(model, selected, specialty_layers, root / "module", config.imgsz)
     heatmap_reports = []
     if selected:
-        for index in detect_from:
-            heatmap_reports.append(generate_one(model, selected[0][1]["source_path"], index, root / "heatmaps" / f"layer_{index}_gradcam.png", "gradcam", config.imgsz))
+        for index in specialty_layers:
+            heatmap_reports.append(
+                generate_one(
+                    model,
+                    selected[0][1]["source_path"],
+                    index,
+                    root / "heatmaps" / f"layer_{index}_feature_energy.png",
+                    "feature-energy",
+                    config.imgsz,
+                )
+            )
+        heatmap_reports.append(
+            generate_one(
+                model,
+                selected[0][1]["source_path"],
+                detect_from[0],
+                root / "heatmaps" / f"layer_{detect_from[0]}_gradcam.png",
+                "gradcam",
+                config.imgsz,
+            )
+        )
     pyramid_rows = []
     for index, stride in zip(detect_from, config.spec["strides"], strict=True):
         pyramid_rows.append({
@@ -230,7 +303,6 @@ def generate_specialty_artifacts(config: FormalConfig, model, predictions: dict[
         writer.writeheader()
         writer.writerows(pyramid_rows)
 
-    specialty = config.spec["specialty"]
     module_rows: list[dict[str, Any]] = []
     vgup_rows: list[dict[str, Any]] = []
     if specialty in {"scam", "vgup"}:
