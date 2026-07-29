@@ -1,0 +1,22 @@
+{
+  "determinism": {
+    "python_hash_seed": "not required; all ordering is explicitly sorted",
+    "quantile_method": "linear"
+  },
+  "imgsz": 640,
+  "parquet": {
+    "available": false,
+    "reason": "ImportError: install pyarrow or fastparquet to enable Parquet output"
+  },
+  "quantile_method": "numpy.quantile(method='linear')",
+  "source_files_modified": false,
+  "source_is_read_only": true,
+  "source_label": "Google Drive: ship_detection/data/data.yaml (frozen 2026-07-28 audit)",
+  "splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "training_started": false,
+  "yolo_validation_started": false
+}

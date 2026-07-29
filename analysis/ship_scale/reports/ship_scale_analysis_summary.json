@@ -1,0 +1,244 @@
+{
+  "audit": {
+    "all": {
+      "abnormal_label_count": 0,
+      "area_640_px2_max": 3937.5,
+      "area_640_px2_mean": 665.5913027582594,
+      "area_640_px2_median": 590.625,
+      "area_640_px2_min": 39.838016587384374,
+      "aspect_ratio_max": 3.5714285714285716,
+      "aspect_ratio_mean": 1.3179465997851016,
+      "aspect_ratio_median": 1.25,
+      "aspect_ratio_min": 1.0,
+      "empty_label_image_count": 2078,
+      "image_count": 4196,
+      "image_height_max": 512,
+      "image_height_min": 512,
+      "image_width_max": 512,
+      "image_width_min": 512,
+      "instance_count": 3489,
+      "label_file_present_count": 4196,
+      "labeled_image_count": 2118,
+      "long_side_640_px_max": 78.75,
+      "long_side_640_px_mean": 28.338065724822226,
+      "long_side_640_px_median": 27.5,
+      "long_side_640_px_min": 7.29533678756475,
+      "short_side_640_px_max": 56.25,
+      "short_side_640_px_mean": 21.899323757062096,
+      "short_side_640_px_median": 21.25,
+      "short_side_640_px_min": 5.460750853242331,
+      "unreadable_image_count": 0
+    },
+    "test": {
+      "abnormal_label_count": 0,
+      "area_640_px2_max": 3937.5,
+      "area_640_px2_mean": 672.4040764985432,
+      "area_640_px2_median": 590.625,
+      "area_640_px2_min": 86.19498134361326,
+      "aspect_ratio_max": 3.0,
+      "aspect_ratio_mean": 1.3161524374344986,
+      "aspect_ratio_median": 1.2352941176470589,
+      "aspect_ratio_min": 1.0,
+      "empty_label_image_count": 443,
+      "image_count": 840,
+      "image_height_max": 512,
+      "image_height_min": 512,
+      "image_width_max": 512,
+      "image_width_min": 512,
+      "instance_count": 608,
+      "label_file_present_count": 840,
+      "labeled_image_count": 397,
+      "long_side_640_px_max": 78.75,
+      "long_side_640_px_mean": 28.507554587323433,
+      "long_side_640_px_median": 27.5,
+      "long_side_640_px_min": 9.284974093264218,
+      "short_side_640_px_max": 50.0,
+      "short_side_640_px_mean": 22.03873611358012,
+      "short_side_640_px_median": 21.25,
+      "short_side_640_px_min": 9.28327645051195,
+      "unreadable_image_count": 0
+    },
+    "train": {
+      "abnormal_label_count": 0,
+      "area_640_px2_max": 3234.375,
+      "area_640_px2_mean": 661.3891912897756,
+      "area_640_px2_median": 584.375,
+      "area_640_px2_min": 39.838016587384374,
+      "aspect_ratio_max": 3.5714285714285716,
+      "aspect_ratio_mean": 1.3097516467693129,
+      "aspect_ratio_median": 1.25,
+      "aspect_ratio_min": 1.0,
+      "empty_label_image_count": 1222,
+      "image_count": 2517,
+      "image_height_max": 512,
+      "image_height_min": 512,
+      "image_width_max": 512,
+      "image_width_min": 512,
+      "instance_count": 2193,
+      "label_file_present_count": 2517,
+      "labeled_image_count": 1295,
+      "long_side_640_px_max": 63.75,
+      "long_side_640_px_mean": 28.16140966382782,
+      "long_side_640_px_median": 27.5,
+      "long_side_640_px_min": 7.29533678756475,
+      "short_side_640_px_max": 56.25,
+      "short_side_640_px_mean": 21.858319547225975,
+      "short_side_640_px_median": 21.25,
+      "short_side_640_px_min": 5.460750853242331,
+      "unreadable_image_count": 0
+    },
+    "val": {
+      "abnormal_label_count": 0,
+      "area_640_px2_max": 2909.375,
+      "area_640_px2_mean": 672.9649423168248,
+      "area_640_px2_median": 611.71875,
+      "area_640_px2_min": 84.74632619498112,
+      "aspect_ratio_max": 3.0,
+      "aspect_ratio_mean": 1.3456535513443917,
+      "aspect_ratio_median": 1.2620137299771166,
+      "aspect_ratio_min": 1.0,
+      "empty_label_image_count": 413,
+      "image_count": 839,
+      "image_height_max": 512,
+      "image_height_min": 512,
+      "image_width_max": 512,
+      "image_width_min": 512,
+      "instance_count": 688,
+      "label_file_present_count": 839,
+      "labeled_image_count": 426,
+      "long_side_640_px_max": 67.5,
+      "long_side_640_px_mean": 28.751376064008287,
+      "long_side_640_px_median": 28.75,
+      "long_side_640_px_min": 9.829351535836146,
+      "short_side_640_px_max": 47.5,
+      "short_side_640_px_mean": 21.90682305852673,
+      "short_side_640_px_median": 21.25,
+      "short_side_640_px_min": 7.645051194539221,
+      "unreadable_image_count": 0
+    }
+  },
+  "interpretation": {
+    "dilution_sensitivity": {
+      "q10": {
+        "P2": 0.0,
+        "P3": 0.0,
+        "P4": 14.0625,
+        "P5": 57.03125
+      },
+      "q2.5": {
+        "P2": 0.0,
+        "P3": 0.0,
+        "P4": 29.6875,
+        "P5": 64.84375
+      },
+      "q5": {
+        "P2": 0.0,
+        "P3": 0.0,
+        "P4": 21.875,
+        "P5": 60.9375
+      }
+    },
+    "elongation": "The median horizontal-box aspect ratio is 1.25, and 3.15% of training instances have ratio >=2. The dataset-level DPLS motivation should emphasize object scale rather than a globally pronounced elongated-box distribution.",
+    "q_candidate": "Use q=5% as the central lower-tail descriptor and retain q=2.5% and q=10% as sensitivity checks; all three produce the same P2/P3 versus P4/P5 qualitative ordering.",
+    "scale_motivation": "Across q=2.5%, 5%, and 10%, P3 has zero dilution while P4 and P5 have positive dilution. The descriptor therefore supports testing removal of the coarse P5 path, but it does not by itself establish that P2 is better than P3.",
+    "split_shift": "The largest pairwise short-side ECDF distance is 0.0308; train/val/test medians are 21.25/21.25/21.25 px. No marked split-scale displacement is apparent under this descriptor."
+  },
+  "metadata": {
+    "dataset_fingerprint_sha256": "4e66e440de33a6ab85f60159282933510b1259df9a74219caf4bbf5308625c8a",
+    "imgsz": 640,
+    "path_policy": "public outputs contain dataset-root-relative paths only",
+    "quantile_method": "numpy.quantile(method='linear')",
+    "resolved_root_count": 1,
+    "source_is_read_only": true,
+    "source_label": "Google Drive: ship_detection/data/data.yaml (frozen 2026-07-28 audit)",
+    "split_order": [
+      "train",
+      "val",
+      "test"
+    ]
+  },
+  "method_boundary": "The statistics motivate evaluating a P2-P4 detection pyramid. Quantitative effectiveness must be verified by controlled detection experiments.",
+  "short_side_below_stride_percent": {
+    "all": {
+      "lt_16px": 17.7414732014904,
+      "lt_32px": 91.83147033533963,
+      "lt_4px": 0.0,
+      "lt_8px": 0.31527658354829463
+    },
+    "test": {
+      "lt_16px": 18.75,
+      "lt_32px": 92.26973684210526,
+      "lt_4px": 0.0,
+      "lt_8px": 0.0
+    },
+    "train": {
+      "lt_16px": 17.008663930688556,
+      "lt_32px": 91.8376652986776,
+      "lt_4px": 0.0,
+      "lt_8px": 0.45599635202918376
+    },
+    "val": {
+      "lt_16px": 19.186046511627907,
+      "lt_32px": 91.42441860465115,
+      "lt_4px": 0.0,
+      "lt_8px": 0.14534883720930233
+    }
+  },
+  "split_short_side_shift": [
+    {
+      "empirical_cdf_max_distance": 0.030836753305973574,
+      "left_median_px": 21.25,
+      "left_split": "train",
+      "right_median_px": 21.25,
+      "right_split": "val"
+    },
+    {
+      "empirical_cdf_max_distance": 0.029229516163870706,
+      "left_median_px": 21.25,
+      "left_split": "train",
+      "right_median_px": 21.25,
+      "right_split": "test"
+    },
+    {
+      "empirical_cdf_max_distance": 0.030485006119951044,
+      "left_median_px": 21.25,
+      "left_split": "val",
+      "right_median_px": 21.25,
+      "right_split": "test"
+    }
+  ],
+  "train_aspect_ratio": {
+    "mean": 1.3097516467693129,
+    "median": 1.25,
+    "percentage_ge_2": 3.146374829001368,
+    "percentage_ge_4": 0.0,
+    "percentage_ge_8": 0.0
+  },
+  "train_q5_dilution": {
+    "P2": {
+      "dilution_rate_percent": 0.0,
+      "intervals_spanned": 3.125,
+      "stride": 4
+    },
+    "P3": {
+      "dilution_rate_percent": 0.0,
+      "intervals_spanned": 1.5625,
+      "stride": 8
+    },
+    "P4": {
+      "dilution_rate_percent": 21.875,
+      "intervals_spanned": 0.78125,
+      "stride": 16
+    },
+    "P5": {
+      "dilution_rate_percent": 60.9375,
+      "intervals_spanned": 0.390625,
+      "stride": 32
+    }
+  },
+  "train_short_side_lower_quantiles_px": {
+    "q10_px": 13.75,
+    "q2.5_px": 11.25,
+    "q5_px": 12.5
+  }
+}

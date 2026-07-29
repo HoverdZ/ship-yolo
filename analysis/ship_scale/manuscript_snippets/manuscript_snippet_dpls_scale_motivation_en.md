@@ -1,0 +1,5 @@
+# Suggested DPLS scale-motivation text
+
+After aspect-ratio-preserving mapping to a 640 × 640 input, the 2.5th, 5th, and 10th percentiles of the horizontal ship-box short side in the training split are 11.25, 12.50, and 13.75 pixels, respectively. The proportions of instances with short sides below 4, 8, 16, and 32 pixels are 0.00%, 0.46%, 17.01%, and 91.84%. When the stride does not exceed the selected lower-quantile short-side length, the target short side spans at least one feature sampling interval and the dilution rate becomes zero. As the stride grows relative to the target short side, the metric increases, indicating progressively constrained spatial representation of narrow small objects. The metric is therefore used to guide the selection of detection pyramid levels, while the practical effects of the P2–P4 level shift and DySample are evaluated through the controlled D0–D2 experiments.
+
+> Boundary: these statistics provide a scale-based motivation and are not, by themselves, evidence of an accuracy gain.

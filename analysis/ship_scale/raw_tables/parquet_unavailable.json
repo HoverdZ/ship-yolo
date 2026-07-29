@@ -1,0 +1,4 @@
+{
+  "available": false,
+  "reason": "ImportError: install pyarrow or fastparquet to enable Parquet output"
+}

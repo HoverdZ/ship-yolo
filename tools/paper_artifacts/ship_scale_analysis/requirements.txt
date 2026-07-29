@@ -1,0 +1,7 @@
+numpy>=1.22
+pandas>=1.5
+Pillow>=9
+PyYAML>=6
+matplotlib>=3.6
+# Optional Parquet output:
+# pyarrow>=10

@@ -1,0 +1,253 @@
+{
+  "artifacts": [
+    {
+      "path": "checksums/validation_report.json",
+      "sha256": "60a148ffd8956ed9d44ac8750ffac780c3fb4bb06f73d31326015cda24111a2d",
+      "size_bytes": 119
+    },
+    {
+      "path": "figures/area_distribution_train.pdf",
+      "sha256": "6e0bd5ed825cef306065477d9894b145ed5b7524a8de2e71855f2b7ade4fb0c2",
+      "size_bytes": 14179
+    },
+    {
+      "path": "figures/area_distribution_train.png",
+      "sha256": "baa4e0812619075f02d586eac3899500c64c8d413c11c7e843dfbef6c38be0b3",
+      "size_bytes": 70562
+    },
+    {
+      "path": "figures/aspect_ratio_distribution_train.pdf",
+      "sha256": "692b0f55c591e10e1260caf438ee025dccfef8d7a2a68393103ed04efc34d6b4",
+      "size_bytes": 29727
+    },
+    {
+      "path": "figures/aspect_ratio_distribution_train.png",
+      "sha256": "fdda5935af2e6cce51385e5e438cd15b9c1ae46e6bfb55f35766e9f7940443c0",
+      "size_bytes": 74190
+    },
+    {
+      "path": "figures/short_long_joint_distribution_train.pdf",
+      "sha256": "9e5413cd063b32b475f9677911ad122b274486ba8b3f5c9483d5de47de049f30",
+      "size_bytes": 69181
+    },
+    {
+      "path": "figures/short_long_joint_distribution_train.png",
+      "sha256": "d08c37f0d05cde10a4ae50e79ac25247b31aaf4cbf68a7ad1650292811c31693",
+      "size_bytes": 302948
+    },
+    {
+      "path": "figures/short_long_joint_with_marginals_train.pdf",
+      "sha256": "32652392e275f2a5a8c04c76b346741bb495d5a5d7a5a9bf94ae5ef1355947da",
+      "size_bytes": 37686
+    },
+    {
+      "path": "figures/short_long_joint_with_marginals_train.png",
+      "sha256": "70a780cf349da45c4acf55774b946576eb785e3778fad244c17a8e115e07efe7",
+      "size_bytes": 296162
+    },
+    {
+      "path": "figures/short_side_cdf_train.pdf",
+      "sha256": "fd302af0f7f55a4e81b00e48de3326641d37459ae2275e7356a8a88496af3d6a",
+      "size_bytes": 14416
+    },
+    {
+      "path": "figures/short_side_cdf_train.png",
+      "sha256": "f98ed4b6d043a0c9c3af5d4ef2d7a8820a961fae6f6da3bc307f7a9d25a324cd",
+      "size_bytes": 90730
+    },
+    {
+      "path": "figures/short_side_distribution_by_split.pdf",
+      "sha256": "773a6ce4c77fa0c80f7124e53b4f69e7690a4fa98458dccad87be99f49efefc8",
+      "size_bytes": 38944
+    },
+    {
+      "path": "figures/short_side_distribution_by_split.png",
+      "sha256": "176108a2eb3437652c34651cc26918a7585d956000d825ac55a89370fc580184",
+      "size_bytes": 100840
+    },
+    {
+      "path": "figures/short_side_distribution_train.pdf",
+      "sha256": "a206b95eac3ef6e6b55ce856ff72e8ff912da3001c378a6dedcdf4c3a6163c66",
+      "size_bytes": 30560
+    },
+    {
+      "path": "figures/short_side_distribution_train.png",
+      "sha256": "686d5aa6998d3dcf0f451f61b1899320f790ab2dcfecd53bdfef7c71fd206ad3",
+      "size_bytes": 89243
+    },
+    {
+      "path": "manuscript_snippets/manuscript_snippet_dpls_scale_motivation_en.md",
+      "sha256": "1c5a96287727e529831f178f9abb42103757c94c1bb7810617038aadd6def035",
+      "size_bytes": 1039
+    },
+    {
+      "path": "manuscript_snippets/manuscript_snippet_dpls_scale_motivation_zh.md",
+      "sha256": "45433c592588deca73406d66094b6f5e67be17cce1a371824edcfca41e21739f",
+      "size_bytes": 805
+    },
+    {
+      "path": "paper_tables/paper_table_dilution_rates.csv",
+      "sha256": "bfb1b456afef8d7b648af07a695c98bfe838296f1564f97f4744431f96d5711b",
+      "size_bytes": 2511
+    },
+    {
+      "path": "paper_tables/paper_table_dilution_rates.md",
+      "sha256": "1ba3463b0f60ec9724249c058e94a2a95567e71249164724ef628ae5c3cd2059",
+      "size_bytes": 271
+    },
+    {
+      "path": "paper_tables/paper_table_dilution_rates.tex",
+      "sha256": "26e19c3251b1e5a4063593e361c0592b8d9011a1374127f17687119627f52b15",
+      "size_bytes": 409
+    },
+    {
+      "path": "paper_tables/paper_table_scale_quantiles.csv",
+      "sha256": "071952c9ec5556faf499061ac76a2f4eb31ccd88cbcc41949b612f175f1c4c76",
+      "size_bytes": 773
+    },
+    {
+      "path": "paper_tables/paper_table_scale_quantiles.md",
+      "sha256": "955a0207660b40210a9d2748ac830b2928eb716efa203bcdfdb636b767502694",
+      "size_bytes": 1110
+    },
+    {
+      "path": "paper_tables/paper_table_scale_quantiles.tex",
+      "sha256": "e492d1a06d3f26ff23b5b65a2845977c772b15e83b85e7df3b9d18c762d0236b",
+      "size_bytes": 1240
+    },
+    {
+      "path": "paper_tables/paper_table_stride_bins.csv",
+      "sha256": "fba3602c3b53b7213e8383fa08ca6710a88fb83559577f36301f239abbccefd1",
+      "size_bytes": 394
+    },
+    {
+      "path": "paper_tables/paper_table_stride_bins.md",
+      "sha256": "f8d1524f7782167b0fae81dd07044965eaf4732ff61230451e1e8b2a8ebd3a87",
+      "size_bytes": 568
+    },
+    {
+      "path": "paper_tables/paper_table_stride_bins.tex",
+      "sha256": "d7c8aa9c8935cfb018791b21b3b2abaf42d9780730f8c980d9805df44d811dec",
+      "size_bytes": 706
+    },
+    {
+      "path": "raw_tables/dataset_scale_audit.csv",
+      "sha256": "219b82e5749c10c37f1fe52e12ac068ec8e193b1318bf5a48894099f2ba2517e",
+      "size_bytes": 1346
+    },
+    {
+      "path": "raw_tables/dataset_scale_audit.json",
+      "sha256": "3d92200ba21abe75ac3da1f87d68dabe0aa04d26accf8162504e8eb629125237",
+      "size_bytes": 4883
+    },
+    {
+      "path": "raw_tables/dilution_rate_by_stride.json",
+      "sha256": "154e3bf476211f561d3b0a9689dc9211466cf69f1b3ff6ed067ddb59f4cc315a",
+      "size_bytes": 12425
+    },
+    {
+      "path": "raw_tables/dilution_rate_by_stride_long.csv",
+      "sha256": "bfb1b456afef8d7b648af07a695c98bfe838296f1564f97f4744431f96d5711b",
+      "size_bytes": 2511
+    },
+    {
+      "path": "raw_tables/dilution_rate_by_stride_wide.csv",
+      "sha256": "e350bb5169503504905f467897f50b2f16c488585b89041ae08c136b873bffee",
+      "size_bytes": 1084
+    },
+    {
+      "path": "raw_tables/parquet_unavailable.json",
+      "sha256": "4d9d831c79e13237e22c56008ed10825a97fd2369e7809b7afa37a2ae2f65ce3",
+      "size_bytes": 113
+    },
+    {
+      "path": "raw_tables/plot_area_aspect_train.csv",
+      "sha256": "978c60cc883fbcb4ea52459b76646305e61fed42a8a4b7ffbb51c2dcddb6c40d",
+      "size_bytes": 43052
+    },
+    {
+      "path": "raw_tables/plot_short_long_train.csv",
+      "sha256": "18cbebbd301021b192dc0fd0b4e8462aac4ce47a4df84a62e5ccc7e00a52d9b8",
+      "size_bytes": 27506
+    },
+    {
+      "path": "raw_tables/plot_short_side_by_split.csv",
+      "sha256": "fc33c7e9f280643149eb9890276aad5ae9d545919622c7ff9dc2a44fe52cd459",
+      "size_bytes": 130919
+    },
+    {
+      "path": "raw_tables/plot_short_side_train.csv",
+      "sha256": "634d24ed945c5742dbfe5436ffdd5a47211a2021c3ddd29c58eb26a3d536acb0",
+      "size_bytes": 13853
+    },
+    {
+      "path": "raw_tables/reported_source_issues.csv",
+      "sha256": "36fd61e8bff200e682c58c069416820a1996ab2e017bc60811df647cae84c6d1",
+      "size_bytes": 38
+    },
+    {
+      "path": "raw_tables/scale_quantiles.json",
+      "sha256": "4b8f1c6557e3a8db608668d0839f54ed4e199f633ad0ed70b65874e0638671ea",
+      "size_bytes": 6689
+    },
+    {
+      "path": "raw_tables/scale_quantiles_long.csv",
+      "sha256": "24c27053aca85c23a0a5bc955aa64898f6994614032c3bfd952d27e4211aa954",
+      "size_bytes": 7804
+    },
+    {
+      "path": "raw_tables/scale_quantiles_wide.csv",
+      "sha256": "60e2e7ae18e93a5140a7f2f9bda37aa7291668c12b0e96a15fe1812d620b0994",
+      "size_bytes": 2205
+    },
+    {
+      "path": "raw_tables/ship_instance_scales.csv",
+      "sha256": "c049cded9a9436d5280c1858906174725996857f60747cbdc1c020bd724df2da",
+      "size_bytes": 924982
+    },
+    {
+      "path": "raw_tables/short_side_cumulative_thresholds.csv",
+      "sha256": "d5206548a6f9ddce9a42a9dd443bf00c25742d24f28bcff114b179f83173098a",
+      "size_bytes": 375
+    },
+    {
+      "path": "raw_tables/short_side_stride_bins.csv",
+      "sha256": "d859356ce7d9675c67f3ca39511cd8a574d5df0345e8c04ae45b849c2651dc55",
+      "size_bytes": 738
+    },
+    {
+      "path": "reports/generation_report.json",
+      "sha256": "b716c8bec3563312801cf32726f75124b1ef04c7605534bb647c7892e44c775c",
+      "size_bytes": 632
+    },
+    {
+      "path": "reports/ship_scale_analysis_summary.json",
+      "sha256": "d9a09d82d1c82247b49de12dfbbc2969a67daa4d49141fd400d4ee4b5d3dc1a5",
+      "size_bytes": 8402
+    },
+    {
+      "path": "reports/ship_scale_analysis_summary.md",
+      "sha256": "5b9ce33fc9336d9679ad294cd68feb38ce5ab82e853b281a34d8c21ec5d2bc3d",
+      "size_bytes": 2044
+    }
+  ],
+  "metadata": {
+    "dataset_fingerprint_sha256": "4e66e440de33a6ab85f60159282933510b1259df9a74219caf4bbf5308625c8a",
+    "imgsz": 640,
+    "parquet": {
+      "available": false,
+      "reason": "ImportError: install pyarrow or fastparquet to enable Parquet output"
+    },
+    "path_policy": "public outputs contain dataset-root-relative paths only",
+    "quantile_method": "numpy.quantile(method='linear')",
+    "resolved_root_count": 1,
+    "source_is_read_only": true,
+    "source_label": "Google Drive: ship_detection/data/data.yaml (frozen 2026-07-28 audit)",
+    "split_order": [
+      "train",
+      "val",
+      "test"
+    ]
+  },
+  "schema_version": 1
+}
