@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 6
+_PATCH_VERSION = 7
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -33,6 +33,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         for marker in ("C3k2CrossConv", "CGFM", "AlignConcat", "DD")
     )
     has_inception = "C3k2_InceptionDW" in source
+    has_conv_screening = all(
+        marker in source
+        for marker in ("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv")
+    )
     has_sa_dwpn = "elif m is SDWF:" in source and "DWDown" in source
     has_cumulative = (
         "elif m is DySample:" in source
@@ -50,6 +54,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if (
         has_ablation
         and has_inception
+        and has_conv_screening
         and has_sa_dwpn
         and has_cumulative
         and has_adaptive
@@ -59,6 +64,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
         parse_model._sa_dwpn_patched = True
         parse_model._inceptiondw_patched = True
+        parse_model._conv_screening_patched = True
         parse_model._module_ablation_patched = True
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
@@ -78,6 +84,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_inception:
         base_additions.append("C3k2_InceptionDW")
         repeat_additions.append("C3k2_InceptionDW")
+    if not has_conv_screening:
+        base_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
+        repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -200,6 +209,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._ship_yolo_patch_version = _PATCH_VERSION
     tasks.parse_model._sa_dwpn_patched = True
     tasks.parse_model._inceptiondw_patched = True
+    tasks.parse_model._conv_screening_patched = True
     tasks.parse_model._module_ablation_patched = True
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
@@ -211,6 +221,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     from custom_modules.c3k2_crossconv import C3k2CrossConv
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
+    from custom_modules.c3k2_conv_screening import (
+        C3k2_LSKConv,
+        C3k2_PConv,
+        C3k2_PKIConv,
+    )
     from custom_modules.calibrated_scam import CASCAM
     from custom_modules.cgfm import AlignConcat, CGFM
     from custom_modules.dd import DD
@@ -227,6 +242,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "AlignConcat": AlignConcat,
         "C3k2CrossConv": C3k2CrossConv,
         "C3k2_InceptionDW": C3k2_InceptionDW,
+        "C3k2_LSKConv": C3k2_LSKConv,
+        "C3k2_PConv": C3k2_PConv,
+        "C3k2_PKIConv": C3k2_PKIConv,
         "CASCAM": CASCAM,
         "CGFM": CGFM,
         "DD": DD,
@@ -252,6 +270,12 @@ def register_sa_dwpn_modules(patch_parse_model: bool = True) -> None:
 
 def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
     """Register the InceptionDW C3k2 module and shared repository modules."""
+
+    register_custom_modules(patch_parse_model=patch_parse_model)
+
+
+def register_conv_screening_modules(patch_parse_model: bool = True) -> None:
+    """Register the controlled PConv/LSKConv/PKIConv C3k2 variants."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
 
