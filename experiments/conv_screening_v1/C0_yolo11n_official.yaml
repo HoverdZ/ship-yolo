@@ -24,10 +24,10 @@ backbone:
   - [-1, 2, C2PSA, [1024]]
 
 head:
-  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [-1, 1, nn.Upsample, [None, 2, nearest]]
   - [[-1, 6], 1, Concat, [1]]
   - [-1, 2, C3k2, [512, false]]
-  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [-1, 1, nn.Upsample, [None, 2, nearest]]
   - [[-1, 4], 1, Concat, [1]]
   - [-1, 2, C3k2, [256, false]]
   - [-1, 1, Conv, [256, 3, 2]]
