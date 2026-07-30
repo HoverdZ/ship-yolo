@@ -9,7 +9,7 @@ import torch
 import yaml
 from torch import nn
 from ultralytics import YOLO
-from ultralytics.nn.modules import Conv
+from ultralytics.nn.modules import C3k2, Conv
 
 from custom_modules.c3k2_conv_screening import (
     C3k2_LSKConv,
@@ -22,6 +22,7 @@ from custom_modules.pki_conv import PolyKernelConv2d
 from custom_modules.register import register_conv_screening_modules
 from tools.conv_screening_utils import (
     ConvScreeningConfig,
+    best_metrics,
     copy_dataset_to_local,
     cpu_forward_backward,
     install_trainer_handoff_guard,
@@ -44,6 +45,7 @@ EXPERIMENTS = {
         C3k2_PKIConv,
     ),
 }
+OFFICIAL_BASELINE_ID = "C0_yolo11n_official"
 
 
 class OfficialPConvReference(nn.Module):
@@ -163,6 +165,19 @@ def test_adapted_operator_matches_official_reference(
 
 def test_registration_is_idempotent() -> None:
     register_conv_screening_modules()
+
+
+def test_official_baseline_uses_only_ultralytics_modules() -> None:
+    config = ConvScreeningConfig(experiment_id=OFFICIAL_BASELINE_ID)
+    register_conv_screening_modules()
+    wrapper = YOLO(str(config.model_yaml), verbose=False)
+    layers = wrapper.model.model
+    assert isinstance(layers[2], C3k2)
+    assert isinstance(layers[4], C3k2)
+    custom_types = (C3k2_PConv, C3k2_LSKConv, C3k2_PKIConv)
+    assert not any(isinstance(layer, custom_types) for layer in layers)
+    assert list(layers[-1].f) == [16, 19, 22]
+    assert wrapper.model.stride.tolist() == [8.0, 16.0, 32.0]
     register_conv_screening_modules()
 
 
@@ -249,6 +264,56 @@ def test_official_transfer_preserves_first_conv_only_changes_cv2(
     source_state = official.model.float().state_dict()
     for key in transfer["p2_p3_cv1_expected_keys"]:
         torch.testing.assert_close(target_state[key], source_state[key], rtol=0, atol=0)
+
+
+def test_official_baseline_inherits_every_compatible_tensor(
+    tmp_path: Path,
+) -> None:
+    local_root = tmp_path / "local_data"
+    config = ConvScreeningConfig(
+        experiment_id=OFFICIAL_BASELINE_ID,
+        local_data_root=str(local_root),
+        drive_runs_root=str(tmp_path / "runs"),
+    )
+    config.local_yaml.write_text(
+        yaml.safe_dump(
+            {
+                "path": str(local_root),
+                "train": "images/train",
+                "val": "images/val",
+                "names": {0: "ship"},
+                "nc": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    prepared = prepare_model(config, ROOT / "yolo11n.pt")
+    transfer = prepared["transfer"]
+    assert prepared["structure"]["passed"]
+    assert transfer["passed"]
+    assert not transfer["out_of_scope_unmatched_target_keys"]
+    assert all(
+        key.startswith("model.23.cv3.")
+        for key in transfer["unmatched_target_keys"]
+    )
+    assert transfer["loaded_tensors"] + len(transfer["unmatched_target_keys"]) == (
+        transfer["target_state_tensors"]
+    )
+
+
+def test_best_metrics_uses_results_csv_epoch_without_offset(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "results.csv").write_text(
+        "epoch,metrics/precision(B),metrics/recall(B),"
+        "metrics/mAP50(B),metrics/mAP50-95(B)\n"
+        "1,0.1,0.2,0.3,0.04\n"
+        "2,0.5,0.6,0.7,0.08\n",
+        encoding="utf-8",
+    )
+    report = best_metrics(tmp_path)
+    assert report["best_epoch"] == 2
+    assert report["map50_95"] == pytest.approx(0.08)
 
 
 def test_dataset_copy_has_live_copy_contract_without_fixed_counts(

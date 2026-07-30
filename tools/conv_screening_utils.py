@@ -27,22 +27,32 @@ ROOT = Path(__file__).resolve().parents[1]
 ULTRALYTICS_VERSION = "8.4.92"
 
 EXPERIMENTS: dict[str, dict[str, Any]] = {
+    "C0_yolo11n_official": {
+        "name": "YOLO11n official baseline",
+        "yaml": "experiments/conv_screening_v1/C0_yolo11n_official.yaml",
+        "module": "C3k2",
+        "custom_indices": [],
+        "run_name": "yolo11n_official_baseline_convscreen_640",
+    },
     "C1_pconv_p23": {
         "name": "YOLO11n-PConv-P2P3",
         "yaml": "experiments/conv_screening_v1/C1_yolo11n_pconv_p23.yaml",
         "module": "C3k2_PConv",
+        "custom_indices": [2, 4],
         "run_name": "yolo11n_pconv_p23_640",
     },
     "C2_lskconv_p23": {
         "name": "YOLO11n-LSKConv-P2P3",
         "yaml": "experiments/conv_screening_v1/C2_yolo11n_lskconv_p23.yaml",
         "module": "C3k2_LSKConv",
+        "custom_indices": [2, 4],
         "run_name": "yolo11n_lskconv_p23_640",
     },
     "C3_pkiconv_p23": {
         "name": "YOLO11n-PKIConv-P2P3",
         "yaml": "experiments/conv_screening_v1/C3_yolo11n_pkiconv_p23.yaml",
         "module": "C3k2_PKIConv",
+        "custom_indices": [2, 4],
         "run_name": "yolo11n_pkiconv_p23_640",
     },
 }
@@ -448,7 +458,7 @@ def audit_structure(
     config: ConvScreeningConfig,
     wrapper,
 ) -> dict[str, Any]:
-    """Verify the only architectural change is cv2 at P2/P3 C3k2."""
+    """Verify the official baseline or the scoped P2/P3 operator change."""
 
     from ultralytics.nn.modules import Conv
 
@@ -460,6 +470,7 @@ def audit_structure(
         if name in CUSTOM_MODULE_NAMES
     ]
     selected = [layers[2], layers[4]]
+    expected_custom_indices = list(config.spec["custom_indices"])
     cv1_checks: list[dict[str, Any]] = []
     for layer_index, layer in zip((2, 4), selected, strict=True):
         for block_index, block in enumerate(layer.m):
@@ -499,7 +510,7 @@ def audit_structure(
             layer_types[2] == expected_module
             and layer_types[4] == expected_module
         ),
-        "custom_scope_only_P2_P3": custom_indices == [2, 4],
+        "custom_scope_as_declared": custom_indices == expected_custom_indices,
         "first_3x3_preserved": all(
             item["is_ultralytics_conv"]
             and item["kernel_size"] == [3, 3]
@@ -523,6 +534,7 @@ def audit_structure(
         "model_yaml": str(config.model_yaml),
         "layer_types": layer_types,
         "custom_indices": custom_indices,
+        "expected_custom_indices": expected_custom_indices,
         "expected_module": expected_module,
         "cv1_checks": cv1_checks,
         "downsample_checks": downsample_checks,
@@ -881,7 +893,9 @@ def best_metrics(run_dir: str | Path) -> dict[str, Any]:
     best = max(normalized, key=lambda row: float(row[map_column]))
     report = {
         "selection_rule": "maximum validation mAP50-95",
-        "best_epoch": int(float(best["epoch"])) + 1,
+        # Ultralytics 8.4.92 writes human-facing epoch numbers (1..N) to
+        # results.csv, so no zero-based conversion is required here.
+        "best_epoch": int(float(best["epoch"])),
         "precision": float(best[column("precision(B)")]),
         "recall": float(best[column("recall(B)")]),
         "map50": float(best[column("mAP50(B)")]),
