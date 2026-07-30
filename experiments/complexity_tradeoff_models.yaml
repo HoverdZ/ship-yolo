@@ -1,0 +1,25 @@
+schema_version: 1
+notes:
+  - Populate only with measured or faithfully cited values.
+  - Do not mix latency/FPS from different hardware or inference paths on one speed plot.
+  - Never filter models because they are unfavorable to the proposed method.
+models: []
+field_schema:
+  name: null
+  family: null
+  yaml_or_weight: null
+  result_csv: null
+  params: null
+  gflops: null
+  latency: null
+  fps: null
+  map50: null
+  map5095: null
+  source: null
+  same_training_protocol: null
+  input_size: null
+  hardware: null
+  inference_framework: null
+  precision: null
+  includes_preprocess: null
+  includes_nms: null

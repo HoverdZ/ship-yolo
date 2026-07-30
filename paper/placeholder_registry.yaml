@@ -1,0 +1,29 @@
+schema_version: 1
+placeholder_format: "{{PENDING_{RUN_ID}_{FIELD}}}"
+canonical_runs:
+  [R00, R01, R02, R03, R04, R05A, R05B, R06, R07, R08, R09, R10, R11, R12, S00, S01]
+run_fields:
+  [PRECISION, RECALL, MAP50, MAP75, MAP5095, PARAMS, GFLOPS, LATENCY, FPS]
+manuscript_fields:
+  dataset:
+    - "{{PENDING_PRIMARY_DATASET_NAME}}"
+    - "{{PENDING_PRIMARY_DATASET_SOURCE}}"
+    - "{{PENDING_PRIMARY_TRAIN_INSTANCES}}"
+    - "{{PENDING_PRIMARY_VAL_INSTANCES}}"
+    - "{{PENDING_PRIMARY_TEST_INSTANCES}}"
+    - "{{PENDING_SECOND_DATASET_NAME}}"
+    - "{{PENDING_SECOND_DATASET_LICENSE}}"
+  environment:
+    - "{{PENDING_FORMAL_TORCH_VERSION}}"
+    - "{{PENDING_FORMAL_CUDA_VERSION}}"
+    - "{{PENDING_FORMAL_GPU}}"
+  figures:
+    - "{{PENDING_REPRESENTATIVE_SCENES_FIGURE}}"
+    - "{{PENDING_DPLS_FEATURE_FIGURE}}"
+    - "{{PENDING_CA_SCAM_FORWARD_HOOK_FIGURE}}"
+    - "{{PENDING_VGUP_GATE_FIGURE}}"
+    - "{{PENDING_COMPLEXITY_TRADEOFF_FIGURE}}"
+policy:
+  numeric_values: only_from_real_run_files
+  forbidden_proxies: ["0.XXX", "XX%", approximately, expected_improvement]
+  keep_unresolved_placeholders: true

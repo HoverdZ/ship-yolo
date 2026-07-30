@@ -1,0 +1,345 @@
+schema_version: 1
+registry_id: ocean_engineering_formal_v1
+drive_project_root: /content/drive/MyDrive/ship_detection/paper_project
+training_config: experiments/formal_training_config.yaml
+primary_dataset_id: primary_ship_v1
+canonical_runs:
+  R00:
+    experiment_id: R00
+    canonical_run_id: R00
+    paper_aliases: [A0, D0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R00_yolo11n_baseline.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    additional_stability_seeds: [1, 2]
+    module_flags: {pls: false, dpls: false, scam: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [8, 16, 32]
+    output_drive_dir: formal_experiments/R00/seed_0
+    notebook_path: notebooks/formal/R00_YOLO11n_Baseline.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R00/seed_0/run_manifest.json
+    notes: Official YOLO11n; reused by cumulative A0 and DPLS D0.
+  R01:
+    experiment_id: R01
+    canonical_run_id: R01
+    paper_aliases: [D1]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R01_yolo11n_pls.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: false, scam: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R01/seed_0
+    notebook_path: notebooks/formal/R01_YOLO11n_PLS.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R01/seed_0/run_manifest.json
+    notes: P2/P3/P4 pyramid with nearest upsampling.
+  R02:
+    experiment_id: R02
+    canonical_run_id: R02
+    paper_aliases: [A1, D2, C0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R02_yolo11n_dpls.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    additional_stability_seeds: [1, 2]
+    module_flags: {pls: true, dpls: true, scam: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R02/seed_0
+    notebook_path: notebooks/formal/R02_YOLO11n_DPLS.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R02/seed_0/run_manifest.json
+    notes: P2/P3/P4 pyramid with two DySample upsamplers.
+  R03:
+    experiment_id: R03
+    canonical_run_id: R03
+    paper_aliases: [C1, CI0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R03_yolo11n_dpls_scam.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, scam: true, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R03/seed_0
+    notebook_path: notebooks/formal/R03_YOLO11n_DPLS_SCAM.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R03/seed_0/run_manifest.json
+    notes: Original SCAM at P2/P3/P4 immediately before Detect.
+  R04:
+    experiment_id: R04
+    canonical_run_id: R04
+    paper_aliases: [A2, C2, CI3, V0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R04_yolo11n_dpls_ca_scam.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, scam: false, ca_scam: bounded, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R04/seed_0
+    notebook_path: notebooks/formal/R04_YOLO11n_DPLS_CA_SCAM.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R04/seed_0/run_manifest.json
+    notes: Complete bounded CA-SCAM at P2/P3/P4.
+  R05A:
+    experiment_id: R05A
+    canonical_run_id: R05A
+    paper_aliases: [CI1]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R05A_yolo11n_dpls_ca_scam_fixed_beta.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, scam: false, ca_scam: fixed_beta, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R05A/seed_0
+    notebook_path: notebooks/formal/R05A_YOLO11n_CA_SCAM_Fixed_Beta.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R05A/seed_0/run_manifest.json
+    notes: Adds local-contrast spatial calibration with fixed beta=0.1.
+  R05B:
+    experiment_id: R05B
+    canonical_run_id: R05B
+    paper_aliases: [CI2]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R05B_yolo11n_dpls_ca_scam_unbounded_beta.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, scam: false, ca_scam: unbounded_beta, erup: false, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R05B/seed_0
+    notebook_path: notebooks/formal/R05B_YOLO11n_CA_SCAM_Unbounded_Beta.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R05B/seed_0/run_manifest.json
+    notes: Makes beta learnable without the final tanh bound.
+  R06:
+    experiment_id: R06
+    canonical_run_id: R06
+    paper_aliases: [V1]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R06_yolo11n_dpls_ca_scam_erup.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, scam: false, ca_scam: bounded, erup: true, vgup: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R06/seed_0
+    notebook_path: notebooks/formal/R06_YOLO11n_ERUP.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R06/seed_0/run_manifest.json
+    notes: Original ERUP input preprocessor; no VGUP.
+  R07:
+    experiment_id: R07
+    canonical_run_id: R07
+    paper_aliases: [VG0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R07_yolo11n_dpls_ca_scam_vgup_no_gates.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: false, spatial_gate: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R07/seed_0
+    notebook_path: notebooks/formal/R07_YOLO11n_VGUP_No_Gates.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R07/seed_0/run_manifest.json
+    notes: BPW and KBL remain; both removed gates use an effective value of one.
+  R08:
+    experiment_id: R08
+    canonical_run_id: R08
+    paper_aliases: [VG1]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R08_yolo11n_dpls_ca_scam_vgup_global_only.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: false}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R08/seed_0
+    notebook_path: notebooks/formal/R08_YOLO11n_VGUP_Global_Only.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R08/seed_0/run_manifest.json
+    notes: Retains the BPW global residual gate only.
+  R09:
+    experiment_id: R09
+    canonical_run_id: R09
+    paper_aliases: [VG2]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R09_yolo11n_dpls_ca_scam_vgup_spatial_only.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: false, spatial_gate: true}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R09/seed_0
+    notebook_path: notebooks/formal/R09_YOLO11n_VGUP_Spatial_Only.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R09/seed_0/run_manifest.json
+    notes: Retains the KBL spatial visibility gate only.
+  R10:
+    experiment_id: R10
+    canonical_run_id: R10
+    paper_aliases: [A3, V2, VG3]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R10_yolo11n_dpls_ca_scam_vgup.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    additional_stability_seeds: [1, 2]
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R10/seed_0
+    notebook_path: notebooks/formal/R10_YOLO11n_Final.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R10/seed_0/run_manifest.json
+    notes: Final YOLO11n structure; reused across cumulative and VGUP analyses.
+  R11:
+    experiment_id: R11
+    canonical_run_id: R11
+    paper_aliases: [M0]
+    base_model: YOLOv8n
+    model_yaml: experiments/formal_models/R11_yolov8n_baseline.yaml
+    initialization_weight: yolov8n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: false, dpls: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [8, 16, 32]
+    output_drive_dir: formal_experiments/R11/seed_0
+    notebook_path: notebooks/formal/R11_YOLOv8n_Baseline.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R11/seed_0/run_manifest.json
+    notes: Official YOLOv8n cross-model baseline.
+  R12:
+    experiment_id: R12
+    canonical_run_id: R12
+    paper_aliases: [M1]
+    base_model: YOLOv8n
+    model_yaml: experiments/formal_models/R12_yolov8n_dpls_ca_scam_vgup.yaml
+    initialization_weight: yolov8n.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/R12/seed_0
+    notebook_path: notebooks/formal/R12_YOLOv8n_Final.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R12/seed_0/run_manifest.json
+    notes: YOLOv8-native C2f topology with the final method adapted by scale and channel.
+  S00:
+    experiment_id: S00
+    canonical_run_id: S00
+    paper_aliases: [S0]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R00_yolo11n_baseline.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: external_dataset_pending
+    data_yaml: datasets/external_dataset_template.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: false, dpls: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [8, 16, 32]
+    output_drive_dir: formal_experiments/S00/seed_0
+    notebook_path: notebooks/formal/S00_External_YOLO11n_Baseline.ipynb
+    status: blocked_pending_dataset
+    artifact_manifest: formal_experiments/S00/seed_0/run_manifest.json
+    notes: Template only; must train independently on the selected second dataset.
+  S01:
+    experiment_id: S01
+    canonical_run_id: S01
+    paper_aliases: [S1]
+    base_model: YOLO11n
+    model_yaml: experiments/formal_models/R10_yolo11n_dpls_ca_scam_vgup.yaml
+    initialization_weight: yolo11n.pt
+    dataset_id: external_dataset_pending
+    data_yaml: datasets/external_dataset_template.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
+    expected_detect_strides: [4, 8, 16]
+    output_drive_dir: formal_experiments/S01/seed_0
+    notebook_path: notebooks/formal/S01_External_YOLO11n_Final.ipynb
+    status: blocked_pending_dataset
+    artifact_manifest: formal_experiments/S01/seed_0/run_manifest.json
+    notes: Template only; official YOLO11n initialization, never the primary-dataset R10 checkpoint.

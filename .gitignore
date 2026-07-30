@@ -224,6 +224,11 @@ data_local.yaml
 credentials.json
 auth.json
 
+# Keep the dataset integration schema, never dataset content.
+!datasets/
+datasets/*
+!datasets/external_dataset_template.yaml
+
 # Ruff stuff:
 .ruff_cache/
 
