@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import torch
+import pytest
 
-from custom_modules.calibrated_scam import CASCAM
+from custom_modules.calibrated_scam import (
+    CASCAM,
+    CASCAMFixedBeta,
+    CASCAMUnbounded,
+)
 from custom_modules.scam import SCAM
 
 
@@ -116,3 +121,28 @@ def test_ca_scam_roundtrip_and_independent_instances() -> None:
     result = clone.load_state_dict(modules[0].state_dict(), strict=True)
     assert not result.missing_keys
     assert not result.unexpected_keys
+
+
+def test_internal_ablation_beta_definitions_are_distinct() -> None:
+    fixed = CASCAMFixedBeta(8, fixed_beta=0.1)
+    unbounded = CASCAMUnbounded(8)
+    bounded = CASCAM(8, max_delta=0.1)
+    assert fixed.calibration_beta().item() == pytest.approx(0.1)
+    assert unbounded.calibration_beta().item() == 0.0
+    assert bounded.calibration_beta().item() == 0.0
+    with torch.no_grad():
+        unbounded.contrast_beta.fill_(2.0)
+        bounded.contrast_logit.fill_(100.0)
+    assert unbounded.calibration_beta().item() == 2.0
+    assert bounded.calibration_beta().item() <= 0.100001
+
+
+def test_learnable_calibration_variants_start_as_exact_scam() -> None:
+    torch.manual_seed(7)
+    original = SCAM(8).eval()
+    image = torch.randn(1, 8, 7, 9)
+    for calibrated in (CASCAMUnbounded(8), CASCAM(8)):
+        calibrated.eval()
+        calibrated.load_state_dict(original.state_dict(), strict=False)
+        with torch.inference_mode():
+            assert torch.equal(calibrated(image), original(image))

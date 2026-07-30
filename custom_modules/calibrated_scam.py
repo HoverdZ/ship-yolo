@@ -21,18 +21,10 @@ from torch import nn
 from custom_modules.scam import SCAM
 
 
-class CASCAM(SCAM):
-    """Contrast-Aware SCAM with bounded, equivalent-initialized calibration."""
+class _ContrastCalibratedSCAMBase(SCAM):
+    """Shared local-contrast branch for controlled CA-SCAM ablations."""
 
-    def __init__(
-        self,
-        in_channels: int,
-        max_delta: float = 0.1,
-    ) -> None:
-        if not 0.0 < max_delta <= 1.0:
-            raise ValueError(
-                f"max_delta must be in (0, 1], got {max_delta}."
-            )
+    def __init__(self, in_channels: int) -> None:
         super().__init__(in_channels)
         self.local_mean = nn.AvgPool2d(
             kernel_size=3,
@@ -48,18 +40,16 @@ class CASCAM(SCAM):
             padding=1,
             bias=True,
         )
-        self.contrast_logit = nn.Parameter(torch.zeros(1))
-        self.max_delta = float(max_delta)
-        # Deterministic option A from the experiment specification:
-        # sigmoid(0) = 0.5, while beta = 0 preserves exact SCAM output.
+        # sigmoid(0) = 0.5.  Zero initialization makes every learnable
+        # calibration variant deterministic at construction time.
         nn.init.zeros_(self.contrast_proj.weight)
         nn.init.zeros_(self.contrast_proj.bias)
 
-    def contrast_state(
+    def contrast_map(
         self,
         x: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Return raw local contrast, its spatial map, and bounded beta."""
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return raw local contrast and its learnable spatial map."""
 
         local_mean = self.local_mean(x)
         local_contrast = torch.abs(x - local_mean).mean(
@@ -67,8 +57,12 @@ class CASCAM(SCAM):
             keepdim=True,
         )
         contrast_map = self.contrast_proj(local_contrast).sigmoid()
-        beta = self.max_delta * torch.tanh(self.contrast_logit)
-        return local_contrast, contrast_map, beta
+        return local_contrast, contrast_map
+
+    def calibration_beta(self) -> torch.Tensor:
+        """Return the variant-specific residual calibration strength."""
+
+        raise NotImplementedError
 
     def forward(
         self,
@@ -76,7 +70,8 @@ class CASCAM(SCAM):
         return_debug: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
         delta = self.compute_context_residual(x)
-        local_contrast, contrast_map, beta = self.contrast_state(x)
+        local_contrast, contrast_map = self.contrast_map(x)
+        beta = self.calibration_beta()
         output = x + (1.0 + beta * contrast_map) * delta
         if not return_debug:
             return output
@@ -85,7 +80,78 @@ class CASCAM(SCAM):
             "local_contrast": local_contrast,
             "contrast_map": contrast_map,
             "context_residual": delta,
+            "calibrated_residual": (1.0 + beta * contrast_map) * delta,
         }
 
 
-__all__ = ["CASCAM"]
+class CASCAMFixedBeta(_ContrastCalibratedSCAMBase):
+    """CA-SCAM ablation with the contrast branch and a fixed beta."""
+
+    def __init__(
+        self,
+        in_channels: int,
+        fixed_beta: float = 0.1,
+    ) -> None:
+        if not 0.0 < fixed_beta <= 1.0:
+            raise ValueError(
+                f"fixed_beta must be in (0, 1], got {fixed_beta}."
+            )
+        super().__init__(in_channels)
+        self.register_buffer(
+            "fixed_beta",
+            torch.tensor(float(fixed_beta)),
+            persistent=True,
+        )
+
+    def calibration_beta(self) -> torch.Tensor:
+        return self.fixed_beta
+
+
+class CASCAMUnbounded(_ContrastCalibratedSCAMBase):
+    """CA-SCAM ablation with a learnable, intentionally unbounded beta."""
+
+    def __init__(self, in_channels: int) -> None:
+        super().__init__(in_channels)
+        # beta=0 preserves exact SCAM output at initialization.  This
+        # controlled ablation intentionally omits the final tanh bound.
+        self.contrast_beta = nn.Parameter(torch.zeros(1))
+
+    def calibration_beta(self) -> torch.Tensor:
+        return self.contrast_beta
+
+
+class CASCAM(_ContrastCalibratedSCAMBase):
+    """Contrast-Aware SCAM with bounded, equivalent-initialized calibration."""
+
+    def __init__(
+        self,
+        in_channels: int,
+        max_delta: float = 0.1,
+    ) -> None:
+        if not 0.0 < max_delta <= 1.0:
+            raise ValueError(
+                f"max_delta must be in (0, 1], got {max_delta}."
+            )
+        super().__init__(in_channels)
+        self.contrast_logit = nn.Parameter(torch.zeros(1))
+        self.max_delta = float(max_delta)
+
+    def calibration_beta(self) -> torch.Tensor:
+        return self.max_delta * torch.tanh(self.contrast_logit)
+
+    def contrast_state(
+        self,
+        x: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Return raw local contrast, its spatial map, and bounded beta."""
+
+        local_contrast, contrast_map = self.contrast_map(x)
+        beta = self.calibration_beta()
+        return local_contrast, contrast_map, beta
+
+
+__all__ = [
+    "CASCAM",
+    "CASCAMFixedBeta",
+    "CASCAMUnbounded",
+]

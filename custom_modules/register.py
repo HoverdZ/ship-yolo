@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 7
+_PATCH_VERSION = 8
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -45,8 +45,11 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             or "elif m in {SCAM, CASCAM}:" in source
         )
     )
+    scam_module_set = (
+        "{SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}"
+    )
     has_calibrated_scam = (
-        "elif m in {SCAM, CASCAM}:" in source
+        f"elif m in {scam_module_set}:" in source
     )
     has_adaptive = (
         "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
@@ -153,7 +156,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
-        elif m in {SCAM, CASCAM}:
+        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one input feature.")
             c1 = ch[f]
@@ -166,11 +169,18 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
     elif not has_calibrated_scam:
-        source = source.replace(
-            "        elif m is SCAM:",
-            "        elif m in {SCAM, CASCAM}:",
-            1,
-        )
+        if "        elif m in {SCAM, CASCAM}:" in source:
+            source = source.replace(
+                "        elif m in {SCAM, CASCAM}:",
+                "        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:",
+                1,
+            )
+        else:
+            source = source.replace(
+                "        elif m is SCAM:",
+                "        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:",
+                1,
+            )
 
     if not has_adaptive:
         branch_marker = "        elif m is AIFI:"
@@ -226,7 +236,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         C3k2_PConv,
         C3k2_PKIConv,
     )
-    from custom_modules.calibrated_scam import CASCAM
+    from custom_modules.calibrated_scam import (
+        CASCAM,
+        CASCAMFixedBeta,
+        CASCAMUnbounded,
+    )
     from custom_modules.cgfm import AlignConcat, CGFM
     from custom_modules.dd import DD
     from custom_modules.dysample import DySample
@@ -246,6 +260,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_PConv": C3k2_PConv,
         "C3k2_PKIConv": C3k2_PKIConv,
         "CASCAM": CASCAM,
+        "CASCAMFixedBeta": CASCAMFixedBeta,
+        "CASCAMUnbounded": CASCAMUnbounded,
         "CGFM": CGFM,
         "DD": DD,
         "DySample": DySample,

@@ -87,3 +87,48 @@ def test_vgup_all_branches_receive_gradients() -> None:
     for parameter in expected:
         assert parameter.grad is not None
         assert torch.isfinite(parameter.grad).all()
+
+
+def test_gate_ablation_keeps_filters_and_uses_effective_one() -> None:
+    image = torch.rand(1, 3, 64, 64)
+    for global_gate, spatial_gate in (
+        (False, False),
+        (True, False),
+        (False, True),
+        (True, True),
+    ):
+        module = VGUPPreprocessor(
+            use_global_gate=global_gate,
+            use_spatial_gate=spatial_gate,
+        )
+        output, debug = module(image, return_debug=True)
+        assert output.shape == image.shape
+        assert hasattr(module, "bpw") and hasattr(module, "kbl")
+        if not global_gate:
+            assert module.encoder.global_gate_head is None
+            assert torch.equal(
+                debug["global_gate"],
+                torch.ones_like(debug["global_gate"]),
+            )
+        if not spatial_gate:
+            assert module.encoder.spatial_gate_head is None
+            assert torch.equal(
+                debug["spatial_gate"],
+                torch.ones_like(debug["spatial_gate"]),
+            )
+
+
+def test_removed_gate_heads_reduce_only_gate_parameters() -> None:
+    counts = {}
+    for key, flags in {
+        "none": (False, False),
+        "global": (True, False),
+        "spatial": (False, True),
+        "both": (True, True),
+    }.items():
+        module = VGUPPreprocessor(
+            use_global_gate=flags[0],
+            use_spatial_gate=flags[1],
+        )
+        counts[key] = sum(parameter.numel() for parameter in module.parameters())
+    assert counts["none"] < counts["global"] == counts["spatial"] < counts["both"]

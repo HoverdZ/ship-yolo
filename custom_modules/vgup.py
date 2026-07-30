@@ -58,6 +58,8 @@ class LightweightVGUPEncoder(nn.Module):
         self,
         in_channels: int = 3,
         prediction_size: int = 128,
+        use_global_gate: bool = True,
+        use_spatial_gate: bool = True,
         global_gate_bias: float = -1.5,
         spatial_gate_bias: float = -1.0,
     ) -> None:
@@ -67,6 +69,8 @@ class LightweightVGUPEncoder(nn.Module):
         if prediction_size < 32:
             raise ValueError("prediction_size must be at least 32.")
         self.prediction_size = int(prediction_size)
+        self.use_global_gate = bool(use_global_gate)
+        self.use_spatial_gate = bool(use_spatial_gate)
         self.stem = nn.Sequential(
             nn.Conv2d(3, 16, 3, 2, 1, bias=False),
             nn.BatchNorm2d(16),
@@ -82,15 +86,39 @@ class LightweightVGUPEncoder(nn.Module):
             128,
             self.parameter_output_count,
         )
-        self.global_gate_head = nn.Linear(128, 1)
-        self.spatial_gate_head = nn.Conv2d(128, 1, 1)
+        self.global_gate_head = (
+            nn.Linear(128, 1)
+            if self.use_global_gate
+            else None
+        )
+        self.spatial_gate_head = (
+            nn.Conv2d(128, 1, 1)
+            if self.use_spatial_gate
+            else None
+        )
 
         nn.init.normal_(self.filter_head.weight, mean=0.0, std=1e-4)
         nn.init.zeros_(self.filter_head.bias)
-        nn.init.normal_(self.global_gate_head.weight, mean=0.0, std=1e-4)
-        nn.init.constant_(self.global_gate_head.bias, global_gate_bias)
-        nn.init.normal_(self.spatial_gate_head.weight, mean=0.0, std=1e-4)
-        nn.init.constant_(self.spatial_gate_head.bias, spatial_gate_bias)
+        if self.global_gate_head is not None:
+            nn.init.normal_(
+                self.global_gate_head.weight,
+                mean=0.0,
+                std=1e-4,
+            )
+            nn.init.constant_(
+                self.global_gate_head.bias,
+                global_gate_bias,
+            )
+        if self.spatial_gate_head is not None:
+            nn.init.normal_(
+                self.spatial_gate_head.weight,
+                mean=0.0,
+                std=1e-4,
+            )
+            nn.init.constant_(
+                self.spatial_gate_head.bias,
+                spatial_gate_bias,
+            )
 
     def forward(self, image: torch.Tensor) -> dict[str, torch.Tensor]:
         _require_image(image)
@@ -108,19 +136,30 @@ class LightweightVGUPEncoder(nn.Module):
             (BPW_PARAMETER_COUNT, KBL_PARAMETER_COUNT),
             dim=1,
         )
-        global_gate = self.global_gate_head(pooled).sigmoid().view(
-            image.shape[0],
-            1,
-            1,
-            1,
-        )
-        spatial_gate_lowres = self.spatial_gate_head(features).sigmoid()
-        spatial_gate = F.interpolate(
-            spatial_gate_lowres,
-            size=image.shape[-2:],
-            mode="bilinear",
-            align_corners=False,
-        )
+        if self.global_gate_head is None:
+            global_gate = image.new_ones((image.shape[0], 1, 1, 1))
+        else:
+            global_gate = self.global_gate_head(pooled).sigmoid().view(
+                image.shape[0],
+                1,
+                1,
+                1,
+            )
+        if self.spatial_gate_head is None:
+            spatial_gate_lowres = image.new_ones(
+                (image.shape[0], 1, features.shape[-2], features.shape[-1])
+            )
+            spatial_gate = image.new_ones(
+                (image.shape[0], 1, image.shape[-2], image.shape[-1])
+            )
+        else:
+            spatial_gate_lowres = self.spatial_gate_head(features).sigmoid()
+            spatial_gate = F.interpolate(
+                spatial_gate_lowres,
+                size=image.shape[-2:],
+                mode="bilinear",
+                align_corners=False,
+            )
         return {
             "bpw_params": bpw_params,
             "kbl_params": kbl_params,
@@ -140,14 +179,20 @@ class VGUPPreprocessor(nn.Module):
         in_channels: int = 3,
         bpw_segments: int = 8,
         prediction_size: int = 128,
+        use_global_gate: bool = True,
+        use_spatial_gate: bool = True,
     ) -> None:
         super().__init__()
         if in_channels != 3:
             raise ValueError("VGUPPreprocessor must be the first RGB model layer.")
         self.in_channels = in_channels
+        self.use_global_gate = bool(use_global_gate)
+        self.use_spatial_gate = bool(use_spatial_gate)
         self.encoder = LightweightVGUPEncoder(
             in_channels=in_channels,
             prediction_size=prediction_size,
+            use_global_gate=self.use_global_gate,
+            use_spatial_gate=self.use_spatial_gate,
         )
         self.bpw = BPWFilter(segments=bpw_segments)
         self.kbl = KBLFilter()
