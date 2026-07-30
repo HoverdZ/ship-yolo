@@ -37,7 +37,7 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
             and "RUN_TRAINING = True" not in source,
             "foreground_api": "train_foreground(" in source,
             "no_training_subprocess": not re.search(
-                r"subprocess\\.(?:run|Popen)\\([^\\)]*(?:train|yolo)",
+                r"subprocess\.(?:run|Popen)\([^)]*(?:train|yolo)",
                 source,
                 flags=re.IGNORECASE | re.DOTALL,
             ),
@@ -74,7 +74,7 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
     ).read_text(encoding="utf-8")
     if "results = model.train(" not in protocol:
         errors.append("Protocol does not call official model.train directly.")
-    if "subprocess" in protocol.split("def train_foreground", 1)[1].split(
+    if "subprocess." in protocol.split("def train_foreground", 1)[1].split(
         "def _best_epoch", 1
     )[0]:
         errors.append("train_foreground contains subprocess usage.")
