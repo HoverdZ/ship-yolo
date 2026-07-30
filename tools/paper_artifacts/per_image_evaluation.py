@@ -55,7 +55,11 @@ def _iou(left: list[float], right: list[float]) -> float:
     return intersection / max(area_left + area_right - intersection, 1e-12)
 
 
-def _match(gt: list[dict[str, Any]], predictions: list[dict[str, Any]], threshold: float = 0.5) -> tuple[int, int, int, list[int], list[int]]:
+def _match(
+    gt: list[dict[str, Any]],
+    predictions: list[dict[str, Any]],
+    threshold: float = 0.5,
+) -> tuple[int, int, int, list[int], list[int], list[dict[str, Any]]]:
     candidates = []
     for pred_index, prediction in enumerate(predictions):
         for gt_index, truth in enumerate(gt):
@@ -63,13 +67,28 @@ def _match(gt: list[dict[str, Any]], predictions: list[dict[str, Any]], threshol
                 candidates.append((_iou(prediction["xyxy"], truth["xyxy"]), pred_index, gt_index))
     matched_pred: set[int] = set()
     matched_gt: set[int] = set()
+    matches: list[dict[str, Any]] = []
     for overlap, pred_index, gt_index in sorted(candidates, reverse=True):
         if overlap < threshold or pred_index in matched_pred or gt_index in matched_gt:
             continue
         matched_pred.add(pred_index)
         matched_gt.add(gt_index)
+        matches.append(
+            {
+                "prediction_index": pred_index,
+                "ground_truth_index": gt_index,
+                "iou": overlap,
+            }
+        )
     tp = len(matched_pred)
-    return tp, len(predictions) - tp, len(gt) - tp, sorted(matched_pred), sorted(matched_gt)
+    return (
+        tp,
+        len(predictions) - tp,
+        len(gt) - tp,
+        sorted(matched_pred),
+        sorted(matched_gt),
+        matches,
+    )
 
 
 def _size_bucket(short_side: float, config: FormalConfig) -> str:
@@ -105,7 +124,10 @@ def evaluate_per_image(config: FormalConfig, model) -> dict[str, Any]:
             for xyxy, confidence, cls in zip(boxes.xyxy.cpu().tolist(), boxes.conf.cpu().tolist(), boxes.cls.cpu().tolist(), strict=True):
                 predictions.append({"xyxy": [float(value) for value in xyxy], "confidence": float(confidence), "class": int(cls)})
         gt = _ground_truth(image, width, height)
-        tp, fp, fn, matched_pred, matched_gt = _match(gt, predictions)
+        tp, fp, fn, matched_pred, matched_gt, matches = _match(
+            gt,
+            predictions,
+        )
         for gt_index, truth in enumerate(gt):
             bucket = _size_bucket(truth["short_side_at_640"], config)
             size_totals[bucket]["gt"] += 1
@@ -131,6 +153,8 @@ def evaluate_per_image(config: FormalConfig, model) -> dict[str, Any]:
             "has_miss": fn > 0,
             "has_false_positive": fp > 0,
             "matched_prediction_indices": matched_pred,
+            "matched_ground_truth_indices": matched_gt,
+            "matches": matches,
         }
         records.append(record)
         if predictions:
