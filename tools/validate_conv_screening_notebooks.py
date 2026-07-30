@@ -1,4 +1,4 @@
-"""Static validation for the three independent convolution-screening notebooks."""
+"""Static validation for the controlled convolution-screening notebooks."""
 
 from __future__ import annotations
 
@@ -12,11 +12,23 @@ import nbformat
 ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK_DIR = ROOT / "colab" / "conv_screening_v1"
 EXPECTED = {
-    "C1_YOLO11n_PConv_P23.ipynb": "C1_pconv_p23",
-    "C2_YOLO11n_LSKConv_P23.ipynb": "C2_lskconv_p23",
-    "C3_YOLO11n_PKIConv_P23.ipynb": "C3_pkiconv_p23",
+    "C0_YOLO11n_Official_Baseline_640.ipynb": (
+        "C0_yolo11n_official",
+        "c00ba9ef3df80e07da4bcc2b20c0496e2288fa02",
+    ),
+    "C1_YOLO11n_PConv_P23.ipynb": (
+        "C1_pconv_p23",
+        "d95a9b8adcad90d2d94bf771f34a121393ca609c",
+    ),
+    "C2_YOLO11n_LSKConv_P23.ipynb": (
+        "C2_lskconv_p23",
+        "d95a9b8adcad90d2d94bf771f34a121393ca609c",
+    ),
+    "C3_YOLO11n_PKIConv_P23.ipynb": (
+        "C3_pkiconv_p23",
+        "d95a9b8adcad90d2d94bf771f34a121393ca609c",
+    ),
 }
-PINNED_COMMIT = "d95a9b8adcad90d2d94bf771f34a121393ca609c"
 
 
 def _python_without_magics(source: str) -> str:
@@ -26,7 +38,11 @@ def _python_without_magics(source: str) -> str:
     )
 
 
-def validate_one(path: Path, experiment_id: str) -> list[str]:
+def validate_one(
+    path: Path,
+    experiment_id: str,
+    pinned_commit: str,
+) -> list[str]:
     errors: list[str] = []
     notebook = nbformat.read(path, as_version=4)
     try:
@@ -45,10 +61,17 @@ def validate_one(path: Path, experiment_id: str) -> list[str]:
 
     required_literals = {
         f'EXPERIMENT_ID = "{experiment_id}"': "experiment id",
-        f'CODE_COMMIT = "{PINNED_COMMIT}"': "pinned commit",
+        f'CODE_COMMIT = "{pinned_commit}"': "pinned commit",
         "RUN_TRAINING = True": "foreground training enabled",
         "RUN_TEST_EVALUATION = False": "sealed test default",
+        "EPOCHS = 150": "fixed epoch count",
+        "IMGSZ = 640": "fixed image size",
+        "BATCH = 8": "fixed batch size",
+        "WORKERS = 2": "fixed dataloader workers",
+        "SEED = 0": "fixed random seed",
         'CACHE = "disk"': "deterministic disk cache",
+        "DETERMINISTIC = False": "C1-matched deterministic setting",
+        "SAVE_PERIOD = 10": "fixed checkpoint interval",
         "COPY_WORKERS = 16": "concurrent copy workers",
         "ultralytics==8.4.92": "fixed Ultralytics",
         'DRIVE_DATA_ROOT = "/content/drive/MyDrive/ship_detection/data"': "Drive data root",
@@ -111,11 +134,11 @@ def main() -> None:
         failures["directory"] = [
             f"expected {sorted(EXPECTED)}, found {sorted(actual)}"
         ]
-    for filename, experiment_id in EXPECTED.items():
+    for filename, (experiment_id, pinned_commit) in EXPECTED.items():
         path = NOTEBOOK_DIR / filename
         if not path.is_file():
             continue
-        errors = validate_one(path, experiment_id)
+        errors = validate_one(path, experiment_id, pinned_commit)
         if errors:
             failures[filename] = errors
         else:
