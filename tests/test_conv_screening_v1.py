@@ -24,6 +24,7 @@ from tools.conv_screening_utils import (
     ConvScreeningConfig,
     copy_dataset_to_local,
     cpu_forward_backward,
+    install_trainer_handoff_guard,
     prepare_model,
     resolve_run_state,
 )
@@ -305,3 +306,53 @@ def test_existing_residue_allocates_retry_without_deletion(tmp_path: Path) -> No
     assert state["mode"] == "new"
     assert state["run_name"] == "yolo11n_pconv_p23_640_retry1"
     assert marker.read_text(encoding="utf-8") == "preserve me"
+
+
+def test_trainer_handoff_guard_accepts_exact_state_and_rejects_replacement(
+    tmp_path: Path,
+) -> None:
+    local_root = tmp_path / "local_data"
+    config = ConvScreeningConfig(
+        experiment_id="C1_pconv_p23",
+        local_data_root=str(local_root),
+        drive_runs_root=str(tmp_path / "runs"),
+    )
+    config.local_yaml.write_text(
+        yaml.safe_dump(
+            {
+                "path": str(local_root),
+                "train": "images/train",
+                "val": "images/val",
+                "names": {0: "ship"},
+                "nc": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    prepared = prepare_model(config, ROOT / "yolo11n.pt")
+    wrapper = prepared["model"]
+    expected_run = tmp_path / "runs" / "exact"
+    install_trainer_handoff_guard(
+        wrapper,
+        prepared["transfer"],
+        expected_run / "preflight" / "trainer_handoff_report.json",
+        expected_run_dir=expected_run,
+    )
+
+    class Trainer:
+        save_dir = expected_run
+        model = wrapper.model
+
+    wrapper.callbacks["on_pretrain_routine_start"][-1](Trainer())
+    wrapper.callbacks["on_pretrain_routine_end"][-1](Trainer())
+    report = yaml.safe_load(
+        (expected_run / "preflight" / "trainer_handoff_report.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert report["passed"]
+    first_key = prepared["transfer"]["loaded_target_keys"][0]
+    with torch.no_grad():
+        wrapper.model.state_dict()[first_key].view(-1)[0].add_(1)
+    with pytest.raises(RuntimeError, match="discarded or altered"):
+        wrapper.callbacks["on_pretrain_routine_end"][-1](Trainer())
