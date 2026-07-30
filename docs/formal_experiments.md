@@ -74,3 +74,36 @@ every trainer tensor with the audited state and aborts on any difference.
 
 The test set is never used for model selection. It remains disabled by
 default until the final evaluation protocol is explicitly approved.
+
+## Paper skeleton and result insertion
+
+`tools/build_experiment_manuscript_skeleton.py` creates synchronized Chinese
+and English experiment chapters in editable Markdown and DOCX, plus an
+English LaTeX version. All unknown measurements use exact
+`{{PENDING_...}}` tokens. It never inserts guessed values or pre-authors a
+directional result.
+
+After formal runs are complete,
+`tools/update_manuscript_experiment_results.py <run_root>` performs a
+read-only preview by default. Only `--apply` modifies manuscripts, and every
+changed file is copied to a timestamped backup first. The updater accepts
+only identity-matched `run_manifest.json` files whose status is `completed`;
+unavailable fields remain unresolved.
+
+## Pre-push validation
+
+Run the following before publishing experiment-framework changes:
+
+```powershell
+pytest -q
+python tools/check_formal_experiment_models.py
+python tools/validate_formal_experiment_notebooks.py
+git diff --check
+git status --short
+```
+
+The model check builds all 14 unique topologies with `nc=1`, explicitly
+transfers matching official pretrained tensors, validates Detect strides,
+and executes a finite CPU forward/backward pass. S00 and S01 reuse the
+already-audited R00 and R10 topologies; their dataset validity is checked
+separately after the external dataset is selected.

@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "unique_model_yamls": 14,
+  "runs": {
+    "R00": {
+      "model_yaml": "experiments/formal_models/R00_yolo11n_baseline.yaml",
+      "parameters": 2590035,
+      "strides": [
+        8.0,
+        16.0,
+        32.0
+      ],
+      "loaded_tensors": 448,
+      "total_tensors": 499,
+      "loaded_total": "448/499",
+      "parameter_element_inheritance_ratio": 0.9829982992507823,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R01": {
+      "model_yaml": "experiments/formal_models/R01_yolo11n_pls.yaml",
+      "parameters": 1259667,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 439,
+      "loaded_total": "232/439",
+      "parameter_element_inheritance_ratio": 0.7086952345342062,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R02": {
+      "model_yaml": "experiments/formal_models/R02_yolo11n_dpls.yaml",
+      "parameters": 1267923,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 445,
+      "loaded_total": "232/445",
+      "parameter_element_inheritance_ratio": 0.704080610573355,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R03": {
+      "model_yaml": "experiments/formal_models/R03_yolo11n_dpls_scam.yaml",
+      "parameters": 1342629,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 502,
+      "loaded_total": "232/502",
+      "parameter_element_inheritance_ratio": 0.6649044523840912,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R04": {
+      "model_yaml": "experiments/formal_models/R04_yolo11n_dpls_ca_scam.yaml",
+      "parameters": 1342662,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 511,
+      "loaded_total": "232/511",
+      "parameter_element_inheritance_ratio": 0.6648881103360339,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R05A": {
+      "model_yaml": "experiments/formal_models/R05A_yolo11n_dpls_ca_scam_fixed_beta.yaml",
+      "parameters": 1342659,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 511,
+      "loaded_total": "232/511",
+      "parameter_element_inheritance_ratio": 0.6648895959435717,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R05B": {
+      "model_yaml": "experiments/formal_models/R05B_yolo11n_dpls_ca_scam_unbounded_beta.yaml",
+      "parameters": 1342662,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 511,
+      "loaded_total": "232/511",
+      "parameter_element_inheritance_ratio": 0.6648881103360339,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R06": {
+      "model_yaml": "experiments/formal_models/R06_yolo11n_dpls_ca_scam_erup.yaml",
+      "parameters": 8123704,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 523,
+      "loaded_total": "232/523",
+      "parameter_element_inheritance_ratio": 0.1098907591906352,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R07": {
+      "model_yaml": "experiments/formal_models/R07_yolo11n_dpls_ca_scam_vgup_no_gates.yaml",
+      "parameters": 1419800,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 555,
+      "loaded_total": "232/555",
+      "parameter_element_inheritance_ratio": 0.6287646147344697,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R08": {
+      "model_yaml": "experiments/formal_models/R08_yolo11n_dpls_ca_scam_vgup_global_only.yaml",
+      "parameters": 1419929,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 557,
+      "loaded_total": "232/557",
+      "parameter_element_inheritance_ratio": 0.6287074917126138,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R09": {
+      "model_yaml": "experiments/formal_models/R09_yolo11n_dpls_ca_scam_vgup_spatial_only.yaml",
+      "parameters": 1419929,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 557,
+      "loaded_total": "232/557",
+      "parameter_element_inheritance_ratio": 0.6287074917126138,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R10": {
+      "model_yaml": "experiments/formal_models/R10_yolo11n_dpls_ca_scam_vgup.yaml",
+      "parameters": 1420058,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 232,
+      "total_tensors": 559,
+      "loaded_total": "232/559",
+      "parameter_element_inheritance_ratio": 0.628650379069024,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R11": {
+      "model_yaml": "experiments/formal_models/R11_yolov8n_baseline.yaml",
+      "parameters": 3011043,
+      "strides": [
+        8.0,
+        16.0,
+        32.0
+      ],
+      "loaded_tensors": 319,
+      "total_tensors": 355,
+      "loaded_total": "319/355",
+      "parameter_element_inheritance_ratio": 0.8772508396592145,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "R12": {
+      "model_yaml": "experiments/formal_models/R12_yolov8n_dpls_ca_scam_vgup.yaml",
+      "parameters": 1114218,
+      "strides": [
+        4.0,
+        8.0,
+        16.0
+      ],
+      "loaded_tensors": 207,
+      "total_tensors": 445,
+      "loaded_total": "207/445",
+      "parameter_element_inheritance_ratio": 0.6671872111202655,
+      "forward_backward": {
+        "outputs_exist": true,
+        "outputs_finite": true,
+        "input_gradient_finite": true,
+        "parameter_gradients_finite": true
+      },
+      "passed": true
+    },
+    "S00": {
+      "reuses_model_yaml": "R00",
+      "model_yaml": "experiments/formal_models/R00_yolo11n_baseline.yaml",
+      "passed": true
+    },
+    "S01": {
+      "reuses_model_yaml": "R10",
+      "model_yaml": "experiments/formal_models/R10_yolo11n_dpls_ca_scam_vgup.yaml",
+      "passed": true
+    }
+  },
+  "passed": true
+}
