@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
+
+import yaml
 
 from tools.paper_artifacts.grouped_evaluation import (
     evaluate_groups,
     make_bins,
     recommend_merged_bins,
 )
+from tools.paper_artifacts.per_image_evaluation import evaluate_per_image
 from tools.paper_artifacts.results.builders import build
 from tools.paper_artifacts.results.common import collect_metrics
 from tools.paper_artifacts.results.validate_result_consistency import validate
@@ -127,3 +131,53 @@ def test_grouped_evaluation_reports_counts_not_fake_ap() -> None:
     assert sum(row["fp"] for row in rows) == 1
     assert sum(row["fn"] for row in rows) == 1
     assert all(row["ap"] is None for row in rows)
+
+
+def test_per_image_evaluation_never_predicts_the_full_split_at_once(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "dataset"
+    images = root / "val" / "images"
+    images.mkdir(parents=True)
+    for index in range(19):
+        (images / f"{index:03d}.jpg").write_bytes(b"image")
+    local_yaml = tmp_path / "data.yaml"
+    local_yaml.write_text(
+        yaml.safe_dump(
+            {
+                "path": str(root),
+                "val": "val/images",
+            }
+        ),
+        encoding="utf-8",
+    )
+    config = SimpleNamespace(
+        local_yaml=local_yaml,
+        imgsz=640,
+        conf=0.25,
+        iou=0.7,
+        device="cpu",
+        batch=8,
+        experiment_id="R01",
+        run_dir=tmp_path / "run",
+        tiny_short_side=16.0,
+        small_short_side=32.0,
+    )
+
+    class FakeModel:
+        def __init__(self) -> None:
+            self.calls: list[list[str]] = []
+
+        def predict(self, *, source, **_kwargs):
+            values = list(source)
+            self.calls.append(values)
+            return iter(
+                SimpleNamespace(orig_shape=(16, 16), boxes=None)
+                for _path in values
+            )
+
+    model = FakeModel()
+    output = evaluate_per_image(config, model)
+    assert output["images"] == 19
+    assert [len(call) for call in model.calls] == [8, 8, 3]
+    assert max(map(len, model.calls)) <= config.batch

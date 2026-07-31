@@ -79,6 +79,13 @@ every trainer tensor with the audited state and aborts on any difference.
    Real-hook visualizations remain separate tools so representative images can
    be selected after completed runs are reviewed.
 
+Before finalization, the Notebook releases the completed trainer, optimizer,
+and initialized-model references, then clears the CUDA cache. Per-image
+validation submits at most eight image paths to Ultralytics at once; it never
+passes the complete validation split as one in-memory list. Final runtime
+state, `COMPLETED.ok`, and removal of `RUNNING.lock` occur before checksums and
+the ZIP are generated, so the sealed artifacts remain internally consistent.
+
 The test set is never used for model selection. It remains disabled by
 default until the final evaluation protocol is explicitly approved.
 

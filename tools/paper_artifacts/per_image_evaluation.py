@@ -9,6 +9,7 @@ from typing import Any
 
 import torch
 import yaml
+from tqdm.auto import tqdm
 
 from tools.paper_artifacts.formal_protocol import IMAGE_SUFFIXES, FormalConfig, write_json
 
@@ -104,19 +105,48 @@ def evaluate_per_image(config: FormalConfig, model) -> dict[str, Any]:
     root = Path(payload["path"])
     entries = payload["val"] if isinstance(payload["val"], list) else [payload["val"]]
     images = sorted({item.resolve() for entry in entries for item in _images(Path(entry) if Path(entry).is_absolute() else root / entry)})
-    results = model.predict(
-        source=[str(image) for image in images],
-        imgsz=config.imgsz,
-        conf=config.conf,
-        iou=config.iou,
-        device=config.device,
-        stream=True,
-        verbose=False,
-    )
+
+    # Ultralytics treats a Python list of images as one in-memory batch even
+    # when stream=True. Passing the complete validation set can therefore
+    # allocate several GiB at once. Keep each list bounded by the already
+    # validated formal batch size.
+    prediction_batch = max(1, min(int(config.batch), 8))
+
+    def bounded_predictions():
+        progress = tqdm(
+            total=len(images),
+            desc="验证集逐图统计",
+            unit="张",
+            dynamic_ncols=True,
+        )
+        try:
+            for start in range(0, len(images), prediction_batch):
+                chunk_images = images[start : start + prediction_batch]
+                chunk_results = model.predict(
+                    source=[str(image) for image in chunk_images],
+                    imgsz=config.imgsz,
+                    conf=config.conf,
+                    iou=config.iou,
+                    device=config.device,
+                    stream=True,
+                    verbose=False,
+                )
+                for image, result in zip(
+                    chunk_images,
+                    chunk_results,
+                    strict=True,
+                ):
+                    progress.update(1)
+                    yield image, result
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+        finally:
+            progress.close()
+
     records: list[dict[str, Any]] = []
     prediction_rows: list[dict[str, Any]] = []
     size_totals = {name: {"gt": 0, "tp": 0, "fn": 0} for name in ("tiny", "small", "medium_large")}
-    for image, result in zip(images, results, strict=True):
+    for image, result in bounded_predictions():
         height, width = result.orig_shape
         boxes = result.boxes
         predictions = []

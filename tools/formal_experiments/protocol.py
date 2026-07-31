@@ -1172,6 +1172,81 @@ def _export_zip(run_dir: Path, output: Path) -> Path:
     return output
 
 
+def _seal_run(
+    config: FormalRunConfig,
+    manifest: dict[str, Any],
+    mirror: AtomicDriveMirror | None = None,
+) -> Path:
+    """Seal stable final state before checksums, ZIP export, and Drive sync."""
+
+    from tools.windows_collection import verify_checksum_manifest
+
+    zip_path = (
+        Path(config.drive_project_root)
+        / "exports"
+        / f"{config.run_id}_{config.run_name}.zip"
+    )
+    completed = config.run_dir / "COMPLETED.ok"
+    drive_completed = config.drive_dir / "COMPLETED.ok"
+    try:
+        # Runtime markers and state must reach their final values before the
+        # checksum manifest and ZIP are generated.
+        with contextlib.suppress(FileNotFoundError):
+            (config.run_dir / "RUNNING.lock").unlink()
+        _write_state(config, "completed", export_zip=str(zip_path))
+        completed.write_text(
+            f"{utc_now()}\n{zip_path}\n",
+            encoding="utf-8",
+        )
+
+        write_json(config.run_dir / "run_manifest.json", manifest)
+        write_checksums(config.run_dir)
+        present, missing = _artifact_inventory(config.run_dir)
+        manifest["artifacts_present"] = present
+        manifest["artifacts_missing"] = missing
+        write_json(config.run_dir / "run_manifest.json", manifest)
+        checksum_file = write_checksums(config.run_dir)
+
+        failures = [
+            row
+            for row in verify_checksum_manifest(checksum_file)
+            if not row["passed"]
+        ]
+        if failures:
+            raise RuntimeError(
+                "Final checksum verification failed: "
+                + json.dumps(failures[:10], ensure_ascii=False)
+            )
+
+        _export_zip(config.run_dir, zip_path)
+        with zipfile.ZipFile(zip_path, "r") as archive:
+            damaged = archive.testzip()
+        if damaged is not None:
+            raise RuntimeError(f"Damaged file in final ZIP: {damaged}")
+
+        if mirror is None:
+            mirror = AtomicDriveMirror(config.run_dir, config.drive_dir)
+        mirror.sync_tree()
+        mirror.close()
+
+        # AtomicDriveMirror copies current files but does not delete an older
+        # Drive-side lock, so remove it after all queued jobs have finished.
+        with contextlib.suppress(OSError):
+            (config.drive_dir / "RUNNING.lock").unlink()
+        return zip_path
+    except Exception:
+        completed.unlink(missing_ok=True)
+        with contextlib.suppress(OSError):
+            drive_completed.unlink()
+        with contextlib.suppress(Exception):
+            _write_state(
+                config,
+                "finalization_failed",
+                export_zip=str(zip_path),
+            )
+        raise
+
+
 def finalize_run(
     config: FormalRunConfig,
     mirror: AtomicDriveMirror | None = None,
@@ -1287,30 +1362,7 @@ def finalize_run(
         "test_used_for_selection": False,
         "completed_at": utc_now(),
     }
-    write_json(config.run_dir / "run_manifest.json", manifest)
-    write_checksums(config.run_dir)
-    present, missing = _artifact_inventory(config.run_dir)
-    manifest["artifacts_present"] = present
-    manifest["artifacts_missing"] = missing
-    write_json(config.run_dir / "run_manifest.json", manifest)
-    write_checksums(config.run_dir)
-    zip_path = _export_zip(
-        config.run_dir,
-        Path(config.drive_project_root)
-        / "exports"
-        / f"{config.run_id}_{config.run_name}.zip",
-    )
-    (config.run_dir / "COMPLETED.ok").write_text(
-        f"{utc_now()}\n{zip_path}\n",
-        encoding="utf-8",
-    )
-    with contextlib.suppress(FileNotFoundError):
-        (config.run_dir / "RUNNING.lock").unlink()
-    _write_state(config, "completed", export_zip=str(zip_path))
-    if mirror is None:
-        mirror = AtomicDriveMirror(config.run_dir, config.drive_dir)
-    mirror.sync_tree()
-    mirror.close()
+    _seal_run(config, manifest, mirror=mirror)
     return manifest
 
 

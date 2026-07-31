@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import json
+import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
 import yaml
 
 from custom_modules.register import register_custom_modules
+from tools.formal_experiments.protocol import _seal_run
 from tools.formal_experiments.registry import ROOT, load_registry, resolve_run
 from tools.validate_formal_experiment_notebooks import validate
+from tools.windows_collection import verify_checksum_manifest
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -186,3 +191,62 @@ def test_formal_notebooks_use_direct_single_seed_chinese_workflow() -> None:
     assert report["registered_notebooks"] == 16
     assert report["found_notebooks"] == 16
     assert report["passed"]
+
+
+def test_final_seal_hashes_stable_state_and_removes_running_lock(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "runs" / "R01" / "seed_0"
+    drive_project = tmp_path / "drive_project"
+    drive_dir = (
+        drive_project / "formal_experiments" / "R01" / "seed_0"
+    )
+    run_dir.mkdir(parents=True)
+    (run_dir / "RUNNING.lock").write_text("running\n", encoding="utf-8")
+    (run_dir / "results.csv").write_text(
+        "epoch,metric\n0,0.1\n",
+        encoding="utf-8",
+    )
+    drive_dir.mkdir(parents=True)
+    (drive_dir / "RUNNING.lock").write_text(
+        "stale Drive lock\n",
+        encoding="utf-8",
+    )
+    config = SimpleNamespace(
+        run_dir=run_dir,
+        drive_dir=drive_dir,
+        drive_project_root=str(drive_project),
+        run_id="R01",
+        run_name="seed_0",
+        seed=0,
+    )
+    manifest = {"run_id": "R01", "seed": 0, "status": "completed"}
+
+    zip_path = _seal_run(config, manifest)
+
+    assert not (run_dir / "RUNNING.lock").exists()
+    assert not (drive_dir / "RUNNING.lock").exists()
+    state = json.loads(
+        (run_dir / "experiment_state.json").read_text(encoding="utf-8")
+    )
+    assert state["status"] == "completed"
+    checksum_text = (
+        run_dir / "artifact_checksums.sha256"
+    ).read_text(encoding="utf-8")
+    assert "RUNNING.lock" not in checksum_text
+    assert "experiment_state.json" in checksum_text
+    assert "COMPLETED.ok" in checksum_text
+    assert all(
+        row["passed"]
+        for row in verify_checksum_manifest(
+            run_dir / "artifact_checksums.sha256"
+        )
+    )
+    assert all(
+        row["passed"]
+        for row in verify_checksum_manifest(
+            drive_dir / "artifact_checksums.sha256"
+        )
+    )
+    with zipfile.ZipFile(zip_path, "r") as archive:
+        assert archive.testzip() is None

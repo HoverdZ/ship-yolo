@@ -229,12 +229,29 @@ trained_model, train_results, drive_mirror = train_foreground(
     config,
     initialized_model=prepared["model"],
 )
+
+# 后处理会从 best.pt 单独加载模型，因此先释放训练器、优化器和旧模型显存。
+import contextlib
+import gc
+
+prepared_model = prepared.pop("model", None)
+del prepared_model, trained_model, train_results
+gc.collect()
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+    with contextlib.suppress(Exception):
+        torch.cuda.ipc_collect()
+    print(
+        "训练对象已释放，当前显存：",
+        f"allocated={torch.cuda.memory_allocated() / 1024**3:.2f} GiB，",
+        f"reserved={torch.cuda.memory_reserved() / 1024**3:.2f} GiB",
+    )
 """
             ),
             _markdown(
                 """## 3. 完成最终验证、更新论文结果表并核验备份
 
-训练结束后运行下面的单元格。它使用本次 `best.pt` 在固定验证集上完成最终评估，写入运行清单，更新可用的论文结果表，核验文件校验和，并确认完整 ZIP 备份已经保存到 Google Drive。测试集仍保持封存，不参与模型选择。
+训练结束后运行下面的单元格。训练器显存已经在上一单元格末尾释放；本单元格使用 `best.pt` 完成固定验证，并把逐图统计限制在不超过 8 张的小批次，避免将整个验证集一次送入显存。所有状态文件稳定后才生成校验清单和 ZIP，随后原子同步到 Google Drive。测试集仍保持封存，不参与模型选择。
 """
             ),
             _code(
@@ -257,6 +274,8 @@ assert checksum_file.is_file(), checksum_file
 checks = verify_checksum_manifest(checksum_file)
 failures = [row for row in checks if not row["passed"]]
 assert not failures, failures[:10]
+assert not (config.run_dir / "RUNNING.lock").exists()
+assert not (config.drive_dir / "RUNNING.lock").exists()
 
 export_zip = (
     DRIVE_PROJECT_ROOT

@@ -88,6 +88,14 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
                 "全部训练前检查通过，开始正式训练。" in source
                 and "prepared = prepare_experiment(config)" in source
             ),
+            "release_training_gpu_before_finalize": (
+                'prepared_model = prepared.pop("model", None)' in source
+                and (
+                    "del prepared_model, trained_model, train_results"
+                    in source
+                )
+                and "torch.cuda.empty_cache()" in source
+            ),
             "checksum": "artifact_checksums.sha256" in source,
             "manifest": "run_manifest.json" in source,
             "zip": "exports" in source,
@@ -118,6 +126,15 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
         "def _best_epoch", 1
     )[0]:
         errors.append("train_foreground contains subprocess usage.")
+    if "def _seal_run(" not in protocol:
+        errors.append("Protocol is missing stable final-state sealing.")
+    per_image = (
+        ROOT / "tools" / "paper_artifacts" / "per_image_evaluation.py"
+    ).read_text(encoding="utf-8")
+    if "prediction_batch" not in per_image:
+        errors.append("Per-image evaluation is missing bounded batches.")
+    if "source=[str(image) for image in images]" in per_image:
+        errors.append("Per-image evaluation still submits the full split.")
     report = {
         "registered_notebooks": len(registry["canonical_runs"]),
         "found_notebooks": found,
