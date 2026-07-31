@@ -10,6 +10,7 @@ import yaml
 
 from custom_modules.register import register_custom_modules
 from tools.formal_experiments.registry import ROOT, load_registry, resolve_run
+from tools.validate_formal_experiment_notebooks import validate
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -178,3 +179,10 @@ def test_no_model_yaml_contains_training_parameters() -> None:
             "lr0",
             "data",
         }.intersection(payload)
+
+
+def test_formal_notebooks_use_direct_single_seed_chinese_workflow() -> None:
+    report = validate()
+    assert report["registered_notebooks"] == 16
+    assert report["found_notebooks"] == 16
+    assert report["passed"]

@@ -1315,20 +1315,25 @@ def finalize_run(
 
 
 def print_run_banner(config: FormalRunConfig) -> None:
-    """Print every frozen input immediately before the training cell."""
+    """在训练开始前打印本次实际生效的固定配置。"""
 
+    effective_training = {
+        key: value
+        for key, value in config.training.items()
+        if key not in {"seeds", "stability_targets", "remaining_arguments"}
+    }
+    effective_training["seed"] = config.seed
     print("=" * 72)
-    print("RUN_ID:", config.run_id)
-    print("SEED:", config.seed)
-    print("MODEL_YAML:", config.model_yaml)
-    print("DATA_YAML:", config.local_yaml)
-    print("INITIALIZATION_WEIGHT:", config.initialization_weight)
-    print("GIT_COMMIT:", git_output("rev-parse", "HEAD"))
-    print("TRAINING_PARAMETERS:")
-    print(yaml.safe_dump(config.training, sort_keys=False))
-    print("LOCAL_OUTPUT:", config.run_dir)
-    print("DRIVE_OUTPUT:", config.drive_dir)
-    print("RUN_TRAINING:", config.run_training)
+    print("实验编号：", config.run_id)
+    print("随机种子：", config.seed)
+    print("模型 YAML：", config.model_yaml)
+    print("本地数据 YAML：", config.local_yaml)
+    print("官方初始化权重：", config.initialization_weight)
+    print("固定 Git 提交：", git_output("rev-parse", "HEAD"))
+    print("本次实际训练参数：")
+    print(yaml.safe_dump(effective_training, sort_keys=False))
+    print("Colab 本地输出：", config.run_dir)
+    print("Google Drive 输出：", config.drive_dir)
     print("=" * 72)
 
 

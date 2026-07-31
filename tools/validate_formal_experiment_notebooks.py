@@ -27,15 +27,51 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
             continue
         found += 1
         payload = json.loads(path.read_text(encoding="utf-8"))
+        cells = payload["cells"]
         source = "\n".join(
-            "".join(cell.get("source", [])) for cell in payload["cells"]
+            "".join(cell.get("source", [])) for cell in cells
         )
+        code_cells = [
+            cell for cell in cells if cell.get("cell_type") == "code"
+        ]
+        described_code_cells = all(
+            index > 0
+            and cells[index - 1].get("cell_type") == "markdown"
+            and re.search(
+                r"[\u4e00-\u9fff]",
+                "".join(cells[index - 1].get("source", [])),
+            )
+            for index, cell in enumerate(cells)
+            if cell.get("cell_type") == "code"
+        )
+        training_cells = [
+            "".join(cell.get("source", []))
+            for cell in code_cells
+            if "train_foreground(" in "".join(cell.get("source", []))
+        ]
         checks = {
             "run_id": f'RUN_ID = "{run_id}"' in source,
             "model_yaml": run["model_yaml"] in source,
-            "training_default_off": "RUN_TRAINING = False" in source
-            and "RUN_TRAINING = True" not in source,
-            "foreground_api": "train_foreground(" in source,
+            "three_complete_code_cells": len(code_cells) == 3,
+            "chinese_description_before_each_code": described_code_cells,
+            "no_manual_training_switch": "RUN_TRAINING" not in source,
+            "training_enabled_in_fixed_config": (
+                source.count("run_training=True") == 1
+            ),
+            "single_foreground_training_call": (
+                len(training_cells) == 1
+                and training_cells[0].count("train_foreground(") == 1
+            ),
+            "no_manual_seed_variable": "SEED =" not in source,
+            "no_multi_seed_loop": not re.search(
+                r"for\s+\w*seed\w*\s+in",
+                source,
+                flags=re.IGNORECASE,
+            ),
+            "correct_colab_secret": (
+                'userdata.get("GITHUB_TOKEN")' in source
+                and "SHIP_YOLO_GITHUB_TOKEN" not in source
+            ),
             "no_training_subprocess": not re.search(
                 r"subprocess\.(?:run|Popen)\([^)]*(?:train|yolo)",
                 source,
@@ -48,6 +84,10 @@ def validate(expected_commit: str | None = None) -> dict[str, object]:
             "fixed_ultralytics": "ultralytics==8.4.92" in source,
             "safe_resume": "resume=True" in source
             or "train_foreground" in source,
+            "direct_after_preflight": (
+                "全部训练前检查通过，开始正式训练。" in source
+                and "prepared = prepare_experiment(config)" in source
+            ),
             "checksum": "artifact_checksums.sha256" in source,
             "manifest": "run_manifest.json" in source,
             "zip": "exports" in source,

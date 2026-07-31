@@ -1,7 +1,8 @@
 # Ocean Engineering formal experiment framework
 
-This framework prepares code and reproducibility artifacts only. It does not
-contain trained results and does not start training by default.
+This framework prepares code and reproducibility artifacts without containing
+trained results. Each generated Notebook uses seed 0 once and starts foreground
+training immediately after all preflight checks pass.
 
 ## Audited structure facts
 
@@ -60,17 +61,23 @@ every trainer tensor with the audited state and aborts on any difference.
 ## Execution order
 
 1. Open the Notebook for a canonical run under `notebooks/formal/`.
-2. Keep `RUN_TRAINING=False` through environment, dataset copy, model build,
-   forward/backward, stride, complexity, and inheritance checks.
-3. Verify the printed RUN_ID, YAML, data YAML, official weight, fixed Git
-   commit, parameters, and output directories.
-4. Set `RUN_TRAINING=True` and execute the foreground training cell.
+2. Run the first operation cell. It mounts Drive, reads the private-repository
+   credential only from the Colab Secret `GITHUB_TOKEN`, installs
+   Ultralytics 8.4.92, and checks out the frozen Git commit.
+3. Run the second operation cell. It copies the dataset with live file/byte
+   progress, then checks the dataset, model, forward/backward path, stride,
+   complexity, and official-weight inheritance. Training starts directly in
+   the current kernel only after every check passes; there is no user-editable
+   training switch or multi-seed loop.
+4. Verify the printed RUN_ID, YAML, data YAML, official weight, fixed Git
+   commit, effective parameters, and output directories as training begins.
 5. If interrupted, rerun from the top. A matching `last.pt` and state file
    resume; inconsistent residuals are rejected.
 6. Finalize validation, per-image evidence, manifest, checksums, Drive mirror,
    and ZIP.
-7. Generate tables and real-hook visualizations. Human review makes the final
-   representative-image selection.
+7. The final operation cell refreshes all currently available result tables.
+   Real-hook visualizations remain separate tools so representative images can
+   be selected after completed runs are reviewed.
 
 The test set is never used for model selection. It remains disabled by
 default until the final evaluation protocol is explicitly approved.

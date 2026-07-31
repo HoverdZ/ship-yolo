@@ -1,4 +1,4 @@
-"""Generate one independent Colab Notebook per canonical formal run."""
+"""为每个正式实验生成一份可独立运行的 Colab Notebook。"""
 
 from __future__ import annotations
 
@@ -44,132 +44,140 @@ def _code(value: str) -> dict[str, Any]:
 
 
 def build_template() -> dict[str, Any]:
+    """构建只有三个操作区的中文正式实验模板。"""
+
     return {
         "cells": [
             _markdown(
-                """# {{RUN_ID}} — {{MODEL_NAME}}
+                """# {{RUN_ID}}：{{MODEL_NAME}}
 
-Canonical formal experiment for the Ocean Engineering paper.
+这是用于 Ocean Engineering 论文的独立正式实验 Notebook。
 
-- Paper aliases: `{{PAPER_ALIASES}}`
-- Model YAML: `{{MODEL_YAML}}`
-- Detect strides: `{{DETECT_STRIDES}}`
-- This Notebook is generated from the canonical registry.
-- Training defaults to **disabled** and runs only in the current kernel.
-"""
-            ),
-            _code(
-                """from google.colab import drive
-
-drive.mount("/content/drive", force_remount=False)
-print("Google Drive mounted.")
-"""
-            ),
-            _code(
-                """RUN_ID = "{{RUN_ID}}"
-SEED = 0
-FORMAL_CODE_COMMIT = "{{FORMAL_CODE_COMMIT}}"
-REPOSITORY_URL = "https://github.com/HoverdZ/ship-yolo.git"
-REPOSITORY_DIR = "/content/ship-yolo-formal"
-
-# Safety defaults. Change RUN_TRAINING only after reviewing the printed banner.
-RUN_TRAINING = False
-RUN_TEST_EVALUATION = False
-RUN_VISUALIZATIONS = False
-REPRESENTATIVE_IMAGE = None
-
-# S00/S01 must set both values after the second-dataset audit.
-DATA_YAML_OVERRIDE = None
-DRIVE_DATA_ROOT_OVERRIDE = None
+- 论文别名：`{{PAPER_ALIASES}}`
+- 模型 YAML：`{{MODEL_YAML}}`
+- 检测步长：`{{DETECT_STRIDES}}`
+- 随机种子由正式实验注册表固定为 `0`，不会循环运行多个随机种子。
+- 运行到训练步骤时，全部检查通过后会直接开始训练，无需修改任何开关。
+- {{DATASET_NOTE}}
 """
             ),
             _markdown(
-                """## Fixed code checkout and dependency installation
+                """## 1. 挂载云盘、安装固定环境并获取实验代码
 
-The token itself is never stored in this Notebook, a URL, or the repository.
-For this private repository, optionally expose a Colab Secret named
-`SHIP_YOLO_GITHUB_TOKEN`. If authentication is unavailable, this cell stops
-immediately. It never deletes an existing checkout or disables SSL.
+下面的单元格一次完成 Google Drive 挂载、Ultralytics 8.4.92 安装、私有仓库认证、固定提交检出和运行环境核验。它只读取 Colab Secret 中已有的 `GITHUB_TOKEN`，不会把令牌写入 URL、Notebook 或仓库。若认证失败，程序会立即停止，不会继续执行训练。
 """
             ),
             _code(
-                """import base64
+                """from google.colab import drive, userdata
+
+drive.mount("/content/drive", force_remount=False)
+
+import base64
 import os
+import platform
 import subprocess
 import sys
 from pathlib import Path
 
+# 本实验的编号和代码版本已经固定，无需手工修改。
+RUN_ID = "{{RUN_ID}}"
+FORMAL_CODE_COMMIT = "{{FORMAL_CODE_COMMIT}}"
+REPOSITORY_URL = "https://github.com/HoverdZ/ship-yolo.git"
+REPOSITORY_DIR = "/content/ship-yolo"
+
+# 安装此前 6 个 InceptionDW 正式实验使用的 Ultralytics 版本。
 subprocess.run(
     [sys.executable, "-m", "pip", "install", "--quiet", "ultralytics==8.4.92"],
     check=True,
 )
 
 try:
-    from google.colab import userdata
-    _github_token = userdata.get("SHIP_YOLO_GITHUB_TOKEN")
-except Exception:
-    _github_token = None
+    github_token = userdata.get("GITHUB_TOKEN")
+except Exception as error:
+    raise RuntimeError(
+        "无法读取 Colab Secret：GITHUB_TOKEN。请先完成 GitHub 身份认证，"
+        "然后从本单元格重新运行；当前程序已停止。"
+    ) from error
+if not github_token:
+    raise RuntimeError(
+        "Colab Secret 中没有可用的 GITHUB_TOKEN。请添加该 Secret 并允许"
+        "当前 Notebook 访问；当前程序已停止。"
+    )
+
 
 def git_run(arguments, cwd=None):
-    command = ["git"]
-    if _github_token:
-        basic = base64.b64encode(
-            f"x-access-token:{_github_token}".encode("utf-8")
-        ).decode("ascii")
-        command += ["-c", f"http.extraHeader=AUTHORIZATION: basic {basic}"]
+    basic = base64.b64encode(
+        f"x-access-token:{github_token}".encode("utf-8")
+    ).decode("ascii")
+    command = [
+        "git",
+        "-c",
+        f"http.extraHeader=AUTHORIZATION: basic {basic}",
+        *list(arguments),
+    ]
     result = subprocess.run(
-        command + list(arguments),
+        command,
         cwd=cwd,
         capture_output=True,
         text=True,
     )
     if result.returncode:
-        stderr = result.stderr.replace(_github_token or "", "***")
+        stderr = result.stderr.replace(github_token, "***")
         raise RuntimeError(
-            "Git operation failed. Stop here and fix GitHub authentication; "
-            "do not retry other experiment cells.\\n" + stderr[-2000:]
+            "Git 操作失败。请先处理 GitHub 身份认证或仓库状态，"
+            "不要继续运行后续单元格。\\n" + stderr[-2000:]
         )
     return result.stdout.strip()
+
 
 repo = Path(REPOSITORY_DIR)
 if repo.exists():
     if not (repo / ".git").is_dir():
         raise FileExistsError(
-            f"{repo} exists but is not the expected Git checkout. "
-            "No directory was deleted."
+            f"{repo} 已存在，但不是预期的 Git 仓库。程序没有删除该目录。"
         )
-    dirty = git_run(["status", "--porcelain", "--untracked-files=no"], cwd=repo)
+    dirty = git_run(
+        ["status", "--porcelain", "--untracked-files=no"],
+        cwd=repo,
+    )
     if dirty:
-        raise RuntimeError("Existing checkout has tracked changes; refusing checkout.")
+        raise RuntimeError("现有仓库包含未提交的受跟踪文件修改，已拒绝切换版本。")
 else:
     git_run(
-        ["clone", "--filter=blob:none", "--no-checkout", REPOSITORY_URL, str(repo)]
+        [
+            "clone",
+            "--filter=blob:none",
+            "--no-checkout",
+            REPOSITORY_URL,
+            str(repo),
+        ]
     )
 
 git_run(["fetch", "--depth=1", "origin", FORMAL_CODE_COMMIT], cwd=repo)
 git_run(["checkout", "--detach", FORMAL_CODE_COMMIT], cwd=repo)
 actual_commit = git_run(["rev-parse", "HEAD"], cwd=repo)
-assert actual_commit == FORMAL_CODE_COMMIT, (actual_commit, FORMAL_CODE_COMMIT)
+assert actual_commit == FORMAL_CODE_COMMIT, (
+    actual_commit,
+    FORMAL_CODE_COMMIT,
+)
 os.chdir(repo)
 if str(repo) not in sys.path:
     sys.path.insert(0, str(repo))
-print("Fixed repository commit:", actual_commit)
-"""
-            ),
-            _code(
-                """import platform
-from pathlib import Path
+print("固定仓库提交：", actual_commit)
 
 import torch
 import ultralytics
 
 assert ultralytics.__version__ == "8.4.92", ultralytics.__version__
-print("Python:", platform.python_version())
-print("PyTorch:", torch.__version__)
-print("CUDA:", torch.version.cuda)
-print("cuDNN:", torch.backends.cudnn.version())
-print("Ultralytics:", ultralytics.__version__)
-print("GPU:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)
+print("Python 版本：", platform.python_version())
+print("PyTorch 版本：", torch.__version__)
+print("CUDA 版本：", torch.version.cuda)
+print("cuDNN 版本：", torch.backends.cudnn.version())
+print("Ultralytics 版本：", ultralytics.__version__)
+print(
+    "GPU：",
+    torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+)
 
 DRIVE_PROJECT_ROOT = Path(
     "/content/drive/MyDrive/ship_detection/paper_project"
@@ -185,192 +193,80 @@ for relative in (
     "exports",
 ):
     (DRIVE_PROJECT_ROOT / relative).mkdir(parents=True, exist_ok=True)
-print("Drive project root:", DRIVE_PROJECT_ROOT)
+print("论文项目云盘目录：", DRIVE_PROJECT_ROOT)
+"""
+            ),
+            _markdown(
+                """## 2. 复制数据集、完成训练前审计并直接开始正式训练
+
+下面的单元格把云盘数据集以只读方式多线程复制到 Colab 本地，并实时显示文件数和字节进度；随后自动生成本地 `data.yaml`，检查图像与标签、模型结构、检测步长、CPU 前向/反向、复杂度和官方预训练权重继承。任何检查失败都会在训练前停止；全部检查通过后，会在当前内核中直接调用官方 `YOLO.train(...)` 开始训练，完整 epoch 输出会实时显示。若同一实验存在匹配的 `last.pt` 和状态文件，则自动从最近一轮续训。
 """
             ),
             _code(
                 """from tools.formal_experiments.protocol import (
     FormalRunConfig,
+    prepare_experiment,
     print_run_banner,
     resolve_run_state,
-)
-
-if RUN_ID.startswith("S") and not DATA_YAML_OVERRIDE:
-    raise RuntimeError(
-        "Second-dataset run is intentionally blocked. Complete the dataset "
-        "descriptor/audit, then set DATA_YAML_OVERRIDE and DRIVE_DATA_ROOT_OVERRIDE."
-    )
-
-config = FormalRunConfig.from_registry(
-    RUN_ID,
-    seed=SEED,
-    run_training=RUN_TRAINING,
-    run_test_evaluation=RUN_TEST_EVALUATION,
-    data_yaml_override=DATA_YAML_OVERRIDE,
-    drive_data_root_override=DRIVE_DATA_ROOT_OVERRIDE,
-)
-run_mode = resolve_run_state(config)
-print("Resolved run mode:", run_mode)
-print_run_banner(config)
-"""
-            ),
-            _markdown(
-                """## Read-only dataset copy and preflight
-
-The source Drive dataset is not cleaned, repartitioned, augmented, or edited.
-Copy progress is printed in real time for both files and processed bytes.
-The verified local copy is used to generate the runtime data YAML and to run
-the image/label audit, model build, GFLOPs/parameter count, stride check,
-dummy forward/backward, and official-weight inheritance audit.
-"""
-            ),
-            _code(
-                """from tools.formal_experiments.protocol import prepare_experiment
-
-prepared = prepare_experiment(config)
-print("Dataset splits:", prepared["dataset_audit"]["splits"])
-print(
-    "Loaded/Total tensors:",
-    prepared["transfer"]["loaded_total"],
-)
-print("Structure audit passed:", prepared["structure"]["passed"])
-print("Model info:", prepared["model_info"])
-"""
-            ),
-            _markdown(
-                """## Formal training — foreground only
-
-Review the banner immediately above. Set `RUN_TRAINING=True` in the
-configuration cell only when the RUN_ID, YAML, data, official initialization,
-commit, parameters, and output directory are correct.
-
-The call below executes the official Ultralytics API directly in this kernel.
-It is not sent to a subprocess. Official epoch progress therefore remains
-visible. Important state and `best.pt`/`last.pt` are atomically mirrored to
-Drive after every epoch/checkpoint.
-"""
-            ),
-            _code(
-                """from tools.formal_experiments.protocol import (
-    print_run_banner,
     train_foreground,
 )
 
-trained_model = None
-train_results = None
-drive_mirror = None
+# 随机种子直接使用正式注册表中的固定值 0，不执行多种子循环。
+config = FormalRunConfig.from_registry(RUN_ID, run_training=True)
+run_mode = resolve_run_state(config)
+print("运行方式：", "从断点续训" if run_mode == "resume" else "全新训练")
+
+prepared = prepare_experiment(config)
+assert prepared["structure"]["passed"], prepared["structure"]
+print("数据集划分审计：", prepared["dataset_audit"]["splits"])
+print("预训练权重 Loaded/Total：", prepared["transfer"]["loaded_total"])
+print("结构审计：通过")
+print("模型规模：", prepared["model_info"])
+
 print_run_banner(config)
-if RUN_TRAINING:
-    trained_model, train_results, drive_mirror = train_foreground(
-        config,
-        initialized_model=prepared["model"],
-    )
-else:
-    print("RUN_TRAINING=False: no GPU training was started.")
+print("全部训练前检查通过，开始正式训练。")
+trained_model, train_results, drive_mirror = train_foreground(
+    config,
+    initialized_model=prepared["model"],
+)
 """
             ),
             _markdown(
-                """## Interruption and resume
+                """## 3. 完成最终验证、更新论文结果表并核验备份
 
-Rerun the Notebook from the top with the same RUN_ID and seed. If Drive
-contains a matching `weights/last.pt` plus `experiment_state.json`, the local
-run is restored and the same training cell calls `model.train(resume=True)`.
-Cross-run/cross-seed resume and non-resumable residual directories are
-rejected. A completed run is never overwritten.
+训练结束后运行下面的单元格。它使用本次 `best.pt` 在固定验证集上完成最终评估，写入运行清单，更新可用的论文结果表，核验文件校验和，并确认完整 ZIP 备份已经保存到 Google Drive。测试集仍保持封存，不参与模型选择。
 """
             ),
             _code(
                 """from tools.formal_experiments.protocol import finalize_run
+from tools.paper_artifacts.results.builders import TABLES, build
+from tools.windows_collection import verify_checksum_manifest
 
-manifest = None
-if RUN_TRAINING:
-    manifest = finalize_run(config, mirror=drive_mirror)
-    print("Final validation metrics:", manifest["validation_metrics"])
-    print("Completed Drive run:", config.drive_dir)
-else:
-    print("Finalization skipped because training was not run in this session.")
-"""
-            ),
-            _code(
-                """from tools.paper_artifacts.results.builders import TABLES, build
+manifest = finalize_run(config, mirror=drive_mirror)
+print("最终验证指标：", manifest["validation_metrics"])
+print("已完成的云盘实验目录：", config.drive_dir)
 
 table_root = DRIVE_PROJECT_ROOT / "paper_artifacts" / "tables"
 run_root = DRIVE_PROJECT_ROOT / "formal_experiments"
-if (config.run_dir / "run_manifest.json").is_file():
-    for table_name in TABLES:
-        paths = build(
-            table_name,
-            run_root,
-            table_root / table_name,
-        )
-        print(table_name, paths)
-else:
-    print("No completed manifest in this session; table generation skipped.")
-"""
-            ),
-            _code(
-                """import subprocess
-
-best = config.run_dir / "weights" / "best.pt"
-visual_root = (
-    DRIVE_PROJECT_ROOT / "paper_artifacts" / "visualizations" / RUN_ID
-)
-if RUN_VISUALIZATIONS:
-    if not best.is_file() or not REPRESENTATIVE_IMAGE:
-        raise FileNotFoundError(
-            "Set REPRESENTATIVE_IMAGE and ensure this run has weights/best.pt."
-        )
-    commands = [
-        [
-            sys.executable,
-            "tools/paper_artifacts/visualize_pyramid_features.py",
-            "--weights", str(best),
-            "--image", REPRESENTATIVE_IMAGE,
-            "--output", str(visual_root / "pyramid"),
-        ]
-    ]
-    if RUN_ID in {"R04", "R05A", "R05B", "R10", "R12"}:
-        commands.append(
-            [
-                sys.executable,
-                "tools/paper_artifacts/visualize_ca_scam_forward.py",
-                "--weights", str(best),
-                "--image", REPRESENTATIVE_IMAGE,
-                "--output", str(visual_root / "ca_scam"),
-            ]
-        )
-    if RUN_ID in {"R07", "R08", "R09", "R10", "R12"}:
-        commands.append(
-            [
-                sys.executable,
-                "tools/paper_artifacts/visualize_vgup_forward.py",
-                "--weights", str(best),
-                "--image", REPRESENTATIVE_IMAGE,
-                "--output", str(visual_root / "vgup"),
-            ]
-        )
-    for command in commands:
-        subprocess.run(command, check=True)
-else:
-    print("RUN_VISUALIZATIONS=False: real-hook visualizations were not generated.")
-"""
-            ),
-            _code(
-                """from tools.windows_collection import verify_checksum_manifest
+for table_name in TABLES:
+    paths = build(table_name, run_root, table_root / table_name)
+    print("已更新结果表：", table_name, paths)
 
 checksum_file = config.run_dir / "artifact_checksums.sha256"
-if checksum_file.is_file():
-    checks = verify_checksum_manifest(checksum_file)
-    failures = [row for row in checks if not row["passed"]]
-    assert not failures, failures[:10]
-    print(f"Verified {len(checks)} local artifact checksums.")
-    export_zip = (
-        DRIVE_PROJECT_ROOT / "exports" / f"{RUN_ID}_seed_{SEED}.zip"
-    )
-    print("ZIP export:", export_zip, "exists:", export_zip.is_file())
-    print("Run manifest:", config.drive_dir / "run_manifest.json")
-else:
-    print("Checksum/ZIP verification waits for a completed run.")
+assert checksum_file.is_file(), checksum_file
+checks = verify_checksum_manifest(checksum_file)
+failures = [row for row in checks if not row["passed"]]
+assert not failures, failures[:10]
+
+export_zip = (
+    DRIVE_PROJECT_ROOT
+    / "exports"
+    / f"{config.run_id}_{config.run_name}.zip"
+)
+assert export_zip.is_file(), export_zip
+print(f"已通过 {len(checks)} 项本地文件校验。")
+print("ZIP 备份：", export_zip)
+print("运行清单：", config.drive_dir / "run_manifest.json")
 """
             ),
         ],
@@ -397,7 +293,10 @@ def _replace(value: Any, replacements: dict[str, str]) -> Any:
     if isinstance(value, list):
         return [_replace(item, replacements) for item in value]
     if isinstance(value, dict):
-        return {key: _replace(item, replacements) for key, item in value.items()}
+        return {
+            key: _replace(item, replacements)
+            for key, item in value.items()
+        }
     return value
 
 
@@ -412,7 +311,7 @@ def write_template(path: Path = TEMPLATE_PATH) -> Path:
 
 def generate(commit: str) -> list[Path]:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise ValueError("--commit must be a full 40-character lowercase SHA.")
+        raise ValueError("--commit 必须是完整的 40 位小写提交 SHA。")
     if not TEMPLATE_PATH.is_file():
         write_template()
     template = json.loads(TEMPLATE_PATH.read_text(encoding="utf-8"))
@@ -421,11 +320,19 @@ def generate(commit: str) -> list[Path]:
     for run_id, run in registry["canonical_runs"].items():
         replacements = {
             "RUN_ID": run_id,
-            "MODEL_NAME": run["base_model"] + " formal variant",
+            "MODEL_NAME": run["base_model"] + " 正式实验",
             "PAPER_ALIASES": ", ".join(run["paper_aliases"]),
             "MODEL_YAML": run["model_yaml"],
             "DETECT_STRIDES": json.dumps(run["expected_detect_strides"]),
             "FORMAL_CODE_COMMIT": commit,
+            "DATASET_NOTE": (
+                "本实验使用已冻结的主数据集，训练集、验证集和测试集划分保持不变。"
+                if run["dataset_id"] != "external_dataset_pending"
+                else (
+                    "本实验等待第二数据集完成登记；在正式注册前会明确停止，"
+                    "不会误用主数据集。"
+                )
+            ),
         }
         notebook = _replace(copy.deepcopy(template), replacements)
         output = ROOT / run["notebook_path"]
@@ -449,7 +356,7 @@ def main() -> None:
         for output in generate(args.commit):
             print(output.relative_to(ROOT))
     if not args.write_template and not args.commit:
-        parser.error("Pass --write-template and/or --commit.")
+        parser.error("请传入 --write-template 和/或 --commit。")
 
 
 if __name__ == "__main__":

@@ -75,7 +75,7 @@ outputs:
   atomic_replace: true
 
 runtime:
-  run_training_default: false
+  run_training_default: true
   run_test_evaluation_default: false
   foreground_training_only: true
   subprocess_training_prohibited: true
