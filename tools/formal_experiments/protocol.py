@@ -406,7 +406,16 @@ def _layer_mapping(run_id: str) -> dict[int, int]:
             18: 16,
             20: 18,
         }
-    input_shift = run_id in {"R06", "R07", "R08", "R09", "R10", "S01"}
+    input_shift = run_id in {
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "S01",
+        "PLS_CA_SCAM_VGUP_150ep",
+        "PLS_CA_SCAM_ERUP_150ep",
+    }
     offset = 1 if input_shift else 0
     mapping = {index + offset: index for index in range(7)}
     mapping.update(
@@ -428,7 +437,14 @@ def _detect_mapping(run_id: str) -> tuple[int, int, dict[int, int]]:
         return 24, 22, {1: 0, 2: 1}
     if run_id in {"R01", "R02"}:
         target = 21
-    elif run_id in {"R03", "R04", "R05A", "R05B"}:
+    elif run_id in {
+        "R03",
+        "R04",
+        "R05A",
+        "R05B",
+        "PLS_SCAM_150ep",
+        "PLS_CA_SCAM_150ep",
+    }:
         target = 24
     else:
         target = 25
