@@ -415,6 +415,7 @@ def _layer_mapping(run_id: str) -> dict[int, int]:
         "S01",
         "PLS_CA_SCAM_VGUP_150ep",
         "PLS_CA_SCAM_ERUP_150ep",
+        "INCDW_PLS_CA_SCAM_VGUP_150ep",
     }
     offset = 1 if input_shift else 0
     mapping = {index + offset: index for index in range(7)}
@@ -444,6 +445,7 @@ def _detect_mapping(run_id: str) -> tuple[int, int, dict[int, int]]:
         "R05B",
         "PLS_SCAM_150ep",
         "PLS_CA_SCAM_150ep",
+        "INCDW_DPLS_CA_SCAM_150ep",
     }:
         target = 24
     else:

@@ -1,0 +1,25 @@
+schema_version: 1
+registry_id: incdw_ca_scam_family_v1
+base_run: R01
+shared:
+  initialization_weight: yolo11n.pt
+  epochs: 150
+  imgsz: 640
+  batch: 8
+  seed: 0
+  inceptiondw_scope: p2_p3_bottleneck_cv2_only
+  ca_scam: complete_bounded
+  expected_detect_strides: [4, 8, 16]
+experiments:
+  INCDW_PLS_CA_SCAM_VGUP_150ep:
+    model_yaml: experiments/incdw_ca_scam_family/INCDW_PLS_CA_SCAM_VGUP_yolo11n.yaml
+    description: Complete VGUP, P2/P3-only InceptionDW, PLS and three bounded CA-SCAM modules.
+    modules: {inceptiondw: true, pls: true, dpls: false, ca_scam: bounded, vgup: true}
+    output_drive_dir: formal_experiments/INCDW_PLS_CA_SCAM_VGUP_150ep/seed_0
+    notebook_path: notebooks/formal/INCDW_PLS_CA_SCAM_VGUP_150ep.ipynb
+  INCDW_DPLS_CA_SCAM_150ep:
+    model_yaml: experiments/incdw_ca_scam_family/INCDW_DPLS_CA_SCAM_yolo11n.yaml
+    description: P2/P3-only InceptionDW, two DySample DPLS nodes and three bounded CA-SCAM modules.
+    modules: {inceptiondw: true, pls: false, dpls: true, ca_scam: bounded, vgup: false}
+    output_drive_dir: formal_experiments/INCDW_DPLS_CA_SCAM_150ep/seed_0
+    notebook_path: notebooks/formal/INCDW_DPLS_CA_SCAM_150ep.ipynb
