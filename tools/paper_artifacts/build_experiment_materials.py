@@ -649,6 +649,23 @@ def build_cpu_materials(
     _write_general_guidance(directories["总体"])
 
     print("[8/8] 生成材料索引源数据并检查目录平坦性", flush=True)
+    manifest_path = directories["总体"] / "论文实验材料索引_源数据.csv"
+    report = {
+        "material_root": str(root.resolve()),
+        "directories": {key: str(path.resolve()) for key, path in directories.items()},
+        "weights_identified": len(audit["records"]),
+        "identity_status_counts": pd.Series(
+            [record["identity_status"] for record in audit["records"]]
+        ).value_counts().to_dict(),
+        "complexity_models": len(complexity),
+        "manifest_csv": str(manifest_path.resolve()),
+    }
+    (directories["总体"] / "CPU材料生成报告.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    # Write the report before indexing so a clean first run and every rerun
+    # produce the same complete set of manifest rows.
     manifest = build_material_manifest(root, audit)
     nested = [
         str(path)
@@ -658,20 +675,6 @@ def build_cpu_materials(
     ]
     if nested:
         raise AssertionError(f"Nested material directories are forbidden: {nested}")
-    report = {
-        "material_root": str(root.resolve()),
-        "directories": {key: str(path.resolve()) for key, path in directories.items()},
-        "weights_identified": len(audit["records"]),
-        "identity_status_counts": pd.Series(
-            [record["identity_status"] for record in audit["records"]]
-        ).value_counts().to_dict(),
-        "complexity_models": len(complexity),
-        "manifest_csv": str(manifest.resolve()),
-    }
-    (directories["总体"] / "CPU材料生成报告.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
     return report
 
 
