@@ -190,15 +190,15 @@ print('输出根目录:', OUTPUT_ROOT)
 def _cache_expression(label: str, output_var: str) -> str:
     safe = label.replace("/", "_").replace(" ", "_")
     return f"""
-def ensure_cache(label, weights, output_dir):
-    expected = output_dir / f'{{label.replace("/", "_").replace(" ", "_")}}_val逐图预测缓存.json'
+def ensure_cache(label, weights, output_dir, split='val'):
+    expected = output_dir / f'{{label.replace("/", "_").replace(" ", "_")}}_{{split}}逐图预测缓存.json'
     if expected.is_file():
         import json
         from tools.paper_artifacts.gpu_material_pipeline import sha256_file
         metadata = json.loads(expected.read_text(encoding='utf-8'))
         valid = (
             metadata.get('model') == label
-            and metadata.get('split') == 'val'
+            and metadata.get('split') == split
             and int(metadata.get('imgsz', -1)) == IMGSZ
             and float(metadata.get('confidence_floor', -1)) == CONFIDENCE_FLOOR
             and float(metadata.get('nms_iou', -1)) == NMS_IOU
@@ -213,7 +213,7 @@ def ensure_cache(label, weights, output_dir):
         data_yaml=LOCAL_YAML,
         output_dir=output_dir,
         model_label=label,
-        split='val',
+        split=split,
         imgsz=IMGSZ,
         confidence_floor=CONFIDENCE_FLOOR,
         nms_iou=NMS_IOU,
@@ -270,11 +270,18 @@ from tools.paper_artifacts.gpu_material_pipeline import (
 """
             + _cache_expression("PLS", "DPLS_OUTPUT")
             + """
-pls_cache = ensure_cache('PLS', PLS_WEIGHT, DPLS_OUTPUT)
-dpls_cache = ensure_cache('DPLS', DPLS_WEIGHT, DPLS_OUTPUT)
+pls_cache = ensure_cache('PLS', PLS_WEIGHT, DPLS_OUTPUT, split='val')
+dpls_cache = ensure_cache('DPLS', DPLS_WEIGHT, DPLS_OUTPUT, split='val')
 caches = {'PLS': pls_cache, 'DPLS': dpls_cache}
 if BASELINE_WEIGHT.is_file():
-    caches['YOLO11n'] = ensure_cache('YOLO11n', BASELINE_WEIGHT, DPLS_OUTPUT)
+    caches['YOLO11n'] = ensure_cache('YOLO11n', BASELINE_WEIGHT, DPLS_OUTPUT, split='val')
+
+if test_images is not None:
+    ensure_cache('PLS', PLS_WEIGHT, DPLS_OUTPUT, split='test')
+    ensure_cache('DPLS', DPLS_WEIGHT, DPLS_OUTPUT, split='test')
+    if BASELINE_WEIGHT.is_file():
+        ensure_cache('YOLO11n', BASELINE_WEIGHT, DPLS_OUTPUT, split='test')
+    print('test逐图缓存已生成；分组评价和案例筛选仍只使用val。')
 
 evaluate_dpls_size_groups(caches, DPLS_OUTPUT, confidence_threshold=COUNT_CONFIDENCE)
 candidate_csv = compare_prediction_caches(
@@ -346,8 +353,12 @@ from tools.paper_artifacts.gpu_material_pipeline import (
 """
             + _cache_expression("SCAM", "CA_OUTPUT")
             + """
-scam_cache = ensure_cache('SCAM', SCAM_WEIGHT, CA_OUTPUT)
-ca_cache = ensure_cache('CA-SCAM', CA_SCAM_WEIGHT, CA_OUTPUT)
+scam_cache = ensure_cache('SCAM', SCAM_WEIGHT, CA_OUTPUT, split='val')
+ca_cache = ensure_cache('CA-SCAM', CA_SCAM_WEIGHT, CA_OUTPUT, split='val')
+if test_images is not None:
+    ensure_cache('SCAM', SCAM_WEIGHT, CA_OUTPUT, split='test')
+    ensure_cache('CA-SCAM', CA_SCAM_WEIGHT, CA_OUTPUT, split='test')
+    print('test逐图缓存已生成；代表案例筛选仍只使用val。')
 candidate_csv = compare_prediction_caches(
     left_cache=scam_cache,
     right_cache=ca_cache,
@@ -417,8 +428,12 @@ from tools.paper_artifacts.gpu_material_pipeline import (
 """
             + _cache_expression("无VGUP", "VGUP_OUTPUT")
             + """
-no_vgup_cache = ensure_cache('无VGUP', NO_VGUP_WEIGHT, VGUP_OUTPUT)
-vgup_cache = ensure_cache('有VGUP', VGUP_WEIGHT, VGUP_OUTPUT)
+no_vgup_cache = ensure_cache('无VGUP', NO_VGUP_WEIGHT, VGUP_OUTPUT, split='val')
+vgup_cache = ensure_cache('有VGUP', VGUP_WEIGHT, VGUP_OUTPUT, split='val')
+if test_images is not None:
+    ensure_cache('无VGUP', NO_VGUP_WEIGHT, VGUP_OUTPUT, split='test')
+    ensure_cache('有VGUP', VGUP_WEIGHT, VGUP_OUTPUT, split='test')
+    print('test逐图缓存已生成；代表案例筛选和门控统计仍只使用val。')
 candidate_csv = compare_prediction_caches(
     left_cache=no_vgup_cache,
     right_cache=vgup_cache,

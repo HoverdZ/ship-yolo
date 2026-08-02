@@ -44,6 +44,8 @@ Notebook 位于 `notebooks/paper_artifacts/`：
 不含 `.train()`。Drive 数据集会通过多线程 `shutil.copyfile` 复制到 Colab
 本地，并同步显示文件数和字节进度。预测缓存同时保存 JSON 和 CSV，缓存只有
 在权重 SHA256 与推理协议完全一致时才会复用。
+若数据配置存在 `test`，Notebook 会自动为核心模型生成 val 和 test 两套缓存；
+分组评价、门控统计和代表案例选择只使用 val，不使用 test 做样本挑选。
 
 主要 DPLS、CA-SCAM 和 VGUP checkpoint 的训练版本均为 Ultralytics 8.4.92，
 因此三个 Notebook 固定 8.4.92。可选 YOLO11n 基线记录为 8.4.109；它只在

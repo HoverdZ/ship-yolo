@@ -120,3 +120,4 @@ def test_generated_notebooks_are_inference_only_and_reproducible(tmp_path: Path)
         assert "shutil.copyfile" in code
         assert "ThreadPoolExecutor" in code
         assert "tqdm" in code
+        assert "split='test'" in code
