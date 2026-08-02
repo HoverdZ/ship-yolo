@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 BRANCH = "paper/extract-experiment-materials"
-ULTRALYTICS_VERSION = "8.4.109"
+ULTRALYTICS_VERSION = "8.4.92"
 
 
 def markdown(text: str) -> dict[str, Any]:
@@ -236,6 +236,8 @@ def dpls_cells() -> list[dict[str, Any]]:
             - `YOLO11n_baseline.pt`（可选参考）
             - `InceptionDW_PLS_CA-SCAM_VGUP_best.pt`
             - `InceptionDW_DPLS_CA-SCAM_VGUP.pt`
+
+            主对照PLS/DPLS权重的checkpoint训练版本为Ultralytics 8.4.92；可选基线权重记录为8.4.109，但本Notebook在统一8.4.92推理环境下读取，并在缓存中保留权重SHA256。
             """
         ),
         code(SETUP_CELL),

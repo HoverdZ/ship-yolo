@@ -6,6 +6,9 @@
 2. `CA-SCAM_实验材料提取_Colab.ipynb`
 3. `VGUP_实验材料提取_Colab.ipynb`
 
+主对照权重记录的训练版本为 Ultralytics 8.4.92，因此三个 Notebook 固定安装
+8.4.92。可选的 `YOLO11n_baseline.pt` 记录为 8.4.109，仅作为附加参考。
+
 运行前将正式权重放到：
 
 ```text

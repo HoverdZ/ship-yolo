@@ -115,7 +115,7 @@ def test_generated_notebooks_are_inference_only_and_reproducible(tmp_path: Path)
         assert ".train(" not in code
         assert "yolo train" not in code.lower()
         assert "RUN_TRAINING" not in code
-        assert "ultralytics==8.4.109" in code
+        assert "ultralytics==8.4.92" in code
         assert "GITHUB_TOKEN" in code
         assert "shutil.copyfile" in code
         assert "ThreadPoolExecutor" in code

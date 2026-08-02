@@ -45,6 +45,10 @@ Notebook 位于 `notebooks/paper_artifacts/`：
 本地，并同步显示文件数和字节进度。预测缓存同时保存 JSON 和 CSV，缓存只有
 在权重 SHA256 与推理协议完全一致时才会复用。
 
+主要 DPLS、CA-SCAM 和 VGUP checkpoint 的训练版本均为 Ultralytics 8.4.92，
+因此三个 Notebook 固定 8.4.92。可选 YOLO11n 基线记录为 8.4.109；它只在
+DPLS Notebook 中作为附加参考，并在统一 8.4.92 推理环境下读取。
+
 Drive 权重目录：
 
 ```text
