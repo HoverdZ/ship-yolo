@@ -301,6 +301,27 @@ canonical_runs:
     status: prepared_not_run
     artifact_manifest: formal_experiments/R12/seed_0/run_manifest.json
     notes: YOLOv8-native C2f topology with the final method adapted by scale and channel.
+  R13:
+    experiment_id: R13
+    canonical_run_id: R13
+    paper_aliases: [M2]
+    base_model: YOLO11s
+    model_yaml: experiments/formal_models/R13_yolo11s_baseline.yaml
+    initialization_weight: yolo11s.pt
+    dataset_id: primary_ship_v1
+    data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+    imgsz: 640
+    epochs: 150
+    batch: 8
+    optimizer: auto
+    seed: 0
+    module_flags: {pls: false, dpls: false, ca_scam: false, erup: false, vgup: false}
+    expected_detect_strides: [8, 16, 32]
+    output_drive_dir: formal_experiments/R13/seed_0
+    notebook_path: notebooks/formal/R13_YOLO11s_Baseline.ipynb
+    status: prepared_not_run
+    artifact_manifest: formal_experiments/R13/seed_0/run_manifest.json
+    notes: Official YOLO11s model-capacity baseline on the frozen primary dataset.
   S00:
     experiment_id: S00
     canonical_run_id: S00

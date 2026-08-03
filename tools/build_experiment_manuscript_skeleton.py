@@ -23,6 +23,7 @@ RUNS = [
     "R10",
     "R11",
     "R12",
+    "R13",
     "S00",
     "S01",
 ]
@@ -62,7 +63,7 @@ TABLES: dict[int, dict[str, Any]] = {
             ["Optimizer policy", "auto (effective choice retained in args.yaml and run manifest)"],
             ["lr0 / weight decay", "0.01 / 0.0005"],
             ["Seed", "0; stability runs use 0, 1, 2 for R00/R02/R10"],
-            ["Initialization", "yolo11n.pt or yolov8n.pt; no preceding ablation checkpoint"],
+            ["Initialization", "yolo11n.pt, yolo11s.pt, or yolov8n.pt; no preceding ablation checkpoint"],
             ["Model selection", "highest validation mAP50-95; test split excluded"],
         ],
     },
@@ -150,6 +151,7 @@ TABLES: dict[int, dict[str, Any]] = {
         "rows": [
             ["YOLO11n", "Baseline", p("R00", "PRECISION"), p("R00", "RECALL"), p("R00", "MAP50"), p("R00", "MAP5095"), p("R00", "PARAMS"), p("R00", "GFLOPS")],
             ["YOLO11n", "Final", p("R10", "PRECISION"), p("R10", "RECALL"), p("R10", "MAP50"), p("R10", "MAP5095"), p("R10", "PARAMS"), p("R10", "GFLOPS")],
+            ["YOLO11s", "Baseline", p("R13", "PRECISION"), p("R13", "RECALL"), p("R13", "MAP50"), p("R13", "MAP5095"), p("R13", "PARAMS"), p("R13", "GFLOPS")],
             ["YOLOv8n", "Baseline", p("R11", "PRECISION"), p("R11", "RECALL"), p("R11", "MAP50"), p("R11", "MAP5095"), p("R11", "PARAMS"), p("R11", "GFLOPS")],
             ["YOLOv8n", "Final", p("R12", "PRECISION"), p("R12", "RECALL"), p("R12", "MAP50"), p("R12", "MAP5095"), p("R12", "PARAMS"), p("R12", "GFLOPS")],
         ],
@@ -162,6 +164,7 @@ TABLES: dict[int, dict[str, Any]] = {
         "rows": [
             ["YOLO11n baseline", "640", p("R00", "PARAMS"), p("R00", "GFLOPS"), p("R00", "LATENCY"), pending("R00_FP16_LATENCY"), p("R00", "FPS"), pending("R00_PEAK_MEMORY"), p("R00", "MAP5095")],
             ["YOLO11n final", "640", p("R10", "PARAMS"), p("R10", "GFLOPS"), p("R10", "LATENCY"), pending("R10_FP16_LATENCY"), p("R10", "FPS"), pending("R10_PEAK_MEMORY"), p("R10", "MAP5095")],
+            ["YOLO11s baseline", "640", p("R13", "PARAMS"), p("R13", "GFLOPS"), p("R13", "LATENCY"), pending("R13_FP16_LATENCY"), p("R13", "FPS"), pending("R13_PEAK_MEMORY"), p("R13", "MAP5095")],
         ],
     },
     12: {

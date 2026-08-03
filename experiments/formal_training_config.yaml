@@ -58,6 +58,7 @@ training:
 
 initialization:
   yolo11: yolo11n.pt
+  yolo11s: yolo11s.pt
   yolov8: yolov8n.pt
   staged_ablation_checkpoints_prohibited: true
   policy: audited semantic-layer and same-shape transfer from the matching official checkpoint

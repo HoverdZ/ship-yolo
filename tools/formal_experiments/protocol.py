@@ -389,7 +389,7 @@ def _model_with_nc(model_yaml: Path, nc: int):
 
 
 def _layer_mapping(run_id: str) -> dict[int, int]:
-    if run_id in {"R00", "S00"}:
+    if run_id in {"R00", "R13", "S00"}:
         return {index: index for index in range(24)}
     if run_id == "R11":
         return {index: index for index in range(23)}
@@ -430,7 +430,7 @@ def _layer_mapping(run_id: str) -> dict[int, int]:
 
 
 def _detect_mapping(run_id: str) -> tuple[int, int, dict[int, int]]:
-    if run_id in {"R00", "S00"}:
+    if run_id in {"R00", "R13", "S00"}:
         return 23, 23, {0: 0, 1: 1, 2: 2}
     if run_id == "R11":
         return 22, 22, {0: 0, 1: 1, 2: 2}

@@ -72,6 +72,7 @@ TABLES: dict[str, dict[str, Any]] = {
         "aliases": [
             ("YOLO11n baseline", "R00"),
             ("YOLO11n final", "R10"),
+            ("YOLO11s baseline", "R13"),
             ("YOLOv8n baseline", "R11"),
             ("YOLOv8n final", "R12"),
         ],
@@ -94,6 +95,7 @@ TABLES: dict[str, dict[str, Any]] = {
             ("R10", "R10"),
             ("R11", "R11"),
             ("R12", "R12"),
+            ("R13", "R13"),
         ],
         "title": "Model complexity and efficiency",
         "extra": {},

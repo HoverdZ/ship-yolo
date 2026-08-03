@@ -47,7 +47,8 @@ learnable residual amplitude.
 ## Official initialization
 
 Every topology starts independently from its matching official checkpoint
-(`yolo11n.pt` or `yolov8n.pt`). No previous ablation `best.pt` is accepted.
+(`yolo11n.pt`, `yolo11s.pt`, or `yolov8n.pt`). No previous ablation `best.pt`
+is accepted.
 Topology changes make raw layer-number matching unsafe, so the protocol uses
 an explicit source-layer map plus shape checks. Detect branches have an
 explicit channel-compatible mapping. Every loaded target/source tensor key
@@ -116,7 +117,7 @@ git diff --check
 git status --short
 ```
 
-The model check builds all 14 unique topologies with `nc=1`, explicitly
+The model check builds all 15 unique topologies with `nc=1`, explicitly
 transfers matching official pretrained tensors, validates Detect strides,
 and executes a finite CPU forward/backward pass. S00 and S01 reuse the
 already-audited R00 and R10 topologies; their dataset validity is checked

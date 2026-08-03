@@ -29,7 +29,11 @@ def _manifest(root: Path, run_id: str, value: float) -> None:
                 "seed": 0,
                 "status": "completed",
                 "initialization_weight": (
-                    "yolov8n.pt" if run_id in {"R11", "R12"} else "yolo11n.pt"
+                    "yolov8n.pt"
+                    if run_id in {"R11", "R12"}
+                    else "yolo11s.pt"
+                    if run_id == "R13"
+                    else "yolo11n.pt"
                 ),
                 "staged_checkpoint_used": False,
                 "test_used_for_selection": False,

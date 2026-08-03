@@ -26,7 +26,7 @@ def _register() -> None:
 def test_registry_has_unique_runs_aliases_outputs_and_required_reuse() -> None:
     registry = load_registry()
     runs = registry["canonical_runs"]
-    assert len(runs) == 16
+    assert len(runs) == 17
     assert resolve_run("A0", registry)[0] == "R00"
     assert resolve_run("D0", registry)[0] == "R00"
     assert resolve_run("A1", registry)[0] == "R02"
@@ -38,6 +38,7 @@ def test_registry_has_unique_runs_aliases_outputs_and_required_reuse() -> None:
     assert resolve_run("A3", registry)[0] == "R10"
     assert resolve_run("V2", registry)[0] == "R10"
     assert resolve_run("VG3", registry)[0] == "R10"
+    assert resolve_run("M2", registry)[0] == "R13"
     outputs = [run["output_drive_dir"] for run in runs.values()]
     assert len(outputs) == len(set(outputs))
 
@@ -174,6 +175,24 @@ def test_yolov8_adaptation_keeps_c2f_and_native_channel_scale() -> None:
     assert modules.count("CASCAM") == 3
 
 
+def test_yolo11s_baseline_uses_official_s_scale_and_checkpoint() -> None:
+    registry = load_registry()["canonical_runs"]
+    run = registry["R13"]
+    payload = yaml.safe_load(
+        (ROOT / run["model_yaml"]).read_text(encoding="utf-8")
+    )
+    baseline = yaml.safe_load(
+        (
+            ROOT / "experiments/formal_models/R00_yolo11n_baseline.yaml"
+        ).read_text(encoding="utf-8")
+    )
+    assert run["base_model"] == "YOLO11s"
+    assert run["initialization_weight"] == "yolo11s.pt"
+    assert payload["scale"] == "s"
+    assert payload["backbone"] == baseline["backbone"]
+    assert payload["head"] == baseline["head"]
+
+
 def test_no_model_yaml_contains_training_parameters() -> None:
     for path in (ROOT / "experiments" / "formal_models").glob("*.yaml"):
         payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -188,8 +207,8 @@ def test_no_model_yaml_contains_training_parameters() -> None:
 
 def test_formal_notebooks_use_direct_single_seed_chinese_workflow() -> None:
     report = validate()
-    assert report["registered_notebooks"] == 16
-    assert report["found_notebooks"] == 16
+    assert report["registered_notebooks"] == 17
+    assert report["found_notebooks"] == 17
     assert report["passed"]
 
 

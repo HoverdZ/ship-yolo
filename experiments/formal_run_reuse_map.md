@@ -20,11 +20,12 @@ training job.
 | R10 | A3, V2, VG3 | final YOLO11n, complete VGUP, cumulative final |
 | R11 | M0 | official YOLOv8n cross-model baseline |
 | R12 | M1 | final method adapted to YOLOv8n |
+| R13 | M2 | official YOLO11s model-capacity baseline |
 | S00 | S0 | second-dataset independent baseline |
 | S01 | S1 | second-dataset independent final method |
 
-The main-data seed-0 matrix therefore contains 14 unique model runs
-(R00–R12, counting R05A and R05B separately). S00 and S01 add two runs only
+The main-data seed-0 matrix therefore contains 15 unique model runs
+(R00–R13, counting R05A and R05B separately). S00 and S01 add two runs only
 after the second dataset is selected. Stability analysis adds seed 1 and
 seed 2 to R00, R02, and R10; these are independent run instances under the
 same canonical topology, not new paper aliases.
