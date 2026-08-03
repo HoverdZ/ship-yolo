@@ -351,7 +351,7 @@ SECTIONS = [
             f"M0/M1 与 YOLO11n 基线/最终结构的结果见表 10，正式解释占位为 {pending('CROSS_MODEL_INTERPRETATION')}。",
         ],
         "en_paragraphs": [
-            "The final method is adapted to YOLOv8n to test whether the combination depends on YOLO11n. The adaptation retains YOLOv8-native C2f blocks and channel scaling, shifts detection to P2/P3/P4 with DySample, places CA-SCAM before Detect, and inserts VGUP at the input.",
+            "The final method is adapted to YOLOv8n to test whether the combination depends on YOLO11n. The adaptation retains YOLOv8-native C2f blocks and channel scaling, replaces only the second Bottleneck convolution in the shallow P2/P3 C2f blocks with InceptionDW, shifts detection to P2/P3/P4 with DySample, places CA-SCAM before Detect, and inserts VGUP at the input.",
             f"Table 10 compares M0/M1 with the YOLO11n baseline/final pair. Formal interpretation remains at {pending('CROSS_MODEL_INTERPRETATION')}.",
         ],
         "tables": [10],

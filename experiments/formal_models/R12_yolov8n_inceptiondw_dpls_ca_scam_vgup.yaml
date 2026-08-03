@@ -1,6 +1,6 @@
-# Superseded, unregistered pre-correction configuration retained for history.
-# It omits InceptionDW and therefore must not be used as the final R12 model.
-# The registered R12 YAML is R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml.
+# R12: YOLOv8n-native InceptionDW + DPLS + bounded CA-SCAM + complete VGUP.
+# P2/P3 C2f keeps its native topology and first Bottleneck 3x3 convolution;
+# only the second Bottleneck 3x3 convolution is replaced by InceptionDW.
 nc: 80
 scale: n
 scales:
@@ -14,9 +14,9 @@ backbone:
   - [-1, 1, VGUPPreprocessor, [8, 128, true, true]]
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
-  - [-1, 3, C2f, [128, true]]
+  - [-1, 3, C2f_InceptionDW, [128, true]]
   - [-1, 1, Conv, [256, 3, 2]]
-  - [-1, 6, C2f, [256, true]]
+  - [-1, 6, C2f_InceptionDW, [256, true]]
   - [-1, 1, Conv, [512, 3, 2]]
   - [-1, 6, C2f, [512, true]]
   - [-1, 1, SPPF, [512, 5]]

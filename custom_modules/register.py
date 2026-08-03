@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 8
+_PATCH_VERSION = 9
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -32,7 +32,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         marker in source
         for marker in ("C3k2CrossConv", "CGFM", "AlignConcat", "DD")
     )
-    has_inception = "C3k2_InceptionDW" in source
+    has_c3k2_inception = "C3k2_InceptionDW" in source
+    has_c2f_inception = "C2f_InceptionDW" in source
     has_conv_screening = all(
         marker in source
         for marker in ("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv")
@@ -56,7 +57,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     if (
         has_ablation
-        and has_inception
+        and has_c3k2_inception
+        and has_c2f_inception
         and has_conv_screening
         and has_sa_dwpn
         and has_cumulative
@@ -84,9 +86,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_ablation:
         base_additions.extend(("C3k2CrossConv", "DD"))
         repeat_additions.append("C3k2CrossConv")
-    if not has_inception:
+    if not has_c3k2_inception:
         base_additions.append("C3k2_InceptionDW")
         repeat_additions.append("C3k2_InceptionDW")
+    if not has_c2f_inception:
+        base_additions.append("C2f_InceptionDW")
+        repeat_additions.append("C2f_InceptionDW")
     if not has_conv_screening:
         base_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
         repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
@@ -229,6 +234,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 def register_custom_modules(patch_parse_model: bool = True) -> None:
     """Register every repository-owned module through one idempotent path."""
 
+    from custom_modules.c2f_inceptiondw import C2f_InceptionDW
     from custom_modules.c3k2_crossconv import C3k2CrossConv
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.c3k2_conv_screening import (
@@ -254,6 +260,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     names = {
         "Align": Align,
         "AlignConcat": AlignConcat,
+        "C2f_InceptionDW": C2f_InceptionDW,
         "C3k2CrossConv": C3k2CrossConv,
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "C3k2_LSKConv": C3k2_LSKConv,

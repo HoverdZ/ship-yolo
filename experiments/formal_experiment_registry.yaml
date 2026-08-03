@@ -285,7 +285,7 @@ canonical_runs:
     canonical_run_id: R12
     paper_aliases: [M1]
     base_model: YOLOv8n
-    model_yaml: experiments/formal_models/R12_yolov8n_dpls_ca_scam_vgup.yaml
+    model_yaml: experiments/formal_models/R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml
     initialization_weight: yolov8n.pt
     dataset_id: primary_ship_v1
     data_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
@@ -294,13 +294,13 @@ canonical_runs:
     batch: 8
     optimizer: auto
     seed: 0
-    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
+    module_flags: {inceptiondw: true, pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
     expected_detect_strides: [4, 8, 16]
     output_drive_dir: formal_experiments/R12/seed_0
     notebook_path: notebooks/formal/R12_YOLOv8n_Final.ipynb
     status: prepared_not_run
     artifact_manifest: formal_experiments/R12/seed_0/run_manifest.json
-    notes: YOLOv8-native C2f topology with the final method adapted by scale and channel.
+    notes: YOLOv8-native C2f topology with P2/P3-only InceptionDW plus DPLS, bounded CA-SCAM, and complete VGUP.
   R13:
     experiment_id: R13
     canonical_run_id: R13

@@ -77,18 +77,19 @@ def test_all_unique_model_yamls_build_forward_and_match_stride() -> None:
         )
 
 
-def test_formal_matrix_excludes_inceptiondw() -> None:
+def test_formal_matrix_scopes_inceptiondw_to_yolov8_final() -> None:
     from ultralytics import YOLO
 
-    paths = {
-        run["model_yaml"]
-        for run in load_registry()["canonical_runs"].values()
-    }
+    runs = load_registry()["canonical_runs"]
+    expected = runs["R12"]["model_yaml"]
+    paths = {run["model_yaml"] for run in runs.values()}
     for path in paths:
         model = YOLO(str(ROOT / path), verbose=False).model
-        assert "C3k2_InceptionDW" not in {
+        types = {
             type(layer).__name__ for layer in model.model
         }
+        assert "C3k2_InceptionDW" not in types
+        assert ("C2f_InceptionDW" in types) == (path == expected)
 
 
 def _modules(path: str) -> list[str]:
@@ -166,10 +167,13 @@ def test_vgup_yaml_gate_matrix_is_complete() -> None:
 
 def test_yolov8_adaptation_keeps_c2f_and_native_channel_scale() -> None:
     modules = _modules(
-        "experiments/formal_models/R12_yolov8n_dpls_ca_scam_vgup.yaml"
+        "experiments/formal_models/"
+        "R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml"
     )
     assert "C2f" in modules
+    assert modules.count("C2f_InceptionDW") == 2
     assert "C3k2" not in modules
+    assert "C3k2_InceptionDW" not in modules
     assert "C2PSA" not in modules
     assert modules.count("DySample") == 2
     assert modules.count("CASCAM") == 3

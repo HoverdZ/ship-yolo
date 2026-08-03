@@ -661,7 +661,15 @@ def audit_model(
     detect = layers[-1]
     types = [type(layer).__name__ for layer in layers]
     flags = config.spec["module_flags"]
+    uses_inceptiondw = bool(flags.get("inceptiondw"))
+    uses_yolov8_c2f = config.spec["base_model"] == "YOLOv8n"
     expected_counts = {
+        "C2f_InceptionDW": (
+            2 if uses_inceptiondw and uses_yolov8_c2f else 0
+        ),
+        "C3k2_InceptionDW": (
+            2 if uses_inceptiondw and not uses_yolov8_c2f else 0
+        ),
         "DySample": 2 if flags.get("dpls") else 0,
         "SCAM": 3 if flags.get("scam") else 0,
         "CASCAM": 3 if flags.get("ca_scam") == "bounded" else 0,

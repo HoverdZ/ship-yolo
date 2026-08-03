@@ -19,7 +19,7 @@ training job.
 | R09 | VG2 | VGUP spatial gate only |
 | R10 | A3, V2, VG3 | final YOLO11n, complete VGUP, cumulative final |
 | R11 | M0 | official YOLOv8n cross-model baseline |
-| R12 | M1 | final method adapted to YOLOv8n |
+| R12 | M1 | InceptionDW + DPLS + CA-SCAM + VGUP adapted to YOLOv8n-native C2f |
 | R13 | M2 | official YOLO11s model-capacity baseline |
 | S00 | S0 | second-dataset independent baseline |
 | S01 | S1 | second-dataset independent final method |
