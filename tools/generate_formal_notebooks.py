@@ -328,15 +328,24 @@ def write_template(path: Path = TEMPLATE_PATH) -> Path:
     return path
 
 
-def generate(commit: str) -> list[Path]:
+def generate(
+    commit: str,
+    run_ids: set[str] | None = None,
+) -> list[Path]:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("--commit 必须是完整的 40 位小写提交 SHA。")
     if not TEMPLATE_PATH.is_file():
         write_template()
     template = json.loads(TEMPLATE_PATH.read_text(encoding="utf-8"))
     registry = load_registry()
+    requested = set(run_ids or registry["canonical_runs"])
+    unknown = requested - set(registry["canonical_runs"])
+    if unknown:
+        raise KeyError(f"Unknown formal run IDs: {sorted(unknown)}")
     outputs = []
     for run_id, run in registry["canonical_runs"].items():
+        if run_id not in requested:
+            continue
         replacements = {
             "RUN_ID": run_id,
             "MODEL_NAME": run["base_model"] + " 正式实验",
@@ -367,12 +376,20 @@ def generate(commit: str) -> list[Path]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commit")
+    parser.add_argument(
+        "--run-id",
+        action="append",
+        help="Generate only the selected registered run; repeat as needed.",
+    )
     parser.add_argument("--write-template", action="store_true")
     args = parser.parse_args()
     if args.write_template:
         print(write_template())
     if args.commit:
-        for output in generate(args.commit):
+        for output in generate(
+            args.commit,
+            set(args.run_id) if args.run_id else None,
+        ):
             print(output.relative_to(ROOT))
     if not args.write_template and not args.commit:
         parser.error("请传入 --write-template 和/或 --commit。")
