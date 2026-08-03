@@ -51,10 +51,14 @@ from google.colab import drive
 drive.mount('/content/drive')
 
 import base64
+import json
 import os
 import subprocess
 import sys
+from getpass import getpass
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 subprocess.run(
     [sys.executable, '-m', 'pip', 'install', '--quiet',
@@ -66,23 +70,108 @@ import ultralytics
 assert ultralytics.__version__ == '{ULTRALYTICS_VERSION}', ultralytics.__version__
 print('Ultralytics:', ultralytics.__version__)
 
-TOKEN = os.environ.get('GITHUB_TOKEN')
-if not TOKEN:
-    raise RuntimeError('缺少GITHUB_TOKEN环境变量；请完成身份认证后重新运行。本程序不会要求在Cell中粘贴Token。')
+def resolve_github_token():
+    # 统一解析GITHUB_TOKEN，不依赖任何前置Cell。
+    value = os.environ.get('GITHUB_TOKEN', '').strip()
+    source = '环境变量 GITHUB_TOKEN'
+    secret_error = None
+
+    if not value:
+        try:
+            from google.colab import userdata
+            value = (userdata.get('GITHUB_TOKEN') or '').strip()
+            source = 'Colab Secrets: GITHUB_TOKEN'
+        except Exception as error:
+            secret_error = f'{{type(error).__name__}}: {{error}}'
+
+    if not value:
+        if secret_error:
+            print('未能读取Colab Secret GITHUB_TOKEN：', secret_error)
+        print('改用getpass安全输入；输入内容不会显示，也不会写入Notebook。')
+        value = getpass('GitHub Token: ').strip()
+        source = 'getpass'
+
+    if not value:
+        raise RuntimeError('没有取得GITHUB_TOKEN，无法读取私有仓库。')
+
+    os.environ['GITHUB_TOKEN'] = value
+    return value, source
+
+
+def validate_github_identity(github_token):
+    # 验证Token本身有效；不打印Token、长度或前缀。
+    request = Request(
+        'https://api.github.com/user',
+        headers={{
+            'Authorization': f'Bearer {{github_token}}',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'User-Agent': 'ship-yolo-colab-paper-artifacts',
+        }},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            profile = json.load(response)
+    except HTTPError as error:
+        if error.code == 401:
+            raise RuntimeError('GitHub拒绝该Token（HTTP 401）：Token无效或已过期。') from None
+        if error.code == 403:
+            raise RuntimeError('GitHub接受了请求但拒绝访问（HTTP 403）：请检查Token权限或账号状态。') from None
+        raise RuntimeError(f'GitHub API验证失败：HTTP {{error.code}}。') from None
+    except URLError as error:
+        raise RuntimeError(f'无法连接GitHub API：{{error.reason}}') from None
+    return profile.get('login', '未知账号')
+
+
+GITHUB_TOKEN, credential_source = resolve_github_token()
+github_login = validate_github_identity(GITHUB_TOKEN)
+print('GitHub身份验证成功：', github_login)
+print('凭据来源：', credential_source)
 
 REPO_DIR = Path('/content/ship-yolo')
 REPO_URL = 'https://github.com/HoverdZ/ship-yolo.git'
-auth = base64.b64encode(f'x-access-token:{{TOKEN}}'.encode()).decode()
-git_auth = ['git', '-c', f'http.https://github.com/.extraheader=AUTHORIZATION: basic {{auth}}']
+BRANCH = '{BRANCH}'
+auth = base64.b64encode(f'x-access-token:{{GITHUB_TOKEN}}'.encode()).decode()
+git_env = os.environ.copy()
+git_env.update({{
+    'GIT_TERMINAL_PROMPT': '0',
+    'GIT_CONFIG_COUNT': '1',
+    'GIT_CONFIG_KEY_0': 'http.https://github.com/.extraheader',
+    'GIT_CONFIG_VALUE_0': f'AUTHORIZATION: basic {{auth}}',
+}})
+
+probe = subprocess.run(
+    ['git', 'ls-remote', '--exit-code', REPO_URL, f'refs/heads/{{BRANCH}}'],
+    capture_output=True,
+    text=True,
+    env=git_env,
+)
+if probe.returncode != 0:
+    detail = (probe.stderr or probe.stdout or '无Git错误详情').strip().splitlines()[-1]
+    raise RuntimeError(
+        'GitHub Token本身有效，但无法读取私有仓库目标分支。'
+        '请检查Token是否具有该仓库Contents: Read权限，以及账号是否仍可访问仓库。'
+        f' Git返回：{{detail}}'
+    )
+print('私有仓库与目标分支读取验证成功：', BRANCH)
 
 if (REPO_DIR / '.git').is_dir():
-    subprocess.run(git_auth + ['-C', str(REPO_DIR), 'fetch', 'origin', '{BRANCH}'], check=True)
+    subprocess.run(['git', '-C', str(REPO_DIR), 'remote', 'set-url', 'origin', REPO_URL], check=True)
+    subprocess.run(['git', '-C', str(REPO_DIR), 'fetch', 'origin', '{BRANCH}'], check=True, env=git_env)
     subprocess.run(['git', '-C', str(REPO_DIR), 'switch', '{BRANCH}'], check=True)
-    subprocess.run(git_auth + ['-C', str(REPO_DIR), 'pull', '--ff-only', 'origin', '{BRANCH}'], check=True)
+    subprocess.run(
+        ['git', '-C', str(REPO_DIR), 'pull', '--ff-only', 'origin', '{BRANCH}'],
+        check=True,
+        env=git_env,
+    )
 else:
     if REPO_DIR.exists():
         raise RuntimeError(f'{{REPO_DIR}} 已存在但不是Git仓库，请人工确认；程序不会自动删除。')
-    subprocess.run(git_auth + ['clone', '--branch', '{BRANCH}', '--single-branch', REPO_URL, str(REPO_DIR)], check=True)
+    subprocess.run(
+        ['git', 'clone', '--branch', '{BRANCH}', '--single-branch', REPO_URL, str(REPO_DIR)],
+        check=True,
+        env=git_env,
+    )
 
 sys.path.insert(0, str(REPO_DIR))
 print('仓库提交:', subprocess.check_output(['git', '-C', str(REPO_DIR), 'rev-parse', 'HEAD'], text=True).strip())

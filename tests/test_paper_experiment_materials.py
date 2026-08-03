@@ -117,6 +117,17 @@ def test_generated_notebooks_are_inference_only_and_reproducible(tmp_path: Path)
         assert "RUN_TRAINING" not in code
         assert "ultralytics==8.4.92" in code
         assert "GITHUB_TOKEN" in code
+        assert "userdata.get('GITHUB_TOKEN')" in code
+        assert "getpass('GitHub Token: ')" in code
+        assert "https://api.github.com/user" in code
+        assert "ls-remote" in code
+        assert "BRANCH = 'paper/extract-experiment-materials'" in code
+        assert "TOKEN = os.environ.get" not in code
+        assert "git_auth =" not in code
+        assert "GIT_CONFIG_VALUE_0" in code
+        assert "env=git_env" in code
+        assert "Token前缀" not in code
+        assert "Token长度" not in code
         assert "shutil.copyfile" in code
         assert "ThreadPoolExecutor" in code
         assert "tqdm" in code

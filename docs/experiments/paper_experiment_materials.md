@@ -51,6 +51,11 @@ Notebook 位于 `notebooks/paper_artifacts/`：
 因此三个 Notebook 固定 8.4.92。可选 YOLO11n 基线记录为 8.4.109；它只在
 DPLS Notebook 中作为附加参考，并在统一 8.4.92 推理环境下读取。
 
+私有仓库认证只使用 `GITHUB_TOKEN`：先读取环境变量，再读取 Colab Secrets
+中的同名密钥，仍不可用时自动进入 `getpass`。随后先验证 GitHub API 身份，
+再用 `git ls-remote` 验证目标私有仓库和分支权限；任何步骤都不打印 Token、
+长度或前缀。
+
 Drive 权重目录：
 
 ```text

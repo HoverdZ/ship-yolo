@@ -25,8 +25,10 @@ MyDrive/ship_detection/paper_project/论文实验材料GPU/weights/
 - `InceptionDW_DPLS_SCAM_VGUP.pt`
 - `InceptionDW_DPLS_CA-SCAM_best.pt`
 
-私有仓库访问只读取 Colab 环境变量 `GITHUB_TOKEN`。不得把 Token 写进 Cell、
-Notebook 或 URL。若变量不存在，Notebook 会在身份认证处停止并明确报错。
+私有仓库访问统一使用变量名 `GITHUB_TOKEN`，依次尝试环境变量、Colab
+Secrets 中同名密钥，最后自动使用 `getpass` 安全输入。程序会分别验证 GitHub
+账号身份和目标私有仓库分支权限，不打印 Token、长度或前缀，也不把 Token
+写进 Cell、Notebook 或 URL。
 
 数据集来源固定为 `MyDrive/ship_detection/data`，本地副本固定为
 `/content/ship_detection/data`。输出写入
