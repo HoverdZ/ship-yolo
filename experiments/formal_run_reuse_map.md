@@ -22,7 +22,7 @@ training job.
 | R12 | M1 | InceptionDW + DPLS + CA-SCAM + VGUP adapted to YOLOv8n-native C2f |
 | R13 | M2 | official YOLO11s model-capacity baseline |
 | S00 | S0 | second-dataset independent baseline |
-| S01 | S1 | second-dataset independent final method |
+| S01 | S1 | HRSC2016-MS independent InceptionDW + DPLS + CA-SCAM + VGUP final method |
 
 The main-data seed-0 matrix therefore contains 15 unique model runs
 (R00–R13, counting R05A and R05B separately). S00 and S01 add two runs only

@@ -43,12 +43,17 @@ def test_registry_has_unique_runs_aliases_outputs_and_required_reuse() -> None:
     assert len(outputs) == len(set(outputs))
 
 
-def test_second_dataset_reuses_topology_but_not_dataset_or_checkpoint() -> None:
+def test_second_dataset_uses_hrsc2016_ms_and_independent_initialization() -> None:
     runs = load_registry()["canonical_runs"]
     assert runs["S00"]["model_yaml"] == runs["R00"]["model_yaml"]
-    assert runs["S01"]["model_yaml"] == runs["R10"]["model_yaml"]
-    assert runs["S00"]["dataset_id"] != runs["R00"]["dataset_id"]
-    assert runs["S01"]["dataset_id"] != runs["R10"]["dataset_id"]
+    assert runs["S01"]["model_yaml"].endswith(
+        "S01_yolo11n_inceptiondw_dpls_ca_scam_vgup.yaml"
+    )
+    assert runs["S01"]["module_flags"]["inceptiondw"] is True
+    assert runs["S00"]["dataset_id"] == "hrsc2016_ms_yolo_hbb_v1"
+    assert runs["S01"]["dataset_id"] == runs["S00"]["dataset_id"]
+    assert runs["S00"]["source_archive"].endswith("HRSC2016_MS_YOLO.zip")
+    assert runs["S01"]["source_archive"] == runs["S00"]["source_archive"]
     assert runs["S01"]["initialization_weight"] == "yolo11n.pt"
     assert runs["S01"]["initialization_weight"] != "R10/best.pt"
 
@@ -77,19 +82,20 @@ def test_all_unique_model_yamls_build_forward_and_match_stride() -> None:
         )
 
 
-def test_formal_matrix_scopes_inceptiondw_to_yolov8_final() -> None:
+def test_formal_matrix_scopes_inceptiondw_to_registered_final_adaptations() -> None:
     from ultralytics import YOLO
 
     runs = load_registry()["canonical_runs"]
-    expected = runs["R12"]["model_yaml"]
+    yolov8_expected = runs["R12"]["model_yaml"]
+    yolo11_expected = runs["S01"]["model_yaml"]
     paths = {run["model_yaml"] for run in runs.values()}
     for path in paths:
         model = YOLO(str(ROOT / path), verbose=False).model
         types = {
             type(layer).__name__ for layer in model.model
         }
-        assert "C3k2_InceptionDW" not in types
-        assert ("C2f_InceptionDW" in types) == (path == expected)
+        assert ("C2f_InceptionDW" in types) == (path == yolov8_expected)
+        assert ("C3k2_InceptionDW" in types) == (path == yolo11_expected)
 
 
 def _modules(path: str) -> list[str]:

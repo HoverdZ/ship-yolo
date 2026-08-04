@@ -20,6 +20,96 @@ TEMPLATE_PATH = (
     ROOT / "notebooks" / "templates" / "formal_experiment_template.ipynb"
 )
 
+EXTERNAL_DATASET_NOTE = (
+    "本实验使用冻结的 HRSC2016-MS YOLO-HBB 数据集；训练/验证/测试集固定为 "
+    "610/460/610 幅图像，测试集不参与模型选择。"
+)
+
+EXTERNAL_TRAINING_MARKDOWN = """## 2. 准备 HRSC2016-MS、完成训练前审计并直接开始正式训练
+
+下面的单元格读取云盘 `ship_detection/data_2/HRSC2016_MS_YOLO.zip`：先把单个 ZIP 高速复制到 Colab 本地并实时显示字节进度，再安全解压并同时显示文件数和字节进度。程序不会重新划分数据，而是固定使用归档中的 train/val/test = 610/460/610；随后重建本地 `data.yaml`，检查 1680 幅图像、7655 个船舶实例、图片与标签对应关系、标签合法性、跨划分重复、模型结构、CPU 前向/反向、复杂度和官方预训练权重继承。全部检查通过后，在当前内核中直接调用官方 `YOLO.train(...)`，完整 epoch 输出实时显示；存在有效 `last.pt` 时自动续训。
+"""
+
+EXTERNAL_TRAINING_CODE = """from dataclasses import replace
+from pathlib import Path
+import shutil
+
+from tools.formal_experiments.hrsc2016_ms import prepare_hrsc2016_ms_archive
+from tools.formal_experiments.protocol import (
+    FormalRunConfig,
+    prepare_experiment,
+    print_run_banner,
+    resolve_run_state,
+    train_foreground,
+)
+
+# 路径和正式划分已经固定，无需修改任何开关。
+HRSC_ARCHIVE = Path(
+    "/content/drive/MyDrive/ship_detection/data_2/HRSC2016_MS_YOLO.zip"
+)
+dataset = prepare_hrsc2016_ms_archive(
+    HRSC_ARCHIVE,
+    local_archive_path="/content/dataset_archives/HRSC2016_MS_YOLO.zip",
+    extract_root="/content/ship_detection/HRSC2016_MS_YOLO",
+    runtime_yaml="/content/ship_detection/hrsc2016_ms_runtime.yaml",
+    descriptor_path="/content/ship_detection/hrsc2016_ms_descriptor.yaml",
+    audit_output="/content/ship_detection/hrsc2016_ms_integration_audit.json",
+    artifact_dir=DRIVE_PROJECT_ROOT / "datasets" / "HRSC2016-MS",
+    show_progress=True,
+)
+
+# 数据已经由上面的步骤准备到 Colab 本地。将源根和目标根设为同一路径，
+# 正式协议只做只读复核，不会再复制第二份 2.5 GB 数据。
+config = FormalRunConfig.from_registry(
+    RUN_ID,
+    run_training=True,
+    data_yaml_override=str(dataset["data_yaml"]),
+    drive_data_root_override=str(dataset["root"]),
+)
+config = replace(
+    config,
+    local_data_root=str(dataset["root"]),
+    local_yaml=Path(dataset["data_yaml"]),
+)
+config.protocol_staging_dir.mkdir(parents=True, exist_ok=True)
+for source in (dataset["descriptor"], dataset["audit"], dataset["manifest"]):
+    shutil.copyfile(source, config.protocol_staging_dir / Path(source).name)
+
+run_mode = resolve_run_state(config)
+print("运行方式：", "从断点续训" if run_mode == "resume" else "全新训练")
+
+prepared = prepare_experiment(config)
+assert prepared["structure"]["passed"], prepared["structure"]
+print("数据集划分审计：", prepared["dataset_audit"]["splits"])
+print("预训练权重 Loaded/Total：", prepared["transfer"]["loaded_total"])
+print("结构审计：通过")
+print("模型规模：", prepared["model_info"])
+
+print_run_banner(config)
+print("全部训练前检查通过，开始正式训练。")
+trained_model, train_results, drive_mirror = train_foreground(
+    config,
+    initialized_model=prepared["model"],
+)
+
+# 后处理会从 best.pt 单独加载模型，因此先释放训练器、优化器和旧模型显存。
+import contextlib
+import gc
+
+prepared_model = prepared.pop("model", None)
+del prepared_model, trained_model, train_results
+gc.collect()
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+    with contextlib.suppress(Exception):
+        torch.cuda.ipc_collect()
+    print(
+        "训练对象已释放，当前显存：",
+        f"allocated={torch.cuda.memory_allocated() / 1024**3:.2f} GiB，",
+        f"reserved={torch.cuda.memory_reserved() / 1024**3:.2f} GiB",
+    )
+"""
+
 
 def _lines(value: str) -> list[str]:
     return value.splitlines(keepends=True)
@@ -354,15 +444,15 @@ def generate(
             "DETECT_STRIDES": json.dumps(run["expected_detect_strides"]),
             "FORMAL_CODE_COMMIT": commit,
             "DATASET_NOTE": (
-                "本实验使用已冻结的主数据集，训练集、验证集和测试集划分保持不变。"
-                if run["dataset_id"] != "external_dataset_pending"
-                else (
-                    "本实验等待第二数据集完成登记；在正式注册前会明确停止，"
-                    "不会误用主数据集。"
-                )
+                EXTERNAL_DATASET_NOTE
+                if run_id in {"S00", "S01"}
+                else "本实验使用已冻结的主数据集，训练集、验证集和测试集划分保持不变。"
             ),
         }
         notebook = _replace(copy.deepcopy(template), replacements)
+        if run_id in {"S00", "S01"}:
+            notebook["cells"][3]["source"] = _lines(EXTERNAL_TRAINING_MARKDOWN)
+            notebook["cells"][4]["source"] = _lines(EXTERNAL_TRAINING_CODE)
         output = ROOT / run["notebook_path"]
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(

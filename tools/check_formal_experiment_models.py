@@ -68,8 +68,8 @@ def run_check(
                 }
                 continue
             checked_yamls.add(model_yaml)
-            # S00/S01 reuse already-audited primary topologies, so the blocked
-            # second-dataset path never needs to be resolved for this check.
+            # Use a primary-data config only to avoid resolving the Colab-only
+            # HRSC2016-MS runtime YAML during this local structure check.
             source_run = (
                 "R00" if run_id == "S00" else "R10" if run_id == "S01" else run_id
             )

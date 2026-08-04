@@ -329,8 +329,11 @@ canonical_runs:
     base_model: YOLO11n
     model_yaml: experiments/formal_models/R00_yolo11n_baseline.yaml
     initialization_weight: yolo11n.pt
-    dataset_id: external_dataset_pending
-    data_yaml: datasets/external_dataset_template.yaml
+    dataset_id: hrsc2016_ms_yolo_hbb_v1
+    data_yaml: /content/ship_detection/hrsc2016_ms_runtime.yaml
+    source_archive: /content/drive/MyDrive/ship_detection/data_2/HRSC2016_MS_YOLO.zip
+    expected_split_images: {train: 610, val: 460, test: 610}
+    expected_split_instances: {train: 2453, val: 1953, test: 3249}
     imgsz: 640
     epochs: 150
     batch: 8
@@ -340,27 +343,30 @@ canonical_runs:
     expected_detect_strides: [8, 16, 32]
     output_drive_dir: formal_experiments/S00/seed_0
     notebook_path: notebooks/formal/S00_External_YOLO11n_Baseline.ipynb
-    status: blocked_pending_dataset
+    status: prepared_not_run
     artifact_manifest: formal_experiments/S00/seed_0/run_manifest.json
-    notes: Template only; must train independently on the selected second dataset.
+    notes: Official YOLO11n trained independently on the frozen HRSC2016-MS YOLO-HBB split.
   S01:
     experiment_id: S01
     canonical_run_id: S01
     paper_aliases: [S1]
     base_model: YOLO11n
-    model_yaml: experiments/formal_models/R10_yolo11n_dpls_ca_scam_vgup.yaml
+    model_yaml: experiments/formal_models/S01_yolo11n_inceptiondw_dpls_ca_scam_vgup.yaml
     initialization_weight: yolo11n.pt
-    dataset_id: external_dataset_pending
-    data_yaml: datasets/external_dataset_template.yaml
+    dataset_id: hrsc2016_ms_yolo_hbb_v1
+    data_yaml: /content/ship_detection/hrsc2016_ms_runtime.yaml
+    source_archive: /content/drive/MyDrive/ship_detection/data_2/HRSC2016_MS_YOLO.zip
+    expected_split_images: {train: 610, val: 460, test: 610}
+    expected_split_instances: {train: 2453, val: 1953, test: 3249}
     imgsz: 640
     epochs: 150
     batch: 8
     optimizer: auto
     seed: 0
-    module_flags: {pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
+    module_flags: {inceptiondw: true, pls: true, dpls: true, ca_scam: bounded, erup: false, vgup: true, global_gate: true, spatial_gate: true}
     expected_detect_strides: [4, 8, 16]
     output_drive_dir: formal_experiments/S01/seed_0
     notebook_path: notebooks/formal/S01_External_YOLO11n_Final.ipynb
-    status: blocked_pending_dataset
+    status: prepared_not_run
     artifact_manifest: formal_experiments/S01/seed_0/run_manifest.json
-    notes: Template only; official YOLO11n initialization, never the primary-dataset R10 checkpoint.
+    notes: InceptionDW + DPLS + bounded CA-SCAM + complete VGUP trained independently on HRSC2016-MS from official yolo11n.pt.
