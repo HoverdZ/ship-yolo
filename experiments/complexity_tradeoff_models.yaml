@@ -3,7 +3,25 @@ notes:
   - Populate only with measured or faithfully cited values.
   - Do not mix latency/FPS from different hardware or inference paths on one speed plot.
   - Never filter models because they are unfavorable to the proposed method.
-models: []
+models:
+  - name: D-FINE-N
+    family: D-FINE
+    yaml_or_weight: experiments/external_baselines/dfine_hgnetv2_n_ship_640.yml
+    result_csv: formal_experiments/DFINE_N/seed_0/metrics.csv
+    params: null
+    gflops: null
+    latency: null
+    fps: null
+    map50: null
+    map5095: null
+    source: https://github.com/Peterande/D-FINE/tree/7fe2f8889f0b7b817f20c315b40fc15a4fb64ae6
+    same_training_protocol: true
+    input_size: 640
+    hardware: null
+    inference_framework: PyTorch
+    precision: FP16
+    includes_preprocess: false
+    includes_nms: false
 field_schema:
   name: null
   family: null

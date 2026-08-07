@@ -1,0 +1,103 @@
+# D-FINE-N official custom-dataset recipe adapted only where required for the
+# frozen ship comparison. Copy this file into
+# D-FINE/configs/dfine/custom/ before invoking the official train.main().
+__include__: [
+  '../../dataset/custom_detection.yml',
+  '../../runtime.yml',
+  '../include/dataloader.yml',
+  '../include/optimizer.yml',
+  '../include/dfine_hgnetv2.yml',
+]
+
+output_dir: /content/dfine_runs/DFINE_N/seed_0
+print_freq: 25
+checkpoint_freq: 10
+sync_bn: false
+find_unused_parameters: false
+
+num_classes: 1
+remap_mscoco_category: false
+eval_spatial_size: [640, 640]
+
+DFINE:
+  backbone: HGNetv2
+
+HGNetv2:
+  name: B0
+  return_idx: [2, 3]
+  freeze_at: -1
+  freeze_norm: false
+  use_lab: true
+
+HybridEncoder:
+  in_channels: [512, 1024]
+  feat_strides: [16, 32]
+  hidden_dim: 128
+  use_encoder_idx: [1]
+  dim_feedforward: 512
+  expansion: 0.34
+  depth_mult: 0.5
+
+DFINETransformer:
+  feat_channels: [128, 128]
+  feat_strides: [16, 32]
+  hidden_dim: 128
+  dim_feedforward: 512
+  num_levels: 2
+  num_layers: 3
+  eval_idx: -1
+  num_points: [6, 6]
+
+# Official Nano custom config uses lr=8e-4/backbone=4e-4 at total batch 128.
+# The official README prescribes linear scaling when batch changes; batch 8
+# therefore uses exactly 1/16 of both learning rates.
+optimizer:
+  type: AdamW
+  params:
+    - params: '^(?=.*backbone)(?!.*norm|bn).*$'
+      lr: 0.000025
+    - params: '^(?=.*backbone)(?=.*norm|bn).*$'
+      lr: 0.000025
+      weight_decay: 0.
+    - params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+  lr: 0.00005
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+
+lr_warmup_scheduler:
+  type: LinearWarmup
+  warmup_duration: 8000
+
+use_amp: true
+use_ema: true
+ema:
+  type: ModelEMA
+  decay: 0.9999
+  warmups: 16000
+  start: 0
+
+epochs: 150
+train_dataloader:
+  total_batch_size: 8
+  num_workers: 2
+  dataset:
+    img_folder: /content/ship_detection/dfine_coco/images/train
+    ann_file: /content/ship_detection/dfine_coco/annotations/instances_train.json
+    transforms:
+      policy:
+        epoch: 140
+  collate_fn:
+    base_size: 640
+    base_size_repeat: ~
+    stop_epoch: 140
+    ema_restart_decay: 0.9999
+
+val_dataloader:
+  total_batch_size: 8
+  num_workers: 2
+  dataset:
+    img_folder: /content/ship_detection/dfine_coco/images/val
+    ann_file: /content/ship_detection/dfine_coco/annotations/instances_val.json
+
+

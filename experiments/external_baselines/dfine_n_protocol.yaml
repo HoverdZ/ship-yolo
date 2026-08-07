@@ -1,0 +1,39 @@
+schema_version: 1
+experiment_id: DFINE_N
+purpose: complexity_tradeoff_external_baseline
+implementation:
+  repository: https://github.com/Peterande/D-FINE
+  commit: 7fe2f8889f0b7b817f20c315b40fc15a4fb64ae6
+  official_config: configs/dfine/custom/dfine_hgnetv2_n_custom.yml
+  runtime_overlay: experiments/external_baselines/dfine_hgnetv2_n_ship_640.yml
+  checkpoint_url: https://github.com/Peterande/storage/releases/download/dfinev1.0/dfine_n_coco.pth
+  checkpoint_bytes: 15489558
+  checkpoint_sha256: 41973938d2784d38a9836990d805b8392855ebf611aba55f0f7add90e110744c
+model:
+  family: D-FINE
+  scale: Nano
+  backbone: HGNetv2-B0
+  classes: [ship]
+dataset:
+  source_yaml: /content/drive/MyDrive/ship_detection/data/data.yaml
+  source_root: /content/drive/MyDrive/ship_detection/data
+  local_root: /content/ship_detection/data
+  converted_root: /content/ship_detection/dfine_coco
+  conversion: frozen YOLO-HBB splits to zero-based COCO category ids
+  test_used_for_selection: false
+training:
+  input_size: 640
+  epochs: 150
+  total_batch_size: 8
+  seed: 0
+  amp: true
+  optimizer: AdamW
+  official_recipe_preserved: true
+  batch_scaled_learning_rate: true
+  validation_metric: COCO AP50-95
+  selection_checkpoint: best validation AP50-95
+outputs:
+  local: /content/dfine_runs/DFINE_N/seed_0
+  drive: /content/drive/MyDrive/ship_detection/paper_project/formal_experiments/DFINE_N/seed_0
+  foreground_training_only: true
+  training_subprocess_prohibited: true
