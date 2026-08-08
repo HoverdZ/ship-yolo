@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
+import nbformat
 import yaml
 from PIL import Image
 
@@ -159,3 +161,37 @@ def test_official_log_and_validator_metrics_are_parsed(tmp_path: Path) -> None:
     )
     assert metrics["precision"] == 0.5
     assert metrics["recall"] == 0.333
+
+
+def test_formal_notebook_is_pinned_and_trains_in_foreground() -> None:
+    path = ROOT / "notebooks" / "formal" / "DFINE_N_Complexity_Tradeoff.ipynb"
+    notebook = nbformat.read(path, as_version=4)
+    code = "\n".join(
+        cell.source for cell in notebook.cells if cell.cell_type == "code"
+    )
+    assert "GITHUB_TOKEN = userdata.get(\"GITHUB_TOKEN\")" in code
+    assert OFFICIAL_COMMIT in code
+    assert "OFFICIAL_CHECKPOINT_SHA256" in code
+    assert re.search(r'SHIP_COMMIT = "[0-9a-f]{40}"', code)
+    assert "dfine_train.main(train_args)" in code
+    assert "RUN_TRAINING" not in code
+    assert "torchrun" not in code.replace(
+        "# 本单元直接运行官方训练；严禁改成 subprocess、Popen 或 torchrun。",
+        "",
+    )
+    assert "subprocess.Popen" not in code
+    assert "instances_test.json" not in (
+        ROOT
+        / "experiments"
+        / "external_baselines"
+        / "dfine_hgnetv2_n_ship_640.yml"
+    ).read_text(encoding="utf-8")
+    assert '"epochs": 150' in code
+    assert "seed=0" in code
+    for index, cell in enumerate(notebook.cells):
+        if cell.cell_type != "code":
+            continue
+        assert index > 0 and notebook.cells[index - 1].cell_type == "markdown"
+        assert cell.execution_count is None
+        assert cell.outputs == []
+        compile(cell.source, f"{path.name}:cell-{index}", "exec")
