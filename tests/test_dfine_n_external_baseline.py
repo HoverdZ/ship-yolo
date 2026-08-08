@@ -169,7 +169,14 @@ def test_formal_notebook_is_pinned_and_trains_in_foreground() -> None:
     code = "\n".join(
         cell.source for cell in notebook.cells if cell.cell_type == "code"
     )
-    assert "GITHUB_TOKEN = userdata.get(\"GITHUB_TOKEN\")" in code
+    assert "GITHUB_TOKEN" not in code
+    assert "userdata" not in code
+    assert "private_git_env" not in code
+    assert "extraheader" not in code.lower()
+    assert (
+        'SHIP_REPOSITORY = "https://github.com/HoverdZ/ship-yolo.git"'
+        in code
+    )
     assert OFFICIAL_COMMIT in code
     assert "OFFICIAL_CHECKPOINT_SHA256" in code
     assert re.search(r'SHIP_COMMIT = "[0-9a-f]{40}"', code)

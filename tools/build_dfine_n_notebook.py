@@ -53,18 +53,17 @@ def build_notebook(ship_commit: str) -> nbformat.NotebookNode:
                 """
                 ## 1. 固定代码版本并安装官方环境
 
-                本单元挂载 Google Drive，从 Colab Secrets 读取变量名严格为
-                `GITHUB_TOKEN` 的私有仓库令牌，检验授权后拉取固定提交；随后
-                拉取固定提交的 D-FINE 官方仓库并安装其官方依赖。身份认证失败
-                会立即停止，不会把令牌写入 URL、Notebook 或日志。
+                本单元挂载 Google Drive，直接从已经公开的
+                `HoverdZ/ship-yolo` 拉取固定提交；随后拉取固定提交的 D-FINE
+                官方仓库并安装其官方依赖。全程不读取 Colab Secrets，也不需要
+                GitHub Token。
                 """
             )
         ),
         nbformat.v4.new_code_cell(
             _source(
                 f"""
-                # 本单元只做环境、认证和仓库准备；不启动训练。
-                import base64
+                # 本单元只做环境和公开仓库准备；不启动训练。
                 import gc
                 import hashlib
                 import importlib.metadata
@@ -76,7 +75,7 @@ def build_notebook(ship_commit: str) -> nbformat.NotebookNode:
                 import sys
                 from pathlib import Path
 
-                from google.colab import drive, userdata
+                from google.colab import drive
 
                 drive.mount("/content/drive")
 
@@ -102,51 +101,13 @@ def build_notebook(ship_commit: str) -> nbformat.NotebookNode:
                     DFINE_ROOT / "configs/dfine/custom/dfine_hgnetv2_n_ship.yml"
                 )
 
-                def run_checked(command, *, cwd=None, env=None):
+                def run_checked(command, *, cwd=None):
                     # 运行准备命令并在失败时立即停止。
                     return subprocess.run(
                         command,
                         cwd=cwd,
-                        env=env,
                         check=True,
                         text=True,
-                    )
-
-                try:
-                    GITHUB_TOKEN = userdata.get("GITHUB_TOKEN")
-                except Exception as error:
-                    raise RuntimeError(
-                        "无法读取 Colab Secret：GITHUB_TOKEN；请先完成身份认证。"
-                    ) from error
-                if not GITHUB_TOKEN:
-                    raise RuntimeError(
-                        "缺少 Colab Secret：GITHUB_TOKEN；请添加后重新运行本单元。"
-                    )
-
-                # 令牌仅通过临时 Git 请求头进入子进程环境，不进入 URL 或输出。
-                credential = base64.b64encode(
-                    f"x-access-token:{{GITHUB_TOKEN}}".encode("utf-8")
-                ).decode("ascii")
-                private_git_env = os.environ.copy()
-                private_git_env.update(
-                    {{
-                        "GIT_CONFIG_COUNT": "1",
-                        "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
-                        "GIT_CONFIG_VALUE_0": f"AUTHORIZATION: basic {{credential}}",
-                        "GIT_TERMINAL_PROMPT": "0",
-                    }}
-                )
-                authentication = subprocess.run(
-                    ["git", "ls-remote", SHIP_REPOSITORY, SHIP_COMMIT],
-                    env=private_git_env,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                )
-                if authentication.returncode != 0:
-                    raise RuntimeError(
-                        "GITHUB_TOKEN 未能访问 HoverdZ/ship-yolo；已停止，"
-                        "请检查 Secret 权限或重新授权。"
                     )
 
                 # /content 是临时运行盘；每次按固定提交干净拉取，避免 pull 冲突。
@@ -155,12 +116,10 @@ def build_notebook(ship_commit: str) -> nbformat.NotebookNode:
                         shutil.rmtree(exact_path)
 
                 run_checked(
-                    ["git", "clone", "--no-checkout", SHIP_REPOSITORY, str(SHIP_ROOT)],
-                    env=private_git_env,
+                    ["git", "clone", "--no-checkout", SHIP_REPOSITORY, str(SHIP_ROOT)]
                 )
                 run_checked(
-                    ["git", "-C", str(SHIP_ROOT), "fetch", "--depth", "1", "origin", SHIP_COMMIT],
-                    env=private_git_env,
+                    ["git", "-C", str(SHIP_ROOT), "fetch", "--depth", "1", "origin", SHIP_COMMIT]
                 )
                 run_checked(["git", "-C", str(SHIP_ROOT), "checkout", "--detach", SHIP_COMMIT])
 
@@ -182,8 +141,7 @@ def build_notebook(ship_commit: str) -> nbformat.NotebookNode:
                 sys.path.insert(0, str(SHIP_ROOT))
                 sys.path.insert(0, str(DFINE_ROOT))
                 os.chdir(DFINE_ROOT)
-                del GITHUB_TOKEN, credential, private_git_env
-                print("✅ 身份认证、固定提交与 D-FINE 官方环境准备完成。")
+                print("✅ 两个公开仓库的固定提交与 D-FINE 官方环境准备完成。")
                 """
             )
         ),
