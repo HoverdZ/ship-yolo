@@ -70,7 +70,7 @@ def git_run(arguments, cwd=None):
     )
     if result.returncode:
         raise RuntimeError(
-            "Git 操作失败。仓库是公开的，此错误与 Token 无关。\n"
+            "Git 操作失败。仓库是公开的，此错误与 Token 无关。\\n"
             + result.stderr[-3000:]
         )
     return result.stdout.strip()
