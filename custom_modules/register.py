@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 9
+_PATCH_VERSION = 10
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -55,6 +55,17 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_adaptive = (
         "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
     )
+    paper_module_set = "{CAFM, ShuffleAttention, DATBlock}"
+    has_paper_reproductions = (
+        "C3k2APFAN" in source
+        and "C2fRepGhost" in source
+        and "C2fRFA" in source
+        and "SimSPPF" in source
+        and f"elif m in {paper_module_set}:" in source
+        and "elif m is AMSFA:" in source
+        and "elif m is FASFF:" in source
+        and "elif m is WeightedFeatureFusion:" in source
+    )
     if (
         has_ablation
         and has_c3k2_inception
@@ -64,6 +75,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_cumulative
         and has_adaptive
         and has_calibrated_scam
+        and has_paper_reproductions
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -74,6 +86,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
         parse_model._calibrated_scam_patched = True
+        parse_model._paper_reproductions_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -95,6 +108,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_conv_screening:
         base_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
         repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
+    if not has_paper_reproductions:
+        base_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA", "SimSPPF"))
+        repeat_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA"))
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -210,6 +226,44 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_paper_reproductions:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for paper reproductions."
+            )
+        paper_branch = """        elif m in {CAFM, ShuffleAttention, DATBlock}:
+            if isinstance(f, (list, tuple)):
+                raise ValueError(f"{m.__name__} expects exactly one feature tensor.")
+            c1 = ch[f]
+            c2 = c1
+            args = [c1, *args]
+        elif m is AMSFA:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError("AMSFA requires [P3, P4, P5].")
+            input_channels = [ch[index] for index in f]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [input_channels, c2, *args[1:]]
+        elif m is FASFF:
+            if not isinstance(f, (list, tuple)) or len(f) != 4:
+                raise ValueError("FASFF requires four PAN-4 features.")
+            input_channels = [ch[index] for index in f]
+            target_index = int(args[0])
+            c2 = input_channels[target_index]
+            args = [input_channels, target_index]
+        elif m is WeightedFeatureFusion:
+            if not isinstance(f, (list, tuple)):
+                raise ValueError("WeightedFeatureFusion requires a feature list.")
+            input_channels = [ch[index] for index in f]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [input_channels, c2, *args[1:]]
+"""
+        source = source.replace(branch_marker, paper_branch + branch_marker, 1)
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -229,6 +283,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
     tasks.parse_model._calibrated_scam_patched = True
+    tasks.parse_model._paper_reproductions_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -254,6 +309,18 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.sa_dwpn import Align, DWDown, SDWF
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
+    from custom_modules.remote_ship_reproductions import (
+        AMSFA,
+        CAFM,
+        C2fRFA,
+        C2fRepGhost,
+        C3k2APFAN,
+        DATBlock,
+        FASFF,
+        ShuffleAttention,
+        SimSPPF,
+        WeightedFeatureFusion,
+    )
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -277,6 +344,16 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "SCAM": SCAM,
         "SDWF": SDWF,
         "VGUPPreprocessor": VGUPPreprocessor,
+        "AMSFA": AMSFA,
+        "CAFM": CAFM,
+        "C2fRFA": C2fRFA,
+        "C2fRepGhost": C2fRepGhost,
+        "C3k2APFAN": C3k2APFAN,
+        "DATBlock": DATBlock,
+        "FASFF": FASFF,
+        "ShuffleAttention": ShuffleAttention,
+        "SimSPPF": SimSPPF,
+        "WeightedFeatureFusion": WeightedFeatureFusion,
     }
     _set_module_attrs(modules, names)
     _set_module_attrs(tasks, names)

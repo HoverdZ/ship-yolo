@@ -1,0 +1,40 @@
+# P02: paper-level SHIP-YOLO reproduction (IEEE Access, 2024).
+nc: 80
+scale: n
+paper_method: SHIP-YOLO
+paper_loss: wise_iou_v3
+scales:
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.25, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 3, C2f, [128, true]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 6, C2f, [256, true]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 6, C2f, [512, true]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 3, C2f, [1024, true]]
+  - [-1, 1, ShuffleAttention, [64]]
+  - [-1, 1, SPPF, [1024, 5]]
+
+head:
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 3, C2fRepGhost, [512]]
+  - [-1, 1, ShuffleAttention, [64]]
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 3, C2fRepGhost, [256]]
+  - [-1, 1, GhostConv, [256, 3, 2]]
+  - [[-1, 14], 1, Concat, [1]]
+  - [-1, 3, C2fRepGhost, [512]]
+  - [-1, 1, GhostConv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 3, C2fRepGhost, [1024]]
+  - [[17, 20, 23], 1, Detect, [nc]]
