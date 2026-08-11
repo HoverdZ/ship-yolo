@@ -216,13 +216,15 @@ print("云盘产物目录：", run.drive_run)
     }
 
 
-def generate(commit: str) -> list[Path]:
+def generate(commit: str, run_ids: list[str] | None = None) -> list[Path]:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("--commit 必须是完整的 40 位小写 Git SHA。")
     output_root = ROOT / "notebooks" / "formal"
     output_root.mkdir(parents=True, exist_ok=True)
     outputs: list[Path] = []
-    for run_id, (method, filename) in NOTEBOOKS.items():
+    selected = list(NOTEBOOKS) if run_ids is None else run_ids
+    for run_id in selected:
+        method, filename = NOTEBOOKS[run_id]
         path = output_root / filename
         path.write_text(
             json.dumps(build_notebook(run_id, method, commit), ensure_ascii=False, indent=1)
@@ -236,8 +238,14 @@ def generate(commit: str) -> list[Path]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commit", required=True)
+    parser.add_argument(
+        "--run-id",
+        action="append",
+        choices=sorted(NOTEBOOKS),
+        help="只生成指定实验；可重复传入。默认生成全部实验。",
+    )
     args = parser.parse_args()
-    for path in generate(args.commit):
+    for path in generate(args.commit, run_ids=args.run_id):
         print(path.relative_to(ROOT))
 
 
