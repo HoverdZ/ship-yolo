@@ -196,6 +196,49 @@ class InnerMPDIoUBboxLoss(_PaperBboxLoss):
         )
 
 
+class MPDIoUBboxLoss(_PaperBboxLoss):
+    """AC-YOLO's official MPDIoU two-corner regression loss.
+
+    The released implementation normalizes the two corner distances by the
+    squared diagonal of the corresponding feature map. Computation is kept in
+    float32 under AMP to avoid half-precision overflow without changing the
+    published formula.
+    """
+
+    def _iou_loss(
+        self,
+        pred_bboxes: torch.Tensor,
+        target_bboxes: torch.Tensor,
+        fg_mask: torch.Tensor,
+        imgsz: torch.Tensor,
+        stride: torch.Tensor,
+    ) -> torch.Tensor:
+        pred = pred_bboxes[fg_mask].float()
+        target = target_bboxes[fg_mask].float()
+        iou = _iou_xyxy(pred, target)
+        top_left_distance = (pred[:, :2] - target[:, :2]).square().sum(
+            1,
+            keepdim=True,
+        )
+        bottom_right_distance = (pred[:, 2:] - target[:, 2:]).square().sum(
+            1,
+            keepdim=True,
+        )
+        stride_per_anchor = stride.float().reshape(1, -1, 1).expand(
+            fg_mask.shape[0],
+            -1,
+            -1,
+        )[fg_mask]
+        image_diagonal = imgsz.float().square().sum()
+        normalizer = image_diagonal / stride_per_anchor.square().clamp(min=1e-7)
+        return (
+            1.0
+            - iou
+            + top_left_distance / normalizer
+            + bottom_right_distance / normalizer
+        )
+
+
 class WiseIoUv3DetectionLoss(v8DetectionLoss):
     """Ultralytics detection loss with WIoU-v3 regression."""
 
@@ -213,6 +256,14 @@ class InnerMPDIoUDetectionLoss(v8DetectionLoss):
         self.bbox_loss = InnerMPDIoUBboxLoss(self.reg_max, ratio=ratio).to(self.device)
 
 
+class MPDIoUDetectionLoss(v8DetectionLoss):
+    """Ultralytics detection loss with AC-YOLO's official MPDIoU term."""
+
+    def __init__(self, model: nn.Module) -> None:
+        super().__init__(model)
+        self.bbox_loss = MPDIoUBboxLoss(self.reg_max).to(self.device)
+
+
 class WiseIoUv3DetectionModel(DetectionModel):
     """Detection model whose criterion is WIoU-v3."""
 
@@ -225,6 +276,13 @@ class InnerMPDIoUDetectionModel(DetectionModel):
 
     def init_criterion(self):
         return InnerMPDIoUDetectionLoss(self)
+
+
+class MPDIoUDetectionModel(DetectionModel):
+    """Detection model whose criterion is AC-YOLO MPDIoU."""
+
+    def init_criterion(self):
+        return MPDIoUDetectionLoss(self)
 
 
 class _PaperDetectionTrainer(DetectionTrainer):
@@ -258,9 +316,16 @@ class InnerMPDIoUTrainer(_PaperDetectionTrainer):
     model_class = InnerMPDIoUDetectionModel
 
 
+class MPDIoUTrainer(_PaperDetectionTrainer):
+    """Foreground Ultralytics trainer for the official AC-YOLO graph."""
+
+    model_class = MPDIoUDetectionModel
+
+
 TRAINERS = {
     "wise_iou_v3": WiseIoUv3Trainer,
     "inner_mpdiou": InnerMPDIoUTrainer,
+    "mpdiou": MPDIoUTrainer,
 }
 
 

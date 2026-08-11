@@ -57,3 +57,10 @@ runs:
     loss: ciou
     expected_strides: [8, 16, 32]
     run_name: P04_E_WFF_Net
+  P05:
+    method: AC-YOLO
+    model_yaml: experiments/paper_comparisons/P05_yolo11n_ac_yolo.yaml
+    pretrained: yolo11n.pt
+    loss: mpdiou
+    expected_strides: [8, 16, 32]
+    run_name: P05_AC_YOLO

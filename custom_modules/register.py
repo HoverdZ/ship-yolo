@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 10
+_PATCH_VERSION = 11
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -66,6 +66,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and "elif m is FASFF:" in source
         and "elif m is WeightedFeatureFusion:" in source
     )
+    has_ac_yolo = "C2PSA_ACmix" in source
     if (
         has_ablation
         and has_c3k2_inception
@@ -76,6 +77,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_adaptive
         and has_calibrated_scam
         and has_paper_reproductions
+        and has_ac_yolo
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -87,6 +89,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._adaptive_preprocessors_patched = True
         parse_model._calibrated_scam_patched = True
         parse_model._paper_reproductions_patched = True
+        parse_model._ac_yolo_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -111,6 +114,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_paper_reproductions:
         base_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA", "SimSPPF"))
         repeat_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA"))
+    if not has_ac_yolo:
+        base_additions.append("C2PSA_ACmix")
+        repeat_additions.append("C2PSA_ACmix")
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -284,12 +290,14 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._adaptive_preprocessors_patched = True
     tasks.parse_model._calibrated_scam_patched = True
     tasks.parse_model._paper_reproductions_patched = True
+    tasks.parse_model._ac_yolo_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
     """Register every repository-owned module through one idempotent path."""
 
     from custom_modules.c2f_inceptiondw import C2f_InceptionDW
+    from custom_modules.ac_yolo_official import ACmix, C2PSA_ACmix
     from custom_modules.c3k2_crossconv import C3k2CrossConv
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.c3k2_conv_screening import (
@@ -325,9 +333,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     import ultralytics.nn.tasks as tasks
 
     names = {
+        "ACmix": ACmix,
         "Align": Align,
         "AlignConcat": AlignConcat,
         "C2f_InceptionDW": C2f_InceptionDW,
+        "C2PSA_ACmix": C2PSA_ACmix,
         "C3k2CrossConv": C3k2CrossConv,
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "C3k2_LSKConv": C3k2_LSKConv,

@@ -1,4 +1,4 @@
-"""Generate four independent Colab notebooks for paper comparisons."""
+"""Generate independent Colab notebooks for paper comparisons."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ NOTEBOOKS = {
     "P02": ("SHIP-YOLO", "P02_SHIP_YOLO_150ep.ipynb"),
     "P03": ("PMF-YOLOv8", "P03_PMF_YOLOv8_150ep.ipynb"),
     "P04": ("E-WFF Net", "P04_E_WFF_Net_150ep.ipynb"),
+    "P05": ("AC-YOLO", "P05_AC_YOLO_150ep.ipynb"),
 }
 
 

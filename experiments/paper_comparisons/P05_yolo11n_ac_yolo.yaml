@@ -1,0 +1,48 @@
+# P05: official AC-YOLO graph (PLOS ONE, 2025), adapted to Ultralytics 8.4.92.
+# Source: https://github.com/He-ship-sar/ACYOLO @ 20dad8db5047add008e6eab65b032158f4a5d3e1
+nc: 80
+scale: n
+paper_method: AC-YOLO
+paper_loss: mpdiou
+official_source_commit: 20dad8db5047add008e6eab65b032158f4a5d3e1
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# Official YOLO11n backbone with C2PSA_ACmix at the deepest stage.
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, C3k2, [256, false, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, C3k2, [512, false, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, C3k2, [512, true]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, true]]
+  - [-1, 1, SPPF, [1024, 5]]
+  - [-1, 2, C2PSA_ACmix, [1024]]
+
+# Authors' released CCFM neck. It aligns P3/P4/P5 to 256 channels before the
+# top-down and bottom-up fusion paths and keeps three detection scales.
+head:
+  - [-1, 1, Conv, [256, 1, 1]]
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [6, 1, Conv, [256, 1, 1, null, 1, 1, false]]
+  - [[-2, -1], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, false]]
+  - [-1, 1, Conv, [256, 1, 1]]
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [4, 1, Conv, [256, 1, 1, null, 1, 1, false]]
+  - [[-2, -1], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, false]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 16], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, false]]
+  - [-1, 1, SCDown, [256, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, true]]
+  - [[20, 23, 26], 1, Detect, [nc]]

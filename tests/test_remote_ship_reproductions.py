@@ -8,6 +8,7 @@ import torch
 import yaml
 
 from custom_modules.register import register_custom_modules
+from custom_modules.ac_yolo_official import ACmix, C2PSA_ACmix
 from custom_modules.remote_ship_reproductions import (
     AMSFA,
     CAFM,
@@ -22,6 +23,7 @@ from custom_modules.remote_ship_reproductions import (
 from tools.build_remote_ship_comparison_notebooks import build_notebook
 from tools.external_baselines.ship_losses import (
     InnerMPDIoUDetectionModel,
+    MPDIoUDetectionModel,
     WiseIoUv3DetectionModel,
 )
 
@@ -32,6 +34,7 @@ CONFIGS = {
     "P02_yolov8n_ship_yolo.yaml": (8, 16, 32),
     "P03_yolov8n_pmf_yolov8.yaml": (4, 8, 16, 32),
     "P04_yolov8s_ewff_net.yaml": (8, 16, 32),
+    "P05_yolo11n_ac_yolo.yaml": (8, 16, 32),
 }
 
 
@@ -77,12 +80,17 @@ def test_each_reproduction_contains_its_published_modules():
     assert any(isinstance(module, DATBlock) for module in models["P04_yolov8s_ewff_net.yaml"].modules())
     assert sum(isinstance(module, WeightedFeatureFusion) for module in models["P04_yolov8s_ewff_net.yaml"].modules()) == 5
 
+    ac_yolo = models["P05_yolo11n_ac_yolo.yaml"]
+    assert sum(isinstance(module, C2PSA_ACmix) for module in ac_yolo.modules()) == 1
+    assert any(isinstance(module, ACmix) for module in ac_yolo.modules())
+
 
 @pytest.mark.parametrize(
     ("model_class", "filename"),
     [
         (WiseIoUv3DetectionModel, "P02_yolov8n_ship_yolo.yaml"),
         (InnerMPDIoUDetectionModel, "P03_yolov8n_pmf_yolov8.yaml"),
+        (MPDIoUDetectionModel, "P05_yolo11n_ac_yolo.yaml"),
     ],
 )
 def test_custom_bbox_criteria_are_finite(model_class, filename: str):
@@ -115,7 +123,7 @@ def test_protocol_controls_and_notebooks_are_foreground_and_token_free():
     assert training["batch"] == 8
     assert training["seed"] == 0
     assert training["cache"] == "disk"
-    assert set(protocol["runs"]) == {"P01", "P02", "P03", "P04"}
+    assert set(protocol["runs"]) == {"P01", "P02", "P03", "P04", "P05"}
 
     for run_id, item in protocol["runs"].items():
         notebook = build_notebook(run_id, item["method"], "a" * 40)

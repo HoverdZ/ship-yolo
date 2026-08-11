@@ -1,4 +1,4 @@
-"""Controlled Colab workflow for four remote-sensing ship paper reproductions."""
+"""Controlled Colab workflow for remote-sensing ship paper reproductions."""
 
 from __future__ import annotations
 
