@@ -1,39 +1,39 @@
-# 广域海洋遥感中的小型与极小船舶检测
+# Small and Tiny Ship Detection in Wide-Area Ocean Remote Sensing
 
-本项目研究一种面向广域海洋遥感影像的可见性—尺度—上下文协同参数高效检测方法。模型以 Ultralytics YOLO11n 为基础，通过浅层空间特征提取、面向小目标的检测尺度重构、上下文校准和可见性感知输入处理，提高复杂海洋场景中小型与极小船舶的检测能力。
+This repository implements a parameter-efficient visibility-scale-context collaborative detection method for wide-area ocean remote sensing imagery. Built on Ultralytics YOLO11n, the method improves small and tiny ship detection under complex marine conditions through shallow spatial feature extraction, small-object-oriented detection-scale reconstruction, context calibration, and visibility-aware input processing.
 
-最终模型由以下部分组成：
+## Core Components
 
-- **InceptionDW**：适配至浅层 C3k2 瓶颈，用于加强 P2/P3 阶段的多尺度空间特征提取；
-- **DPLS**：构建 P2–P4 检测尺度，增强小型与极小目标的表征；
-- **CA-SCAM**：利用对比度感知的空间上下文校准改善低可见性目标特征；
-- **VGUP**：根据图像可见性自适应调节输入增强强度。
+- **InceptionDW**: Adapted to the shallow C3k2 bottlenecks for multi-scale spatial feature extraction at the P2 and P3 backbone stages.
+- **DPLS**: Reconstructs a P2-P4 detection pyramid to preserve fine-grained features for small and tiny objects.
+- **CA-SCAM**: Performs contrast-aware spatial context calibration for ships under low-visibility conditions.
+- **VGUP**: Applies adaptive input enhancement according to image visibility.
 
-## 目录
+## Repository Structure
 
-```text
-custom_modules/   模型模块实现
-experiments/      模型 YAML 与实验参数配置
-model_weights/    训练权重（Git LFS）
-training_logs/    训练日志
-datasets/         数据集来源与使用说明
-```
+- `custom_modules/`: Implementations and registration code for the proposed modules.
+- `experiments/`: Model YAML files and experiment configurations.
+- `model_weights/`: Trained model weights managed with Git LFS.
+- `training_logs/`: Training logs and metric records.
+- `datasets/`: Dataset provenance and usage documentation.
 
-最终 YOLO11n 模型配置为：
+## Final Model Configuration
+
+The complete model configuration is available at:
 
 ```text
 experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml
 ```
 
-## 环境
+Main training settings:
 
-- Ultralytics 8.4.92
-- 输入尺寸：640 × 640
-- Batch size：8
-- Epochs：150
-- Seed：0
+- Ultralytics: `8.4.92`
+- Input size: `640 x 640`
+- Batch size: `8`
+- Training epochs: `150`
+- Random seed: `0`
 
-自定义模型在构建前需要先注册项目模块：
+Register the custom modules before constructing the model:
 
 ```python
 from custom_modules.register import register_custom_modules
@@ -43,13 +43,13 @@ register_custom_modules()
 model = YOLO("experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
 ```
 
-## 数据集
+## Dataset
 
-主要实验使用雾化增强后的 **LEVIR-Ship** 数据集。数据在公开 LEVIR-Ship 的基础上，参考 Wang et al. (2022) 的方法，以 Perlin 噪声构造薄雾、浓雾和块状雾场景。数据来源、处理方法和本地目录结构见 [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md)。
+The primary experiments use a fog-augmented version of the public LEVIR-Ship dataset. Following Wang et al. (2022), Perlin noise is used to simulate thin, dense, and patchy fog conditions. Dataset provenance, processing details, and directory organization are documented in [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
 
-受原始遥感影像使用条款限制，本仓库不直接分发图像文件。
+The original remote-sensing images are not redistributed in this repository. Users should obtain the source dataset in accordance with its original terms and reproduce the derived data using the documented procedure.
 
-## 参考文献
+## References
 
-- Chen, W. et al. LEVIR-Ship: <https://github.com/WindVChen/LEVIR-Ship>
-- Wang, W., Zhang, X., Sun, W., Huang, M. (2022). A novel method of ship detection under cloud interference for optical remote sensing images. *Remote Sensing*, 14(15), 3731. <https://doi.org/10.3390/rs14153731>
+- Chen, W. et al. LEVIR-Ship: [https://github.com/WindVChen/LEVIR-Ship](https://github.com/WindVChen/LEVIR-Ship)
+- Wang, W., Zhang, X., Sun, W., and Huang, M. (2022). *A Novel Method of Ship Detection under Cloud Interference for Optical Remote Sensing Images*. Remote Sensing, 14(15), 3731. [https://doi.org/10.3390/rs14153731](https://doi.org/10.3390/rs14153731)
