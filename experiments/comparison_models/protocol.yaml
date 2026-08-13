@@ -1,0 +1,59 @@
+ultralytics_version: 8.4.92
+dataset_source: /content/drive/MyDrive/ship_detection/data
+dataset_local: /content/ship_detection/data
+class_names: [ship]
+
+training:
+  imgsz: 640
+  epochs: 150
+  batch: 8
+  workers: 2
+  seed: 0
+  deterministic: false
+  optimizer: auto
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  patience: 100
+  cache: disk
+  mosaic: 1.0
+  close_mosaic: 10
+  scale: 0.5
+  translate: 0.1
+  box: 7.5
+  cls: 0.5
+  dfl: 1.5
+  save_period: 10
+  plots: true
+
+runs:
+  P02:
+    method: SHIP-YOLO
+    model_yaml: experiments/comparison_models/P02_yolov8n_ship_yolo.yaml
+    pretrained: yolov8n.pt
+    loss: wise_iou_v3
+    expected_strides: [8, 16, 32]
+    run_name: P02_SHIP_YOLO
+  P03:
+    method: PMF-YOLOv8
+    model_yaml: experiments/comparison_models/P03_yolov8n_pmf_yolov8.yaml
+    pretrained: yolov8n.pt
+    loss: inner_mpdiou
+    expected_strides: [4, 8, 16, 32]
+    run_name: P03_PMF_YOLOv8
+  P04:
+    method: E-WFF-Net
+    model_yaml: experiments/comparison_models/P04_yolov8s_ewff_net.yaml
+    pretrained: yolov8s.pt
+    loss: ciou
+    expected_strides: [8, 16, 32]
+    run_name: P04_E_WFF_Net
+  P05:
+    method: AC-YOLO
+    model_yaml: experiments/comparison_models/P05_yolo11n_ac_yolo.yaml
+    pretrained: yolo11n.pt
+    loss: mpdiou
+    expected_strides: [8, 16, 32]
+    run_name: P05_AC_YOLO

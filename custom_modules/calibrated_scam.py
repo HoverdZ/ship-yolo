@@ -84,42 +84,6 @@ class _ContrastCalibratedSCAMBase(SCAM):
         }
 
 
-class CASCAMFixedBeta(_ContrastCalibratedSCAMBase):
-    """CA-SCAM ablation with the contrast branch and a fixed beta."""
-
-    def __init__(
-        self,
-        in_channels: int,
-        fixed_beta: float = 0.1,
-    ) -> None:
-        if not 0.0 < fixed_beta <= 1.0:
-            raise ValueError(
-                f"fixed_beta must be in (0, 1], got {fixed_beta}."
-            )
-        super().__init__(in_channels)
-        self.register_buffer(
-            "fixed_beta",
-            torch.tensor(float(fixed_beta)),
-            persistent=True,
-        )
-
-    def calibration_beta(self) -> torch.Tensor:
-        return self.fixed_beta
-
-
-class CASCAMUnbounded(_ContrastCalibratedSCAMBase):
-    """CA-SCAM ablation with a learnable, intentionally unbounded beta."""
-
-    def __init__(self, in_channels: int) -> None:
-        super().__init__(in_channels)
-        # beta=0 preserves exact SCAM output at initialization.  This
-        # controlled ablation intentionally omits the final tanh bound.
-        self.contrast_beta = nn.Parameter(torch.zeros(1))
-
-    def calibration_beta(self) -> torch.Tensor:
-        return self.contrast_beta
-
-
 class CASCAM(_ContrastCalibratedSCAMBase):
     """Contrast-Aware SCAM with bounded, equivalent-initialized calibration."""
 
@@ -150,8 +114,4 @@ class CASCAM(_ContrastCalibratedSCAMBase):
         return local_contrast, contrast_map, beta
 
 
-__all__ = [
-    "CASCAM",
-    "CASCAMFixedBeta",
-    "CASCAMUnbounded",
-]
+__all__ = ["CASCAM"]

@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 12
+_PATCH_VERSION = 13
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -41,21 +41,19 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             or "elif m in {SCAM, CASCAM}:" in source
         )
     )
-    scam_module_set = (
-        "{SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}"
-    )
+    scam_module_set = "{SCAM, CASCAM}"
     has_calibrated_scam = (
         f"elif m in {scam_module_set}:" in source
     )
     has_adaptive = (
         "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
     )
-    paper_module_set = "{ShuffleAttention, DATBlock}"
-    has_paper_reproductions = (
+    comparison_module_set = "{ShuffleAttention, DATBlock}"
+    has_comparison_modules = (
         "C2fRepGhost" in source
         and "C2fRFA" in source
         and "SimSPPF" in source
-        and f"elif m in {paper_module_set}:" in source
+        and f"elif m in {comparison_module_set}:" in source
         and "elif m is FASFF:" in source
         and "elif m is WeightedFeatureFusion:" in source
     )
@@ -67,7 +65,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_cumulative
         and has_adaptive
         and has_calibrated_scam
-        and has_paper_reproductions
+        and has_comparison_modules
         and has_ac_yolo
     ):
         parse_model._ship_yolo_patched = True
@@ -77,7 +75,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
         parse_model._calibrated_scam_patched = True
-        parse_model._paper_reproductions_patched = True
+        parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
         return
 
@@ -95,7 +93,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_conv_screening:
         base_additions.extend(("C3k2_PConv", "C3k2_LSKConv"))
         repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv"))
-    if not has_paper_reproductions:
+    if not has_comparison_modules:
         base_additions.extend(("C2fRepGhost", "C2fRFA", "SimSPPF"))
         repeat_additions.extend(("C2fRepGhost", "C2fRFA"))
     if not has_ac_yolo:
@@ -131,7 +129,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
-        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:
+        elif m in {SCAM, CASCAM}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one input feature.")
             c1 = ch[f]
@@ -147,13 +145,13 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         if "        elif m in {SCAM, CASCAM}:" in source:
             source = source.replace(
                 "        elif m in {SCAM, CASCAM}:",
-                "        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:",
+                "        elif m in {SCAM, CASCAM}:",
                 1,
             )
         else:
             source = source.replace(
                 "        elif m is SCAM:",
-                "        elif m in {SCAM, CASCAM, CASCAMFixedBeta, CASCAMUnbounded}:",
+                "        elif m in {SCAM, CASCAM}:",
                 1,
             )
 
@@ -180,13 +178,13 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
-    if not has_paper_reproductions:
+    if not has_comparison_modules:
         branch_marker = "        elif m is AIFI:"
         if branch_marker not in source:
             raise RuntimeError(
-                "Unable to locate parse_model AIFI branch for paper reproductions."
+                "Unable to locate parse_model AIFI branch for comparison modules."
             )
-        paper_branch = """        elif m in {ShuffleAttention, DATBlock}:
+        comparison_branch = """        elif m in {ShuffleAttention, DATBlock}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one feature tensor.")
             c1 = ch[f]
@@ -208,7 +206,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [input_channels, c2, *args[1:]]
 """
-        source = source.replace(branch_marker, paper_branch + branch_marker, 1)
+        source = source.replace(branch_marker, comparison_branch + branch_marker, 1)
 
     namespace = tasks.__dict__
     namespace.update(names)
@@ -227,7 +225,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
     tasks.parse_model._calibrated_scam_patched = True
-    tasks.parse_model._paper_reproductions_patched = True
+    tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
 
 
@@ -241,11 +239,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         C3k2_LSKConv,
         C3k2_PConv,
     )
-    from custom_modules.calibrated_scam import (
-        CASCAM,
-        CASCAMFixedBeta,
-        CASCAMUnbounded,
-    )
+    from custom_modules.calibrated_scam import CASCAM
     from custom_modules.dysample import DySample
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
@@ -270,8 +264,6 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_LSKConv": C3k2_LSKConv,
         "C3k2_PConv": C3k2_PConv,
         "CASCAM": CASCAM,
-        "CASCAMFixedBeta": CASCAMFixedBeta,
-        "CASCAMUnbounded": CASCAMUnbounded,
         "DySample": DySample,
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
@@ -310,7 +302,7 @@ def register_cumulative_modules(patch_parse_model: bool = True) -> None:
 
 
 def register_adaptive_preprocessors(patch_parse_model: bool = True) -> None:
-    """Register ERUP/VGUP and every shared repository module."""
+    """Register VGUP and its shared image-processing primitives."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
 

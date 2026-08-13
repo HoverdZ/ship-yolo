@@ -7,7 +7,7 @@ Condition by Unified Image-Adaptive Processing".
 No author-maintained official implementation was available when this module
 was written. The equations follow the paper and supplementary material; the
 engineering choices not fixed by the paper are documented in
-``docs/erup_vgup_experiments.md``.
+The parameterization follows the implementation used by ``VGUPPreprocessor``.
 """
 
 from __future__ import annotations

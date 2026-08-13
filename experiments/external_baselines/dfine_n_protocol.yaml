@@ -34,6 +34,6 @@ training:
   selection_checkpoint: best validation AP50-95
 outputs:
   local: /content/dfine_runs/DFINE_N/seed_0
-  drive: /content/drive/MyDrive/ship_detection/paper_project/formal_experiments/DFINE_N/seed_0
+  drive: /content/drive/MyDrive/ship_detection/formal_experiments/DFINE_N/seed_0
   foreground_training_only: true
   training_subprocess_prohibited: true

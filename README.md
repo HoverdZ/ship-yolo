@@ -1,89 +1,55 @@
-# ship-yolo
+# 广域海洋遥感中的小型与极小船舶检测
 
-Official experiment repository for a parameter-efficient remote-sensing ship detector based on Ultralytics YOLO11n. The paper-facing model combines:
+本项目研究一种面向广域海洋遥感影像的可见性—尺度—上下文协同参数高效检测方法。模型以 Ultralytics YOLO11n 为基础，通过浅层空间特征提取、面向小目标的检测尺度重构、上下文校准和可见性感知输入处理，提高复杂海洋场景中小型与极小船舶的检测能力。
 
-- **VGUP**: visibility-gated, detection-oriented input processing;
-- **InceptionDW**: shallow P2/P3 spatial modeling inside C3k2 bottlenecks;
-- **DPLS**: a P2-P4 detection pyramid with DySample upsampling;
-- **CA-SCAM**: contrast-aware spatial context calibration before Detect.
+最终模型由以下部分组成：
 
-The complete YOLO11n model configuration is [`experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml`](experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml). The YOLOv8n transfer configuration is [`experiments/formal_models/R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml`](experiments/formal_models/R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml).
+- **InceptionDW**：适配至浅层 C3k2 瓶颈，用于加强 P2/P3 阶段的多尺度空间特征提取；
+- **DPLS**：构建 P2–P4 检测尺度，增强小型与极小目标的表征；
+- **CA-SCAM**：利用对比度感知的空间上下文校准改善低可见性目标特征；
+- **VGUP**：根据图像可见性自适应调节输入增强强度。
 
-## Paper release scope
-
-`main` contains the implementations and experiment material reported in the manuscript:
-
-- cumulative YOLO11n ablations and formal training notebooks;
-- shallow convolution comparison (standard convolution, InceptionDW, Pinwheel PConv and LSKConv);
-- PLS/DPLS, SCAM/CA-SCAM and VGUP mechanism studies;
-- YOLOv8n transfer and YOLO11s capacity comparison;
-- LS-SSDD-v1.0 and HRSC2016-MS transfer workflows;
-- D-FINE-N, SHIP-YOLO, PMF-YOLOv8, E-WFF Net and AC-YOLO comparisons;
-- paper-analysis and artifact-generation utilities.
-
-Unselected early experiments are preserved, with their original commit tips, on [`archive/experimental-exploration`](../../tree/archive/experimental-exploration). They are intentionally absent from the current `main` tree.
-
-## Repository layout
+## 目录
 
 ```text
-custom_modules/                 paper model and comparison modules
-experiments/                    model YAMLs and controlled protocols
-notebooks/formal/               formal Colab workflows
-tools/formal_experiments/       training and dataset preparation helpers
-tools/paper_artifacts/          evaluation, analysis and figure/table tools
-analysis/ship_scale/            deterministic ship-scale analysis artifacts
-paper_artifacts/model_weights/  released checkpoints (Git LFS)
-paper_artifacts/training_logs/  released results.csv-style logs
-datasets/Fog-LEVIR-Ship/        dataset provenance and reconstruction notice
+custom_modules/   模型模块实现
+experiments/      模型 YAML 与实验参数配置
+model_weights/    训练权重（Git LFS）
+training_logs/    训练日志
+datasets/         数据集来源与使用说明
 ```
 
-## Environment and training controls
+最终 YOLO11n 模型配置为：
 
-The formal Ultralytics experiments use:
-
-- Ultralytics `8.4.92`;
-- input size `640`;
-- batch size `8`;
-- 150 epochs for the primary formal comparisons;
-- seed `0` for the reported run;
-- the official matching YOLO pretrained checkpoint for initialization;
-- foreground `YOLO.train(...)` execution in the notebook kernel;
-- validation-only model selection and `augment=False` for validation/test.
-
-The full shared protocol is recorded in [`experiments/formal_training_config.yaml`](experiments/formal_training_config.yaml). Notebooks copy Drive data to Colab-local storage with concurrent `shutil.copyfile` workers and live file/byte progress before training.
-
-## Checkpoints and logs
-
-The files supplied for the paper release are retained under their original filenames:
-
-- [`paper_artifacts/model_weights`](paper_artifacts/model_weights)
-- [`paper_artifacts/training_logs`](paper_artifacts/training_logs)
-
-Clone checkpoints with Git LFS enabled:
-
-```bash
-git lfs install
-git clone https://github.com/HoverdZ/ship-yolo.git
+```text
+experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml
 ```
 
-## Dataset notice
+## 环境
 
-The primary dataset is referred to as **Fog-LEVIR-Ship**. It is derived from the public **LEVIR-Ship** dataset (the name is sometimes mistyped as “Liver_Ship”) and applies the cloud/fog simulation procedure of Wang et al. (2022), including Perlin-noise-based thin, dense and patchy fog; exact construction details are described in the paper.
+- Ultralytics 8.4.92
+- 输入尺寸：640 × 640
+- Batch size：8
+- Epochs：150
+- Seed：0
 
-The image files are not redistributed in this public repository. The LEVIR-Ship authors license their annotations under CC BY 4.0 but state that they do not own the source satellite-image copyright. Users must obtain the source data through the official channel and comply with the applicable satellite-data terms. See [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
-
-## Module registration
-
-The project does not vendor or modify the installed Ultralytics package. Register repository modules before constructing a custom YAML:
+自定义模型在构建前需要先注册项目模块：
 
 ```python
 from custom_modules.register import register_custom_modules
 from ultralytics import YOLO
 
 register_custom_modules()
-model = YOLO("experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
+model = YOLO("experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
 ```
 
-## Research-use note
+## 数据集
 
-Several adapted comparison modules retain or depend on their upstream license conditions. Review upstream licenses before commercial reuse. No dataset license or third-party model license is replaced by this repository.
+主要实验使用雾化增强后的 **LEVIR-Ship** 数据集。数据在公开 LEVIR-Ship 的基础上，参考 Wang et al. (2022) 的方法，以 Perlin 噪声构造薄雾、浓雾和块状雾场景。数据来源、处理方法和本地目录结构见 [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md)。
+
+受原始遥感影像使用条款限制，本仓库不直接分发图像文件。
+
+## 参考文献
+
+- Chen, W. et al. LEVIR-Ship: <https://github.com/WindVChen/LEVIR-Ship>
+- Wang, W., Zhang, X., Sun, W., Huang, M. (2022). A novel method of ship detection under cloud interference for optical remote sensing images. *Remote Sensing*, 14(15), 3731. <https://doi.org/10.3390/rs14153731>

@@ -1,6 +1,0 @@
-| Pyramid level | Stride | Short-side quantile / px | Intervals spanned | Dilution rate / % |
-| --- | --- | ---: | ---: | ---: |
-| P2 | 4 | 12.50 | 3.12 | 0.00 |
-| P3 | 8 | 12.50 | 1.56 | 0.00 |
-| P4 | 16 | 12.50 | 0.78 | 21.88 |
-| P5 | 32 | 12.50 | 0.39 | 60.94 |
