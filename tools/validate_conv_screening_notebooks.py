@@ -24,10 +24,6 @@ EXPECTED = {
         "C2_lskconv_p23",
         "d95a9b8adcad90d2d94bf771f34a121393ca609c",
     ),
-    "C3_YOLO11n_PKIConv_P23.ipynb": (
-        "C3_pkiconv_p23",
-        "d95a9b8adcad90d2d94bf771f34a121393ca609c",
-    ),
 }
 
 

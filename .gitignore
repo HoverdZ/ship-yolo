@@ -228,6 +228,18 @@ auth.json
 !datasets/
 datasets/*
 !datasets/external_dataset_template.yaml
+!datasets/Fog-LEVIR-Ship/
+!datasets/Fog-LEVIR-Ship/README.md
+
+# Paper-release checkpoints and logs are intentionally versioned.
+!paper_artifacts/
+!paper_artifacts/README.md
+!paper_artifacts/model_weights/
+!paper_artifacts/model_weights/*.pt
+!paper_artifacts/model_weights/*.pth
+!paper_artifacts/training_logs/
+!paper_artifacts/training_logs/*.csv
+!paper_artifacts/training_logs/*.txt
 
 # Ruff stuff:
 .ruff_cache/

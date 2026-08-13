@@ -29,13 +29,6 @@ training:
   plots: true
 
 runs:
-  P01:
-    method: YOLO11s-APFAN
-    model_yaml: experiments/paper_comparisons/P01_yolo11s_apfan.yaml
-    pretrained: yolo11s.pt
-    loss: wise_iou_v3
-    expected_strides: [8, 16, 32]
-    run_name: P01_YOLO11s_APFAN
   P02:
     method: SHIP-YOLO
     model_yaml: experiments/paper_comparisons/P02_yolov8n_ship_yolo.yaml

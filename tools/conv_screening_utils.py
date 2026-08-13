@@ -48,19 +48,11 @@ EXPERIMENTS: dict[str, dict[str, Any]] = {
         "custom_indices": [2, 4],
         "run_name": "yolo11n_lskconv_p23_640",
     },
-    "C3_pkiconv_p23": {
-        "name": "YOLO11n-PKIConv-P2P3",
-        "yaml": "experiments/conv_screening_v1/C3_yolo11n_pkiconv_p23.yaml",
-        "module": "C3k2_PKIConv",
-        "custom_indices": [2, 4],
-        "run_name": "yolo11n_pkiconv_p23_640",
-    },
 }
 
 CUSTOM_MODULE_NAMES = {
     "C3k2_PConv",
     "C3k2_LSKConv",
-    "C3k2_PKIConv",
 }
 IMAGE_SUFFIXES = {
     ".bmp",

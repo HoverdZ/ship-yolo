@@ -165,7 +165,7 @@
           64,
           64
         ],
-        "loss": 129.96080017089844,
+        "loss": 130.02081298828125,
         "parameter_gradients": 271,
         "passed": true
       },
@@ -251,29 +251,9 @@
         "passed": true
       },
       "optional_1024_forward": {
-        "attempted": true,
-        "passed": true,
-        "error": null,
-        "detect_input_shapes": [
-          [
-            1,
-            64,
-            128,
-            128
-          ],
-          [
-            1,
-            128,
-            64,
-            64
-          ],
-          [
-            1,
-            256,
-            32,
-            32
-          ]
-        ]
+        "attempted": false,
+        "passed": null,
+        "error": null
       },
       "checks": {
         "parameters_positive": true,
@@ -438,7 +418,7 @@
           64,
           64
         ],
-        "loss": 162.69337463378906,
+        "loss": 163.02078247070312,
         "parameter_gradients": 241,
         "passed": true
       },
@@ -1517,29 +1497,9 @@
         "passed": true
       },
       "optional_1024_forward": {
-        "attempted": true,
-        "passed": true,
-        "error": null,
-        "detect_input_shapes": [
-          [
-            1,
-            64,
-            256,
-            256
-          ],
-          [
-            1,
-            128,
-            128,
-            128
-          ],
-          [
-            1,
-            128,
-            64,
-            64
-          ]
-        ]
+        "attempted": false,
+        "passed": null,
+        "error": null
       },
       "checks": {
         "parameters_positive": true,
@@ -1751,7 +1711,7 @@
           64,
           64
         ],
-        "loss": 162.43777465820312,
+        "loss": 162.95806884765625,
         "parameter_gradients": 271,
         "passed": true
       },
@@ -2956,29 +2916,9 @@
         "passed": true
       },
       "optional_1024_forward": {
-        "attempted": true,
-        "passed": true,
-        "error": null,
-        "detect_input_shapes": [
-          [
-            1,
-            64,
-            256,
-            256
-          ],
-          [
-            1,
-            128,
-            128,
-            128
-          ],
-          [
-            1,
-            128,
-            64,
-            64
-          ]
-        ]
+        "attempted": false,
+        "passed": null,
+        "error": null
       },
       "checks": {
         "parameters_positive": true,

@@ -11,7 +11,7 @@ The project manages experiments based on Ultralytics YOLO11 for remote sensing s
 - All experiments must be reproducible.
 - Every new experiment must create an independent YAML file.
 - Do not overwrite existing experiments.
-- Do not delete historical experiment records.
+- Keep the paper-facing `main` branch limited to configurations and analyses reported in the manuscript. Historical exploration is retained on `archive/experimental-exploration`.
 - New custom network modules must be placed in `custom_modules/`.
 - Keep modifications minimally invasive whenever possible.
 - Avoid uploading or vendoring Ultralytics source code at the current stage.
@@ -52,35 +52,9 @@ Every experiment must record:
 - Record both successful and failed experiments when they provide useful ablation evidence.
 - Preserve all historical logs and metric records.
 
-## WAFPN Experiment Rules
+## Formal Experiment Protocol
 
-- Any WAFPN experiment must pass structure checks before training.
-- Do not start training without a successful `model.info()` and dummy forward pass.
-- Always record weight transfer as Loaded/Total tensors.
-- Keep three detection heads unless the experiment name explicitly contains `P2` or `4head`.
-- WAFPN-v1 uses static learnable weights only. Do not mix in dynamic weights, sigmoid attention, spatial attention, DyHead, DCNv3, or full MSWPN behavior.
-
-## SA-DWPN Experiment Rules
-
-- Any SA-DWPN experiment must pass build, `model.info()`, dummy forward, and weight-transfer checks before full training.
-- Keep Detect(P3, P4, P5) unless the experiment name explicitly contains `P2` or `4head`.
-- C2 can guide P3 only through a downsampled branch; it must not connect directly to Detect in SA-DWPN-B.
-- Do not enable spatial gating in the first SA-DWPN-B YAML.
-- Do not add DCNv3, Transformer blocks, loss changes, or data augmentation changes to the first SA-DWPN-B experiment.
-- Record smoke-train status before starting long training.
-
-## SA-DWPN-C-lite Rules
-
-- C-lite may differ from B only by enabling spatial gate at T3 and O3.
-- T4, O4, and O5 must keep `use_spatial=False`.
-- B YAML must remain unchanged and must continue to build with zero spatial gates enabled.
-- C-lite must pass build, forward, and weight-transfer checks before smoke training.
-- Prefer SA-DWPN-B `best.pt` as the initial weight source for C-lite, then compare against YOLO11n pretrained transfer if needed.
-- Do not start long training until the 1-epoch smoke run succeeds.
-
-## Formal SA-DWPN Ablation Protocol
-
-- Formal ablations must follow `configs/sa_dwpn_protocol.yaml` unless a documented protocol revision is created.
+- Formal ablations must follow `experiments/formal_training_config.yaml` and `experiments/formal_experiment_registry.yaml` unless a documented protocol revision is created.
 - Formal models must start from the same official `yolo11n.pt` initialization.
 - Except for the target variable, do not change structure, loss, optimizer policy, augmentation, image size, batch size, epoch count, dataset split, or Ultralytics version.
 - New YAML files must include structural-difference tests.
@@ -88,7 +62,7 @@ Every experiment must record:
 - If resume validation fails, raise an error; never fall back to `coco8.yaml` or default training.
 - Training scripts must avoid blocking themselves after pre-training validation. A run directory may be reused only when it contains no files or only `protocol.yaml` and `resolved_args.json`; once training artifacts exist, require valid resume or explicit `--exist-ok`.
 - Do not use temporary Colab monkey patches for Ultralytics source changes; register custom modules through `custom_modules/register.py`.
-- Do not commit datasets, caches, `runs/`, ordinary `.pt` checkpoints, or exported model weights.
+- Do not commit caches or `runs/`. Paper-release checkpoints are the only exception and must be stored in `paper_artifacts/model_weights/` through Git LFS.
 - Every experiment must preserve `args.yaml`, `results.csv`, `summary.json`, and an experiment note when available.
 - Do not fabricate missing experiment data.
 - After code changes, run available tests and report skipped items honestly in the PR.

@@ -15,7 +15,6 @@ from ultralytics.nn.modules import C2f, Conv
 
 from custom_modules.lsk_conv import LargeSelectiveKernelConvBNAct
 from custom_modules.pinwheel_conv import PinwheelConv
-from custom_modules.pki_conv import PolyKernelConv2d
 
 
 class _ScopedConvBottleneck(nn.Module):
@@ -117,33 +116,6 @@ class LSKConvBottleneck(_ScopedConvBottleneck):
         )
 
 
-class PKIConvBottleneck(_ScopedConvBottleneck):
-    """YOLO Bottleneck whose cv2 is the PKI dense multi-kernel mixer."""
-
-    def __init__(
-        self,
-        c1: int,
-        c2: int,
-        shortcut: bool = True,
-        g: int = 1,
-        k: tuple[int, int] = (3, 3),
-        e: float = 0.5,
-    ) -> None:
-        super().__init__(
-            c1,
-            c2,
-            lambda hidden, output: _channel_preserving_adapter(
-                hidden,
-                output,
-                PolyKernelConv2d(output),
-            ),
-            shortcut=shortcut,
-            g=g,
-            k=k,
-            e=e,
-        )
-
-
 class _C3k2ConvVariant(C2f):
     """C3k2-compatible container restricted to non-C3k shallow blocks."""
 
@@ -184,9 +156,3 @@ class C3k2_LSKConv(_C3k2ConvVariant):
     """C3k2 using LSK only for the second convolution."""
 
     bottleneck_type = LSKConvBottleneck
-
-
-class C3k2_PKIConv(_C3k2ConvVariant):
-    """C3k2 using PKI convolution only for the second convolution."""
-
-    bottleneck_type = PKIConvBottleneck

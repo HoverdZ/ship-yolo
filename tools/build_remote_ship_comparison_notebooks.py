@@ -10,7 +10,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOKS = {
-    "P01": ("YOLO11s-APFAN", "P01_YOLO11s_APFAN_150ep.ipynb"),
     "P02": ("SHIP-YOLO", "P02_SHIP_YOLO_150ep.ipynb"),
     "P03": ("PMF-YOLOv8", "P03_PMF_YOLOv8_150ep.ipynb"),
     "P04": ("E-WFF Net", "P04_E_WFF_Net_150ep.ipynb"),

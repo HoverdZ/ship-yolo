@@ -1,4 +1,4 @@
-"""Generate three independent foreground-training Colab notebooks."""
+"""Generate the paper-reported foreground-training Colab notebooks."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ BRANCH = "experiment/conv-screening-v1"
 NOTEBOOKS = {
     "C1_pconv_p23": "C1_YOLO11n_PConv_P23.ipynb",
     "C2_lskconv_p23": "C2_YOLO11n_LSKConv_P23.ipynb",
-    "C3_pkiconv_p23": "C3_YOLO11n_PKIConv_P23.ipynb",
 }
 
 

@@ -51,7 +51,7 @@ def test_registration_is_idempotent_and_exposes_custom_modules() -> None:
     assert tasks.parse_model is first_parser
     assert tasks.DySample is DySample
     assert tasks.SCAM is SCAM
-    assert tasks.parse_model._ship_yolo_patch_version == 11
+    assert tasks.parse_model._ship_yolo_patch_version == 12
 
 
 @pytest.mark.parametrize("experiment", tuple(EXPERIMENTS))

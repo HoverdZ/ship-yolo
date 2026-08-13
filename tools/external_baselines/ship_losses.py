@@ -305,7 +305,7 @@ class _PaperDetectionTrainer(DetectionTrainer):
 
 
 class WiseIoUv3Trainer(_PaperDetectionTrainer):
-    """Foreground Ultralytics trainer for APFAN and SHIP-YOLO."""
+    """Foreground Ultralytics trainer for the SHIP-YOLO reproduction."""
 
     model_class = WiseIoUv3DetectionModel
 

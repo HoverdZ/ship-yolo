@@ -1,4 +1,4 @@
-"""Tests for the controlled PConv/LSKConv/PKIConv screening experiments."""
+"""Tests for the paper-reported PConv/LSKConv screening experiments."""
 
 from __future__ import annotations
 
@@ -14,11 +14,9 @@ from ultralytics.nn.modules import C3k2, Conv
 from custom_modules.c3k2_conv_screening import (
     C3k2_LSKConv,
     C3k2_PConv,
-    C3k2_PKIConv,
 )
 from custom_modules.lsk_conv import LargeSelectiveKernelConv2d
 from custom_modules.pinwheel_conv import PinwheelConv
-from custom_modules.pki_conv import PolyKernelConv2d
 from custom_modules.register import register_conv_screening_modules
 from tools.conv_screening_utils import (
     ConvScreeningConfig,
@@ -39,10 +37,6 @@ EXPERIMENTS = {
     "C2_lskconv_p23": (
         ROOT / "experiments/conv_screening_v1/C2_yolo11n_lskconv_p23.yaml",
         C3k2_LSKConv,
-    ),
-    "C3_pkiconv_p23": (
-        ROOT / "experiments/conv_screening_v1/C3_yolo11n_pkiconv_p23.yaml",
-        C3k2_PKIConv,
     ),
 }
 OFFICIAL_BASELINE_ID = "C0_yolo11n_official"
@@ -106,46 +100,11 @@ class OfficialLSKReference(nn.Module):
         return x * self.conv(attention)
 
 
-class OfficialPKIMixerReference(nn.Module):
-    """PKINet dense non-dilated poly-kernel mixer without CAA/FFN."""
-
-    def __init__(self, channels: int) -> None:
-        super().__init__()
-        self.base_conv = nn.Conv2d(
-            channels,
-            channels,
-            3,
-            padding=1,
-            groups=channels,
-            bias=False,
-        )
-        self.branch_convs = nn.ModuleList(
-            nn.Conv2d(
-                channels,
-                channels,
-                kernel,
-                padding=kernel // 2,
-                groups=channels,
-                bias=False,
-            )
-            for kernel in (5, 7, 9, 11)
-        )
-        self.project = Conv(channels, channels, k=1, s=1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.base_conv(x)
-        mixed = x
-        for branch in self.branch_convs:
-            mixed = mixed + branch(x)
-        return self.project(mixed)
-
-
 @pytest.mark.parametrize(
     ("candidate", "reference"),
     [
         (PinwheelConv(8, 16), OfficialPConvReference(8, 16)),
         (LargeSelectiveKernelConv2d(16), OfficialLSKReference(16)),
-        (PolyKernelConv2d(16), OfficialPKIMixerReference(16)),
     ],
 )
 def test_adapted_operator_matches_official_reference(
@@ -155,7 +114,7 @@ def test_adapted_operator_matches_official_reference(
     reference.load_state_dict(candidate.state_dict(), strict=True)
     candidate.eval()
     reference.eval()
-    x = torch.randn(2, 16 if isinstance(candidate, (LargeSelectiveKernelConv2d, PolyKernelConv2d)) else 8, 31, 29)
+    x = torch.randn(2, 16 if isinstance(candidate, LargeSelectiveKernelConv2d) else 8, 31, 29)
     with torch.no_grad():
         actual = candidate(x)
         expected = reference(x)
@@ -174,7 +133,7 @@ def test_official_baseline_uses_only_ultralytics_modules() -> None:
     layers = wrapper.model.model
     assert isinstance(layers[2], C3k2)
     assert isinstance(layers[4], C3k2)
-    custom_types = (C3k2_PConv, C3k2_LSKConv, C3k2_PKIConv)
+    custom_types = (C3k2_PConv, C3k2_LSKConv)
     assert not any(isinstance(layer, custom_types) for layer in layers)
     assert list(layers[-1].f) == [16, 19, 22]
     assert wrapper.model.stride.tolist() == [8.0, 16.0, 32.0]
@@ -192,7 +151,7 @@ def test_model_scope_forward_backward_and_detect_contract(
     layers = wrapper.model.model
     assert isinstance(layers[2], expected_type)
     assert isinstance(layers[4], expected_type)
-    custom_types = (C3k2_PConv, C3k2_LSKConv, C3k2_PKIConv)
+    custom_types = (C3k2_PConv, C3k2_LSKConv)
     assert [
         index for index, layer in enumerate(layers)
         if isinstance(layer, custom_types)

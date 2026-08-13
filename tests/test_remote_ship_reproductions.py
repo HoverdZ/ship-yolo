@@ -10,11 +10,8 @@ import yaml
 from custom_modules.register import register_custom_modules
 from custom_modules.ac_yolo_official import ACmix, C2PSA_ACmix
 from custom_modules.remote_ship_reproductions import (
-    AMSFA,
-    CAFM,
     C2fRFA,
     C2fRepGhost,
-    C3k2APFAN,
     DATBlock,
     FASFF,
     ShuffleAttention,
@@ -30,7 +27,6 @@ from tools.external_baselines.ship_losses import (
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = {
-    "P01_yolo11s_apfan.yaml": (8, 16, 32),
     "P02_yolov8n_ship_yolo.yaml": (8, 16, 32),
     "P03_yolov8n_pmf_yolov8.yaml": (4, 8, 16, 32),
     "P04_yolov8s_ewff_net.yaml": (8, 16, 32),
@@ -67,10 +63,6 @@ def test_each_reproduction_contains_its_published_modules():
         name: YOLO(str(root / name), task="detect").model
         for name in CONFIGS
     }
-    assert any(isinstance(module, C3k2APFAN) for module in models["P01_yolo11s_apfan.yaml"].modules())
-    assert any(isinstance(module, CAFM) for module in models["P01_yolo11s_apfan.yaml"].modules())
-    assert sum(isinstance(module, AMSFA) for module in models["P01_yolo11s_apfan.yaml"].modules()) == 2
-
     assert any(isinstance(module, C2fRepGhost) for module in models["P02_yolov8n_ship_yolo.yaml"].modules())
     assert sum(isinstance(module, ShuffleAttention) for module in models["P02_yolov8n_ship_yolo.yaml"].modules()) == 2
 
@@ -123,7 +115,7 @@ def test_protocol_controls_and_notebooks_are_foreground_and_token_free():
     assert training["batch"] == 8
     assert training["seed"] == 0
     assert training["cache"] == "disk"
-    assert set(protocol["runs"]) == {"P01", "P02", "P03", "P04", "P05"}
+    assert set(protocol["runs"]) == {"P02", "P03", "P04", "P05"}
 
     for run_id, item in protocol["runs"].items():
         notebook = build_notebook(run_id, item["method"], "a" * 40)

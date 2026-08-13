@@ -1,204 +1,89 @@
 # ship-yolo
 
-Remote Sensing Ship Detection based on YOLO11.
+Official experiment repository for a parameter-efficient remote-sensing ship detector based on Ultralytics YOLO11n. The paper-facing model combines:
 
-This repository manages reproducible research experiments for remote sensing ship detection using Ultralytics YOLO11. It is intended for long-term SCI paper experimentation, including baseline construction, model-structure improvement, ablation studies, experiment logging, and paper-related documentation.
+- **VGUP**: visibility-gated, detection-oriented input processing;
+- **InceptionDW**: shallow P2/P3 spatial modeling inside C3k2 bottlenecks;
+- **DPLS**: a P2-P4 detection pyramid with DySample upsampling;
+- **CA-SCAM**: contrast-aware spatial context calibration before Detect.
 
-## Research Goal
+The complete YOLO11n model configuration is [`experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml`](experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml). The YOLOv8n transfer configuration is [`experiments/formal_models/R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml`](experiments/formal_models/R12_yolov8n_inceptiondw_dpls_ca_scam_vgup.yaml).
 
-The main goal of this project is to support a high-quality SCI Q2/Q1 paper on remote sensing ship detection. The repository is organized around reproducibility, traceable experiment evolution, and maintainable model improvements rather than industrial deployment.
+## Paper release scope
 
-## Current Research Directions
+`main` contains the implementations and experiment material reported in the manuscript:
 
-- Improve small-object ship detection in remote sensing imagery.
-- Enhance low-level detail preservation through P2 detection branches.
-- Explore semantic guidance for shallow feature maps.
-- Study lightweight multi-scale feature fusion.
-- Evaluate dynamic detection heads and related attention mechanisms.
-- Build clear ablation chains for SCI manuscript writing.
+- cumulative YOLO11n ablations and formal training notebooks;
+- shallow convolution comparison (standard convolution, InceptionDW, Pinwheel PConv and LSKConv);
+- PLS/DPLS, SCAM/CA-SCAM and VGUP mechanism studies;
+- YOLOv8n transfer and YOLO11s capacity comparison;
+- LS-SSDD-v1.0 and HRSC2016-MS transfer workflows;
+- D-FINE-N, SHIP-YOLO, PMF-YOLOv8, E-WFF Net and AC-YOLO comparisons;
+- paper-analysis and artifact-generation utilities.
 
-## Experiment Evolution Route
+Unselected early experiments are preserved, with their original commit tips, on [`archive/experimental-exploration`](../../tree/archive/experimental-exploration). They are intentionally absent from the current `main` tree.
 
-```text
-YOLO11 Baseline
-↓
-P2 Detection Head
-↓
-SemanticGuideP2
-↓
-SemanticGuideP3
-↓
-WeightedAdd Fusion
-↓
-MSWPN-lite
-↓
-DyHead（待探索）
-```
-
-## Repository Structure
+## Repository layout
 
 ```text
-ship-yolo/
-├── README.md
-├── AGENTS.md
-├── experiments/
-│   └── .gitkeep
-├── custom_modules/
-│   └── .gitkeep
-├── logs/
-│   └── .gitkeep
-├── papers/
-│   └── .gitkeep
-└── docs/
-    ├── .gitkeep
-    └── experiment_template.md
+custom_modules/                 paper model and comparison modules
+experiments/                    model YAMLs and controlled protocols
+notebooks/formal/               formal Colab workflows
+tools/formal_experiments/       training and dataset preparation helpers
+tools/paper_artifacts/          evaluation, analysis and figure/table tools
+analysis/ship_scale/            deterministic ship-scale analysis artifacts
+paper_artifacts/model_weights/  released checkpoints (Git LFS)
+paper_artifacts/training_logs/  released results.csv-style logs
+datasets/Fog-LEVIR-Ship/        dataset provenance and reconstruction notice
 ```
 
-### Directory Usage
+## Environment and training controls
 
-- `experiments/`: Stores independent experiment YAML files, including baseline and ablation configurations.
-- `custom_modules/`: Stores custom network modules, fusion blocks, detection heads, and other model modifications.
-- `logs/`: Stores experiment records, training summaries, metric tables, and reproducibility notes.
-- `papers/`: Stores paper drafts, figures, tables, and literature notes when needed.
-- `docs/`: Stores reusable templates, research notes, and repository-level documentation.
+The formal Ultralytics experiments use:
 
-## Experiment Management Rules
+- Ultralytics `8.4.92`;
+- input size `640`;
+- batch size `8`;
+- 150 epochs for the primary formal comparisons;
+- seed `0` for the reported run;
+- the official matching YOLO pretrained checkpoint for initialization;
+- foreground `YOLO.train(...)` execution in the notebook kernel;
+- validation-only model selection and `augment=False` for validation/test.
 
-All experiments must be reproducible and traceable.
+The full shared protocol is recorded in [`experiments/formal_training_config.yaml`](experiments/formal_training_config.yaml). Notebooks copy Drive data to Colab-local storage with concurrent `shutil.copyfile` workers and live file/byte progress before training.
 
-- Each new experiment must create an independent YAML file.
-- Existing experiment YAML files must not be overwritten.
-- Each experiment should have a matching experiment record based on `docs/experiment_template.md`.
-- Every experiment record must include model changes, weight transfer status, core training settings, and final metrics.
-- Historical experiment records must not be deleted.
-- Custom modules must be placed under `custom_modules/`.
-- Changes should follow the minimum-intrusion principle to keep the YOLO11 baseline easy to compare against.
-- Ultralytics source code is not included at the current stage.
+## Checkpoints and logs
 
-The current repository only manages:
+The files supplied for the paper release are retained under their original filenames:
 
-- Experiment configurations (`*.yaml`)
-- Custom modules
-- Experiment logs and records
-- Research and paper documentation
+- [`paper_artifacts/model_weights`](paper_artifacts/model_weights)
+- [`paper_artifacts/training_logs`](paper_artifacts/training_logs)
 
-Full Ultralytics source integration will be considered later only if it becomes necessary for long-term research maintenance.
-
-## Required Experiment Record Fields
-
-Each experiment should record:
-
-- Experiment name
-- Modification details
-- Whether pretrained weights are used
-- Loaded/Total tensors
-- Epoch
-- Image size (`imgsz`)
-- Batch size
-- Final Precision
-- Recall
-- mAP50
-- mAP50-95
-
-## Roadmap
-
-- Establish YOLO11 baseline results on the remote sensing ship dataset.
-- Add and evaluate a P2 detection head for small ships.
-- Introduce SemanticGuideP2 and compare with the P2-only variant.
-- Extend semantic guidance to P3 and analyze feature-level effects.
-- Evaluate WeightedAdd fusion against standard feature fusion.
-- Develop and test MSWPN-lite for lightweight multi-scale enhancement.
-- Explore DyHead and compare its cost-performance tradeoff.
-- Build complete ablation tables and visualization materials for SCI manuscript submission.
-
-## Current Planned Experiment: WAFPN-v1-640
-
-The current planned experiment is `wafpn_v1_640`.
-
-- This experiment keeps the standard three detection heads: P3, P4, and P5.
-- It replaces the 4 Concat fusion nodes in the FPN/PAN Neck with static learnable WeightedAdd fusion.
-- The goal is to verify whether weighted additive fusion is more suitable than original concatenation fusion for remote sensing small-ship detection.
-- Only the pre-training engineering scaffold is complete at this stage. Training has not started.
-
-## Current Planned Experiment: YOLO11n-SA-DWPN-B
-
-SA-DWPN-B (`yolo11n_sa_dwpn_b_640`) is complete as the validated base variant for the SA-DWPN line.
-
-- This experiment keeps three detection heads: P3, P4, and P5.
-- It injects C2 detail into P3 through a downsampled branch instead of adding a P2 detection head.
-- It replaces standard Neck fusion with SDWF, a scene-adaptive dynamic weighted fusion module.
-- Spatial gating is implemented in code but disabled in the first YAML to keep the first ablation stable.
-- B is the baseline variant for the SA-DWPN series; training metrics should be preserved in `logs/` for later comparison.
-
-## Current Planned Experiment: YOLO11n-SA-DWPN-C-lite
-
-The current added experiment is `yolo11n_sa_dwpn_c_lite_640`.
-
-- C-lite is built strictly on SA-DWPN-B.
-- It keeps Detect(O3, O4, O5), with three heads P3/P4/P5.
-- It enables spatial gate only at the P3-related `T3` and `O3` SDWF nodes.
-- It keeps spatial gate disabled at `T4`, `O4`, and `O5`.
-- It does not add P2 Detect, DCNv3, DyHead, loss changes, or data-augmentation changes.
-
-Recommended checks:
+Clone checkpoints with Git LFS enabled:
 
 ```bash
-python tools/test_sa_dwpn_c_lite_build.py
-python tools/test_sa_dwpn_c_lite_forward.py
-python tools/test_sa_dwpn_c_lite_weight_transfer.py --weights yolo11n.pt
-python tools/train_sa_dwpn_c_lite_smoke.py --data /content/drive/MyDrive/ship_detection/data/data.yaml --weights path/to/sa_dwpn_b_best.pt
+git lfs install
+git clone https://github.com/HoverdZ/ship-yolo.git
 ```
 
-## SA-DWPN Formal Ablations
+## Dataset notice
 
-Formal SA-DWPN ablations are governed by `configs/sa_dwpn_protocol.yaml`. The current variants are:
+The primary dataset is referred to as **Fog-LEVIR-Ship**. It is derived from the public **LEVIR-Ship** dataset (the name is sometimes mistyped as “Liver_Ship”) and applies the cloud/fog simulation procedure of Wang et al. (2022), including Perlin-noise-based thin, dense and patchy fog; exact construction details are described in the paper.
 
-- `b`: all five SDWF spatial gates disabled.
-- `c_lite`: spatial gates enabled at T3 and O3.
-- `t3_only`: spatial gate enabled only at T3.
-- `o3_only`: spatial gate enabled only at O3.
+The image files are not redistributed in this public repository. The LEVIR-Ship authors license their annotations under CC BY 4.0 but state that they do not own the source satellite-image copyright. Users must obtain the source data through the official channel and comply with the applicable satellite-data terms. See [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
 
-Use the unified training entrypoint:
+## Module registration
 
-```bash
-python tools/train_sa_dwpn_variant.py --variant t3_only --data /content/ship_detection_local/data/data_local.yaml --weights /content/ship-yolo/yolo11n.pt --project /content/drive/MyDrive/ship_detection/runs
+The project does not vendor or modify the installed Ultralytics package. Register repository modules before constructing a custom YAML:
+
+```python
+from custom_modules.register import register_custom_modules
+from ultralytics import YOLO
+
+register_custom_modules()
+model = YOLO("experiments/formal_ablation_v1/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
 ```
 
-Analysis and archiving tools:
+## Research-use note
 
-```bash
-python tools/inspect_sa_dwpn_gates.py --weights path/to/best.pt --output artifacts/gate_analysis/c_lite
-python tools/visualize_sa_dwpn_heatmaps.py --data /path/to/data.yaml --output artifacts/heatmaps/c_lite --model c_lite path/to/best.pt
-python tools/export_run_artifacts.py --run-dir /content/drive/MyDrive/ship_detection/runs/yolo11n_sa_dwpn_c_lite_640 --destination results/sa_dwpn_c_lite_640_main
-```
-
-Heatmaps are auxiliary interpretation artifacts only; they do not prove causality by themselves.
-
-## Prepared Experiment: YOLO11n-InceptionDW-C3k2-P23
-
-The `experiment/inceptiondw-c3k2-p23` line prepares a formal shallow-backbone
-ablation for Ultralytics 8.4.92. It replaces only backbone C3k2 layers 2 and 4;
-P4/P5, SPPF, C2PSA, the full Neck, and Detect remain official YOLO11n.
-
-The implementation uses the Apache-2.0 official InceptionNeXt
-`InceptionDWConv2d` core with fixed 3x3, 1x11, and 11x1 depthwise branches.
-After YOLO11n depth scaling, exactly two InceptionDW cores are present.
-
-Pre-training checks:
-
-```bash
-python tools/build_inceptiondw_c3k2_p23.py
-python tools/check_inceptiondw_c3k2_p23.py --weights yolo11n.pt
-pytest -q tests/test_inceptiondw_c3k2_p23.py
-```
-
-Formal training entrypoint (training is not started by the preparation task):
-
-```bash
-python tools/train_inceptiondw_c3k2_p23.py \
-  --data /path/to/ship_detection/data.yaml \
-  --project /path/to/persistent/runs
-```
-
-See `docs/experiments/yolo11n_inceptiondw_c3k2_p23.md` for the exact scope,
-weight-inheritance audit, model statistics, and safe resume command.
+Several adapted comparison modules retain or depend on their upstream license conditions. Review upstream licenses before commercial reuse. No dataset license or third-party model license is replaced by this repository.

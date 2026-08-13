@@ -37,7 +37,6 @@ CUSTOM_MODULES = {
     "C3k2_InceptionDW",
     "C3k2_PConv",
     "C3k2_LSKConv",
-    "C3k2_PKIConv",
     "DySample",
     "SCAM",
     "CASCAM",
@@ -201,9 +200,6 @@ def _human_identity(module_counts: Counter[str]) -> str:
         return "YOLO11n + PConv"
     if module_counts["C3k2_LSKConv"]:
         return "YOLO11n + LSKConv"
-    if module_counts["C3k2_PKIConv"]:
-        return "YOLO11n + PKIConv"
-
     parts = ["YOLO11n"]
     if module_counts["C3k2_InceptionDW"]:
         parts.append("InceptionDW")

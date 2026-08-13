@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 11
+_PATCH_VERSION = 12
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -28,17 +28,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         return
 
     source = inspect.getsource(parse_model)
-    has_ablation = all(
-        marker in source
-        for marker in ("C3k2CrossConv", "CGFM", "AlignConcat", "DD")
-    )
     has_c3k2_inception = "C3k2_InceptionDW" in source
     has_c2f_inception = "C2f_InceptionDW" in source
     has_conv_screening = all(
         marker in source
-        for marker in ("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv")
+        for marker in ("C3k2_PConv", "C3k2_LSKConv")
     )
-    has_sa_dwpn = "elif m is SDWF:" in source and "DWDown" in source
     has_cumulative = (
         "elif m is DySample:" in source
         and (
@@ -55,24 +50,20 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_adaptive = (
         "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
     )
-    paper_module_set = "{CAFM, ShuffleAttention, DATBlock}"
+    paper_module_set = "{ShuffleAttention, DATBlock}"
     has_paper_reproductions = (
-        "C3k2APFAN" in source
-        and "C2fRepGhost" in source
+        "C2fRepGhost" in source
         and "C2fRFA" in source
         and "SimSPPF" in source
         and f"elif m in {paper_module_set}:" in source
-        and "elif m is AMSFA:" in source
         and "elif m is FASFF:" in source
         and "elif m is WeightedFeatureFusion:" in source
     )
     has_ac_yolo = "C2PSA_ACmix" in source
     if (
-        has_ablation
-        and has_c3k2_inception
+        has_c3k2_inception
         and has_c2f_inception
         and has_conv_screening
-        and has_sa_dwpn
         and has_cumulative
         and has_adaptive
         and has_calibrated_scam
@@ -81,10 +72,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
-        parse_model._sa_dwpn_patched = True
         parse_model._inceptiondw_patched = True
         parse_model._conv_screening_patched = True
-        parse_model._module_ablation_patched = True
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
         parse_model._calibrated_scam_patched = True
@@ -97,11 +86,6 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("Unable to locate parse_model base_modules block for custom registration.")
     base_additions: list[str] = []
     repeat_additions: list[str] = []
-    if not has_sa_dwpn:
-        base_additions.extend(("Align", "DWDown"))
-    if not has_ablation:
-        base_additions.extend(("C3k2CrossConv", "DD"))
-        repeat_additions.append("C3k2CrossConv")
     if not has_c3k2_inception:
         base_additions.append("C3k2_InceptionDW")
         repeat_additions.append("C3k2_InceptionDW")
@@ -109,11 +93,11 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         base_additions.append("C2f_InceptionDW")
         repeat_additions.append("C2f_InceptionDW")
     if not has_conv_screening:
-        base_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
-        repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv", "C3k2_PKIConv"))
+        base_additions.extend(("C3k2_PConv", "C3k2_LSKConv"))
+        repeat_additions.extend(("C3k2_PConv", "C3k2_LSKConv"))
     if not has_paper_reproductions:
-        base_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA", "SimSPPF"))
-        repeat_additions.extend(("C3k2APFAN", "C2fRepGhost", "C2fRFA"))
+        base_additions.extend(("C2fRepGhost", "C2fRFA", "SimSPPF"))
+        repeat_additions.extend(("C2fRepGhost", "C2fRFA"))
     if not has_ac_yolo:
         base_additions.append("C2PSA_ACmix")
         repeat_additions.append("C2PSA_ACmix")
@@ -134,42 +118,6 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             f"{repeat_marker}\n{inserted.rstrip()}",
             1,
         )
-
-    if not has_ablation:
-        c3k2_marker = "            if m is C3k2:  # for M/L/X sizes"
-        if c3k2_marker not in source:
-            raise RuntimeError("Unable to locate parse_model C3k2 scale branch.")
-        source = source.replace(
-            c3k2_marker,
-            "            if m in {C3k2, C3k2CrossConv}:  # for M/L/X sizes",
-            1,
-        )
-
-        branch_marker = "        elif m is AIFI:"
-        if branch_marker not in source:
-            raise RuntimeError("Unable to locate parse_model AIFI branch for fusion registration.")
-        fusion_branch = """        elif m in {CGFM, AlignConcat}:
-            if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError(f"{m.__name__} requires [deep_upsampled, shallow_lateral].")
-            c_deep, c_shallow = ch[f[0]], ch[f[1]]
-            c2 = 2 * c_shallow
-            args = [c_deep, c_shallow, *args]
-"""
-        source = source.replace(branch_marker, fusion_branch + branch_marker, 1)
-
-    if not has_sa_dwpn:
-        branch_marker = "        elif m is AIFI:"
-        if branch_marker not in source:
-            raise RuntimeError("Unable to locate parse_model AIFI branch for custom registration.")
-        sdwf_branch = """        elif m is SDWF:
-            if not isinstance(f, (list, tuple)):
-                f = [f]
-            c1, c2 = ch[f[0]], args[0]
-            if c2 != nc:
-                c2 = make_divisible(min(c2, max_channels) * width, 8)
-            args = [c1, c2, *args[1:]]
-"""
-        source = source.replace(branch_marker, sdwf_branch + branch_marker, 1)
 
     if not has_cumulative:
         branch_marker = "        elif m is AIFI:"
@@ -238,20 +186,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError(
                 "Unable to locate parse_model AIFI branch for paper reproductions."
             )
-        paper_branch = """        elif m in {CAFM, ShuffleAttention, DATBlock}:
+        paper_branch = """        elif m in {ShuffleAttention, DATBlock}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one feature tensor.")
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
-        elif m is AMSFA:
-            if not isinstance(f, (list, tuple)) or len(f) != 3:
-                raise ValueError("AMSFA requires [P3, P4, P5].")
-            input_channels = [ch[index] for index in f]
-            c2 = args[0]
-            if c2 != nc:
-                c2 = make_divisible(min(c2, max_channels) * width, 8)
-            args = [input_channels, c2, *args[1:]]
         elif m is FASFF:
             if not isinstance(f, (list, tuple)) or len(f) != 4:
                 raise ValueError("FASFF requires four PAN-4 features.")
@@ -282,10 +222,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     tasks.parse_model._ship_yolo_patched = True
     tasks.parse_model._ship_yolo_patch_version = _PATCH_VERSION
-    tasks.parse_model._sa_dwpn_patched = True
     tasks.parse_model._inceptiondw_patched = True
     tasks.parse_model._conv_screening_patched = True
-    tasks.parse_model._module_ablation_patched = True
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
     tasks.parse_model._calibrated_scam_patched = True
@@ -298,31 +236,23 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     from custom_modules.c2f_inceptiondw import C2f_InceptionDW
     from custom_modules.ac_yolo_official import ACmix, C2PSA_ACmix
-    from custom_modules.c3k2_crossconv import C3k2CrossConv
     from custom_modules.c3k2_inceptiondw import C3k2_InceptionDW
     from custom_modules.c3k2_conv_screening import (
         C3k2_LSKConv,
         C3k2_PConv,
-        C3k2_PKIConv,
     )
     from custom_modules.calibrated_scam import (
         CASCAM,
         CASCAMFixedBeta,
         CASCAMUnbounded,
     )
-    from custom_modules.cgfm import AlignConcat, CGFM
-    from custom_modules.dd import DD
     from custom_modules.dysample import DySample
     from custom_modules.erup import ERUPPreprocessor
-    from custom_modules.sa_dwpn import Align, DWDown, SDWF
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
     from custom_modules.remote_ship_reproductions import (
-        AMSFA,
-        CAFM,
         C2fRFA,
         C2fRepGhost,
-        C3k2APFAN,
         DATBlock,
         FASFF,
         ShuffleAttention,
@@ -334,31 +264,20 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     names = {
         "ACmix": ACmix,
-        "Align": Align,
-        "AlignConcat": AlignConcat,
         "C2f_InceptionDW": C2f_InceptionDW,
         "C2PSA_ACmix": C2PSA_ACmix,
-        "C3k2CrossConv": C3k2CrossConv,
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "C3k2_LSKConv": C3k2_LSKConv,
         "C3k2_PConv": C3k2_PConv,
-        "C3k2_PKIConv": C3k2_PKIConv,
         "CASCAM": CASCAM,
         "CASCAMFixedBeta": CASCAMFixedBeta,
         "CASCAMUnbounded": CASCAMUnbounded,
-        "CGFM": CGFM,
-        "DD": DD,
         "DySample": DySample,
-        "DWDown": DWDown,
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
-        "SDWF": SDWF,
         "VGUPPreprocessor": VGUPPreprocessor,
-        "AMSFA": AMSFA,
-        "CAFM": CAFM,
         "C2fRFA": C2fRFA,
         "C2fRepGhost": C2fRepGhost,
-        "C3k2APFAN": C3k2APFAN,
         "DATBlock": DATBlock,
         "FASFF": FASFF,
         "ShuffleAttention": ShuffleAttention,
@@ -372,12 +291,6 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         _patch_parse_model(tasks, names)
 
 
-def register_sa_dwpn_modules(patch_parse_model: bool = True) -> None:
-    """Backward-compatible SA-DWPN registration entrypoint."""
-
-    register_custom_modules(patch_parse_model=patch_parse_model)
-
-
 def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
     """Register the InceptionDW C3k2 module and shared repository modules."""
 
@@ -385,13 +298,7 @@ def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
 
 
 def register_conv_screening_modules(patch_parse_model: bool = True) -> None:
-    """Register the controlled PConv/LSKConv/PKIConv C3k2 variants."""
-
-    register_custom_modules(patch_parse_model=patch_parse_model)
-
-
-def register_module_ablation_modules(patch_parse_model: bool = True) -> None:
-    """Register CrossConv, DD, CGFM, and shared repository modules."""
+    """Register the paper-reported controlled PConv/LSKConv variants."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
 

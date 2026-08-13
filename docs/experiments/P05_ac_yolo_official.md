@@ -10,7 +10,7 @@
 - 官方仓库基础版本：Ultralytics 8.3.59
 - 本项目运行版本：Ultralytics 8.4.92
 
-本实验是新的独立对比实验 P05，不覆盖 P01。P01 的 APFAN 历史文件和结果继续保留。
+本实验是论文最终采用的 YOLO11 系船舶专项对比模型。早期未采用的 APFAN 探索已转移至 `archive/experimental-exploration`。
 
 ## 结构与损失
 
