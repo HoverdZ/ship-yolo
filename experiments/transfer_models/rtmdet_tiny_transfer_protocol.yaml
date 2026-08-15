@@ -1,0 +1,62 @@
+schema_version: 1
+protocol_id: rtmdet_tiny_cross_architecture_v1
+status: prepared
+
+official_source:
+  repository: https://github.com/open-mmlab/mmdetection
+  version: v3.3.0
+  model: rtmdet_tiny_8xb32-300e_coco
+  checkpoint: https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_tiny_8xb32-300e_coco/rtmdet_tiny_8xb32-300e_coco_20220902_112414-78e30dcc.pth
+  license: Apache-2.0
+
+runtime:
+  python: 3.12
+  torch: 2.4.0+cu121
+  torchvision: 0.19.0+cu121
+  mmcv: 2.2.0
+  mmengine: 0.10.7
+  mmdetection: 3.3.0
+  mmdetection_commit: 44ebd17b145c2372c4b700bfb9cb20dbd28ab64a
+  compatibility_note: only the stale MMCV upper-bound guard is relaxed; RTMDet code is unchanged
+
+shared_controls:
+  dataset: primary_ship_v1
+  train_split: train
+  selection_split: val
+  sealed_test_split: test
+  image_size: 640
+  epochs: 150
+  batch_size: 8
+  seed: 0
+  optimizer: RTMDet-native AdamW with automatic linear LR scaling
+  mixed_precision: true
+  ema: true
+  validation_interval_epochs: 1
+  final_test_policy: evaluate the validation-selected best checkpoint once
+  training_process: foreground Runner.train; no subprocess
+
+experiments:
+  - id: X05_RTMDet_Tiny_Official_150ep
+    config: experiments/transfer_models/X05_rtmdet_tiny_official_150e.py
+    structure: official RTMDet-Tiny P3/P4/P5
+    pretrained: official RTMDet-Tiny COCO checkpoint
+    loaded_total_tensors: recorded_at_runtime
+    cpu_preflight_loaded_total_tensors: 470/476
+    results:
+      precision: null
+      recall: null
+      map50: null
+      map75: null
+      map50_95: null
+  - id: X06_RTMDet_Tiny_InceptionDW_DPLS_CA_SCAM_VGUP_150ep
+    config: experiments/transfer_models/X06_rtmdet_tiny_inceptiondw_dpls_ca_scam_vgup_150e.py
+    structure: VGUP + shallow InceptionDW + P2/P3/P4 DPLS + CA-SCAM
+    pretrained: audited compatible tensors from the same official COCO checkpoint
+    loaded_total_tensors: recorded_at_runtime
+    cpu_preflight_loaded_total_tensors: 269/550
+    results:
+      precision: null
+      recall: null
+      map50: null
+      map75: null
+      map50_95: null

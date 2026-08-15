@@ -43,6 +43,20 @@ register_custom_modules()
 model = YOLO("experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
 ```
 
+## RTMDet-Tiny Cross-Architecture Evaluation
+
+The paired RTMDet-Tiny experiment keeps the native MMDetection detector,
+assignment strategy, losses, head, optimizer family, and augmentation recipe.
+Only the proposed visibility-scale-context components change between the two
+configs:
+
+- `experiments/transfer_models/X05_rtmdet_tiny_official_150e.py`
+- `experiments/transfer_models/X06_rtmdet_tiny_inceptiondw_dpls_ca_scam_vgup_150e.py`
+
+Both use 640 × 640 input, 150 epochs, batch size 8, seed 0, and the same
+official RTMDet-Tiny COCO checkpoint. The runtime records exact
+Loaded/Total tensor counts before epoch one.
+
 ## Dataset
 
 The primary experiments use a fog-augmented version of the public LEVIR-Ship dataset. Following Wang et al. (2022), Perlin noise is used to simulate thin, dense, and patchy fog conditions. Dataset provenance, processing details, and directory organization are documented in [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
