@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 13
+_PATCH_VERSION = 14
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -58,6 +58,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and "elif m is WeightedFeatureFusion:" in source
     )
     has_ac_yolo = "C2PSA_ACmix" in source
+    has_ruq_head = "RUQDetect" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -67,6 +68,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_calibrated_scam
         and has_comparison_modules
         and has_ac_yolo
+        and has_ruq_head
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -77,6 +79,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._calibrated_scam_patched = True
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
+        parse_model._ruq_head_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -208,6 +211,24 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 """
         source = source.replace(branch_marker, comparison_branch + branch_marker, 1)
 
+    if not has_ruq_head:
+        detect_marker = "                Detect,\n                WorldDetect,"
+        if detect_marker not in source:
+            raise RuntimeError("Unable to locate the Detect parser set for RUQDetect registration.")
+        source = source.replace(
+            detect_marker,
+            "                Detect,\n                RUQDetect,\n                WorldDetect,",
+            1,
+        )
+        legacy_marker = "if m in {Detect, YOLOEDetect,"
+        if legacy_marker not in source:
+            raise RuntimeError("Unable to locate the Detect legacy set for RUQDetect registration.")
+        source = source.replace(
+            legacy_marker,
+            "if m in {Detect, RUQDetect, YOLOEDetect,",
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -227,6 +248,27 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._calibrated_scam_patched = True
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
+    tasks.parse_model._ruq_head_patched = True
+
+
+def _patch_detection_criterion(tasks: ModuleType, ruq_detect: type, ruq_loss: type) -> None:
+    """Route RUQ models to their criterion while preserving all other models."""
+
+    current = tasks.DetectionModel.init_criterion
+    if getattr(current, "_ship_yolo_ruq_patch_version", 0) == _PATCH_VERSION:
+        return
+    original = getattr(current, "_ship_yolo_original_criterion", current)
+
+    def init_criterion(model):
+        if isinstance(model.model[-1], ruq_detect):
+            return ruq_loss(model)
+        return original(model)
+
+    init_criterion.__name__ = current.__name__
+    init_criterion.__doc__ = current.__doc__
+    init_criterion._ship_yolo_original_criterion = original
+    init_criterion._ship_yolo_ruq_patch_version = _PATCH_VERSION
+    tasks.DetectionModel.init_criterion = init_criterion
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -253,6 +295,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         SimSPPF,
         WeightedFeatureFusion,
     )
+    from custom_modules.ruq_head import RUQDetect, RUQDetectionLoss
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -275,12 +318,15 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "ShuffleAttention": ShuffleAttention,
         "SimSPPF": SimSPPF,
         "WeightedFeatureFusion": WeightedFeatureFusion,
+        "RUQDetect": RUQDetect,
+        "RUQDetectionLoss": RUQDetectionLoss,
     }
     _set_module_attrs(modules, names)
     _set_module_attrs(tasks, names)
 
     if patch_parse_model:
         _patch_parse_model(tasks, names)
+    _patch_detection_criterion(tasks, RUQDetect, RUQDetectionLoss)
 
 
 def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
