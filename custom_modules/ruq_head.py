@@ -59,6 +59,7 @@ class RUQDetect(Detect):
         quality_gain: float = 0.5,
         quality_negative_weight: float = 0.05,
         quality_focal_gamma: float = 2.0,
+        quality_power: float = 0.5,
         detach_distribution: bool = True,
         relative_uncertainty_cap: float = 4.0,
         quality_prior: float = 0.90,
@@ -71,6 +72,8 @@ class RUQDetect(Detect):
             raise ValueError("quality_hidden must be positive.")
         if quality_gain < 0.0 or quality_negative_weight < 0.0 or quality_focal_gamma < 0.0:
             raise ValueError("RUQ loss weights and focal gamma must be non-negative.")
+        if not 0.0 <= quality_power <= 1.0:
+            raise ValueError("quality_power must be in [0, 1].")
         if relative_uncertainty_cap <= 0.0:
             raise ValueError("relative_uncertainty_cap must be positive.")
         if not 0.0 < quality_prior < 1.0:
@@ -80,6 +83,7 @@ class RUQDetect(Detect):
         self.quality_gain = float(quality_gain)
         self.quality_negative_weight = float(quality_negative_weight)
         self.quality_focal_gamma = float(quality_focal_gamma)
+        self.quality_power = float(quality_power)
         self.detach_distribution = bool(detach_distribution)
         self.relative_uncertainty_cap = float(relative_uncertainty_cap)
         self.quality_prior = float(quality_prior)
@@ -117,8 +121,11 @@ class RUQDetect(Detect):
         if channels != expected_channels:
             raise ValueError(f"Expected {expected_channels} DFL channels, received {channels}.")
 
+        # Detach before any statistics are formed so the read-only quality path
+        # does not construct an unnecessary regression autograd graph.
+        statistic_logits = box_logits.detach() if self.detach_distribution else box_logits
         # Float32 statistics avoid half-precision log/variance instability under AMP.
-        logits = box_logits.view(batch, 4, self.reg_max, anchors).float()
+        logits = statistic_logits.view(batch, 4, self.reg_max, anchors).float()
         probabilities = logits.softmax(dim=2)
         bins = self._ruq_bins.to(device=probabilities.device).view(1, 1, self.reg_max, 1)
 
@@ -140,8 +147,6 @@ class RUQDetect(Detect):
         )
 
         statistics = torch.cat((normalized_entropy, normalized_std, relative), dim=1)
-        if self.detach_distribution:
-            statistics = statistics.detach()
         return statistics.to(dtype=box_logits.dtype)
 
     def forward_head(
@@ -160,10 +165,18 @@ class RUQDetect(Detect):
         return predictions
 
     def _inference(self, predictions: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode native boxes and calibrate class scores before NMS ranking."""
+        """Decode boxes and apply classification-dominant tempered calibration.
+
+        ``score = cls * quality**quality_power`` weakens the localization term
+        relative to direct multiplication. The default exponent 0.5 preserves
+        recall more conservatively for tiny objects whose TAL-trained class
+        scores already encode part of the localization quality.
+        """
 
         boxes = self._get_decode_boxes(predictions)
-        calibrated_scores = predictions["scores"].sigmoid() * predictions["quality"].sigmoid()
+        class_scores = predictions["scores"].sigmoid()
+        quality_scores = predictions["quality"].sigmoid().clamp_min(1e-6)
+        calibrated_scores = class_scores * quality_scores.pow(self.quality_power)
         return torch.cat((boxes, calibrated_scores), dim=1)
 
 
@@ -195,12 +208,18 @@ class RUQDetectionLoss(v8DetectionLoss):
         """Supervise quality with detached aligned IoU and focal-weighted negatives."""
 
         quality_logits = predictions["quality"].squeeze(1)
-        pred_distribution = predictions["boxes"].permute(0, 2, 1).contiguous()
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distribution) * stride_tensor
-
         quality_target = torch.zeros_like(quality_logits)
         if fg_mask.any():
-            positive_iou = aligned_box_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask]).detach().clamp_(0.0, 1.0)
+            # The IoU is a supervision target, not a route for quality loss to
+            # update box regression. Detach before decoding to avoid building
+            # and immediately discarding a second DFL decode graph.
+            with torch.no_grad():
+                pred_distribution = predictions["boxes"].detach().permute(0, 2, 1).contiguous()
+                pred_bboxes = self.bbox_decode(anchor_points, pred_distribution) * stride_tensor
+                positive_iou = aligned_box_iou(
+                    pred_bboxes[fg_mask],
+                    target_bboxes[fg_mask],
+                ).clamp_(0.0, 1.0)
             quality_target[fg_mask] = positive_iou
             self.last_positive_quality = positive_iou.mean().detach()
         else:

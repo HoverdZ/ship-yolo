@@ -1,6 +1,7 @@
 # Component ablation Q1: official YOLO11n topology with RUQDetect only.
 # The backbone, neck, detection scales, native cv2/cv3 towers, and DFL regressor
 # are unchanged from A0. RUQ adds only DFL-derived localization calibration.
+# Default score fusion is classification-dominant: score = cls * quality^0.5.
 nc: 80
 scale: n
 scales:

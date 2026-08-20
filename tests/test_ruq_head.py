@@ -100,7 +100,7 @@ def test_cpu_forward_backward_and_score_calibration() -> None:
     model.eval()
     with torch.no_grad():
         decoded, raw = model(torch.randn(1, 3, 128, 128))
-    expected_scores = raw["scores"].sigmoid() * raw["quality"].sigmoid()
+    expected_scores = raw["scores"].sigmoid() * raw["quality"].sigmoid().pow(head.quality_power)
     torch.testing.assert_close(decoded[:, 4:], expected_scores)
 
 
