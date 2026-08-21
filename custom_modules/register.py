@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 13
+_PATCH_VERSION = 14
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -58,6 +58,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and "elif m is WeightedFeatureFusion:" in source
     )
     has_ac_yolo = "C2PSA_ACmix" in source
+    has_dcd_head = "DCDDetect" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -67,6 +68,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_calibrated_scam
         and has_comparison_modules
         and has_ac_yolo
+        and has_dcd_head
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -77,6 +79,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._calibrated_scam_patched = True
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
+        parse_model._dcd_head_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -208,6 +211,24 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 """
         source = source.replace(branch_marker, comparison_branch + branch_marker, 1)
 
+    if not has_dcd_head:
+        detect_marker = "                Detect,\n                WorldDetect,"
+        if detect_marker not in source:
+            raise RuntimeError("Unable to locate the Detect parser set for DCDDetect registration.")
+        source = source.replace(
+            detect_marker,
+            "                Detect,\n                DCDDetect,\n                WorldDetect,",
+            1,
+        )
+        legacy_marker = "if m in {Detect, YOLOEDetect,"
+        if legacy_marker not in source:
+            raise RuntimeError("Unable to locate the Detect legacy set for DCDDetect registration.")
+        source = source.replace(
+            legacy_marker,
+            "if m in {Detect, DCDDetect, YOLOEDetect,",
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -227,6 +248,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._calibrated_scam_patched = True
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
+    tasks.parse_model._dcd_head_patched = True
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -241,6 +263,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     )
     from custom_modules.calibrated_scam import CASCAM
     from custom_modules.dysample import DySample
+    from custom_modules.dcd_head import DCDDetect
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
@@ -265,6 +288,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_PConv": C3k2_PConv,
         "CASCAM": CASCAM,
         "DySample": DySample,
+        "DCDDetect": DCDDetect,
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
         "VGUPPreprocessor": VGUPPreprocessor,
