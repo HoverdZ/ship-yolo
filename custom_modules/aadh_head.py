@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torch import nn
 from ultralytics.nn.modules.head import Detect
 from ultralytics.utils.loss import v8DetectionLoss
+from ultralytics.utils.metrics import bbox_iou
 
 
 class AADHFilteringBlock(nn.Module):
@@ -118,8 +119,23 @@ class AADHStatisticalTest(nn.Module):
 
         output_dtype = x.dtype
         x_stat = x.float()
-        mean_activation = x_stat.mean(dim=(1, 2, 3), keepdim=True).clamp_min(1e-7)
-        scaled_activation = x_stat / mean_activation
+        mean_activation = x_stat.mean(dim=(1, 2, 3), keepdim=True)
+        batch_mean_activation = mean_activation.mean(dim=0).detach()
+        if not hasattr(self, "lambda_ema"):
+            self.register_buffer("lambda_ema", batch_mean_activation.clone())
+
+        current_lambda = 1.0 / (mean_activation + 1e-7)
+        if self.training:
+            with torch.no_grad():
+                self.lambda_ema.mul_(0.9).add_(batch_mean_activation, alpha=0.1)
+            effective_lambda = current_lambda
+        else:
+            effective_lambda = (
+                0.07 / (self.lambda_ema.float() + 1e-7)
+                + 0.93 * current_lambda
+            )
+
+        scaled_activation = effective_lambda * x_stat
         mu2 = scaled_activation.sum(dim=1, keepdim=True).clamp_min(0.0)
 
         log_survival = _LogGammaSurvival.apply(mu2, self.aa_channels)
@@ -217,36 +233,8 @@ class AADHDetect(Detect):
         return torch.cat((self._get_decode_boxes(predictions), final_scores), dim=1)
 
 
-def aligned_iou_xyxy(
-    box1: torch.Tensor,
-    box2: torch.Tensor,
-    eps: float = 1e-7,
-) -> torch.Tensor:
-    """Return aligned axis-aligned IoU for matching ``[N, 4]`` xyxy boxes."""
-
-    if box1.ndim != 2 or box1.shape[-1] != 4:
-        raise ValueError(f"box1 must have shape [N, 4], got {tuple(box1.shape)}")
-    if box2.shape != box1.shape:
-        raise ValueError(
-            "box2 must match box1 shape for aligned IoU, got "
-            f"{tuple(box2.shape)} and {tuple(box1.shape)}"
-        )
-
-    left_top = torch.maximum(box1[:, :2], box2[:, :2])
-    right_bottom = torch.minimum(box1[:, 2:], box2[:, 2:])
-    intersection_wh = (right_bottom - left_top).clamp_min(0.0)
-    intersection = intersection_wh[:, 0] * intersection_wh[:, 1]
-
-    box1_wh = (box1[:, 2:] - box1[:, :2]).clamp_min(0.0)
-    box2_wh = (box2[:, 2:] - box2[:, :2]).clamp_min(0.0)
-    area1 = box1_wh[:, 0] * box1_wh[:, 1]
-    area2 = box2_wh[:, 0] * box2_wh[:, 1]
-    union = (area1 + area2 - intersection).clamp_min(eps)
-    return (intersection / union).clamp_(0.0, 1.0)
-
-
 class AADHDetectionLoss(v8DetectionLoss):
-    """Native YOLO11 loss plus original IoU-supervised AADH MSE objectness."""
+    """Native YOLO11 loss plus original CIoU-supervised AADH MSE objectness."""
 
     objectness_balance = (4.0, 1.0, 0.4)
     objectness_gain = 0.7
@@ -273,7 +261,7 @@ class AADHDetectionLoss(v8DetectionLoss):
         anchor_points: torch.Tensor,
         stride_tensor: torch.Tensor,
     ) -> torch.Tensor:
-        """Build detached IoU targets from the existing TAL match and apply MSE."""
+        """Build detached CIoU targets from the existing TAL match and apply MSE."""
 
         objectness_maps = predictions.get("objectness")
         if not isinstance(objectness_maps, list) or len(objectness_maps) != 3:
@@ -294,11 +282,17 @@ class AADHDetectionLoss(v8DetectionLoss):
                 )
                 pred_bboxes = self.bbox_decode(anchor_points, pred_distribution)
                 pred_bboxes_px = pred_bboxes * stride_tensor
-                positive_iou = aligned_iou_xyxy(
+                positive_ciou = bbox_iou(
                     pred_bboxes_px[fg_mask].float(),
                     target_bboxes[fg_mask].detach().float(),
-                ).to(device=pred_scores.device, dtype=pred_scores.dtype)
-            target_objectness[fg_mask] = positive_iou
+                    xywh=False,
+                    CIoU=True,
+                ).detach().reshape(-1).clamp_(0.0, 1.0)
+                positive_ciou = positive_ciou.to(
+                    device=pred_scores.device,
+                    dtype=pred_scores.dtype,
+                )
+            target_objectness[fg_mask] = positive_ciou
 
         level_sizes: list[int] = []
         batch_size = pred_scores.shape[0]
@@ -364,5 +358,4 @@ __all__ = [
     "AADHDetectionLoss",
     "AADHFilteringBlock",
     "AADHStatisticalTest",
-    "aligned_iou_xyxy",
 ]
