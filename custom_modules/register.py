@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 14
+_PATCH_VERSION = 15
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -59,6 +59,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     has_ac_yolo = "C2PSA_ACmix" in source
     has_dcd_head = "DCDDetect" in source
+    has_dcd_qfl_head = "DCDQFLDetect" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -69,6 +70,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_comparison_modules
         and has_ac_yolo
         and has_dcd_head
+        and has_dcd_qfl_head
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -80,6 +82,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
         parse_model._dcd_head_patched = True
+        parse_model._dcd_qfl_head_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -217,7 +220,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError("Unable to locate the Detect parser set for DCDDetect registration.")
         source = source.replace(
             detect_marker,
-            "                Detect,\n                DCDDetect,\n                WorldDetect,",
+            "                Detect,\n                DCDDetect,\n                DCDQFLDetect,\n                WorldDetect,",
             1,
         )
         legacy_marker = "if m in {Detect, YOLOEDetect,"
@@ -225,7 +228,30 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError("Unable to locate the Detect legacy set for DCDDetect registration.")
         source = source.replace(
             legacy_marker,
-            "if m in {Detect, DCDDetect, YOLOEDetect,",
+            "if m in {Detect, DCDDetect, DCDQFLDetect, YOLOEDetect,",
+            1,
+        )
+    elif not has_dcd_qfl_head:
+        detect_marker = "                DCDDetect,\n                WorldDetect,"
+        if detect_marker not in source:
+            raise RuntimeError(
+                "Unable to locate DCDDetect in the Detect parser set for "
+                "DCDQFLDetect registration."
+            )
+        source = source.replace(
+            detect_marker,
+            "                DCDDetect,\n                DCDQFLDetect,\n                WorldDetect,",
+            1,
+        )
+        legacy_marker = "if m in {Detect, DCDDetect, YOLOEDetect,"
+        if legacy_marker not in source:
+            raise RuntimeError(
+                "Unable to locate DCDDetect in the Detect legacy set for "
+                "DCDQFLDetect registration."
+            )
+        source = source.replace(
+            legacy_marker,
+            "if m in {Detect, DCDDetect, DCDQFLDetect, YOLOEDetect,",
             1,
         )
 
@@ -249,6 +275,31 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
     tasks.parse_model._dcd_head_patched = True
+    tasks.parse_model._dcd_qfl_head_patched = True
+
+
+def _patch_detection_criterion(
+    tasks: ModuleType,
+    dcd_qfl_detect: type,
+    dcd_qfl_loss: type,
+) -> None:
+    """Route only DCDQFLDetect models to QFL while preserving other criteria."""
+
+    current = tasks.DetectionModel.init_criterion
+    if getattr(current, "_ship_yolo_dcd_qfl_patch_version", 0) == _PATCH_VERSION:
+        return
+    original = getattr(current, "_ship_yolo_original_criterion", current)
+
+    def init_criterion(model):
+        if isinstance(model.model[-1], dcd_qfl_detect):
+            return dcd_qfl_loss(model)
+        return original(model)
+
+    init_criterion.__name__ = current.__name__
+    init_criterion.__doc__ = current.__doc__
+    init_criterion._ship_yolo_original_criterion = original
+    init_criterion._ship_yolo_dcd_qfl_patch_version = _PATCH_VERSION
+    tasks.DetectionModel.init_criterion = init_criterion
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -264,6 +315,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.calibrated_scam import CASCAM
     from custom_modules.dysample import DySample
     from custom_modules.dcd_head import DCDDetect
+    from custom_modules.dcd_qfl import DCDQFLDetect, DCDQFLDetectionLoss
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
@@ -289,6 +341,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "CASCAM": CASCAM,
         "DySample": DySample,
         "DCDDetect": DCDDetect,
+        "DCDQFLDetect": DCDQFLDetect,
+        "DCDQFLDetectionLoss": DCDQFLDetectionLoss,
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
         "VGUPPreprocessor": VGUPPreprocessor,
@@ -305,6 +359,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
 
     if patch_parse_model:
         _patch_parse_model(tasks, names)
+    _patch_detection_criterion(tasks, DCDQFLDetect, DCDQFLDetectionLoss)
 
 
 def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
