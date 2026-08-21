@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 13
+_PATCH_VERSION = 14
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -45,8 +45,14 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_calibrated_scam = (
         f"elif m in {scam_module_set}:" in source
     )
-    has_adaptive = (
-        "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
+    adaptive_module_set = (
+        "{ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, "
+        "VGUPPreprocessor}"
+    )
+    legacy_adaptive_module_set = "{ERUPPreprocessor, VGUPPreprocessor}"
+    has_adaptive = f"elif m in {adaptive_module_set}:" in source
+    has_legacy_adaptive = (
+        f"elif m in {legacy_adaptive_module_set}:" in source
     )
     comparison_module_set = "{ShuffleAttention, DATBlock}"
     has_comparison_modules = (
@@ -155,13 +161,19 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
                 1,
             )
 
-    if not has_adaptive:
+    if not has_adaptive and has_legacy_adaptive:
+        source = source.replace(
+            f"elif m in {legacy_adaptive_module_set}:",
+            f"elif m in {adaptive_module_set}:",
+            1,
+        )
+    elif not has_adaptive:
         branch_marker = "        elif m is AIFI:"
         if branch_marker not in source:
             raise RuntimeError(
                 "Unable to locate parse_model AIFI branch for adaptive preprocessors."
             )
-        adaptive_branch = """        elif m in {ERUPPreprocessor, VGUPPreprocessor}:
+        adaptive_branch = """        elif m in {ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, VGUPPreprocessor}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one RGB input.")
             c1 = ch[f]
@@ -244,6 +256,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
+    from custom_modules.vgup_global_gate_only import (
+        VGUPGlobalGateOnlyPreprocessor,
+    )
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -267,6 +282,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "DySample": DySample,
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
+        "VGUPGlobalGateOnlyPreprocessor": VGUPGlobalGateOnlyPreprocessor,
         "VGUPPreprocessor": VGUPPreprocessor,
         "C2fRFA": C2fRFA,
         "C2fRepGhost": C2fRepGhost,
@@ -302,7 +318,7 @@ def register_cumulative_modules(patch_parse_model: bool = True) -> None:
 
 
 def register_adaptive_preprocessors(patch_parse_model: bool = True) -> None:
-    """Register VGUP and its shared image-processing primitives."""
+    """Register VGUP variants and their shared image-processing primitives."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
 
