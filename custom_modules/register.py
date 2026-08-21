@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 13
+_PATCH_VERSION = 14
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -58,6 +58,16 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and "elif m is WeightedFeatureFusion:" in source
     )
     has_ac_yolo = "C2PSA_ACmix" in source
+    has_single_reproductions = all(
+        marker in source
+        for marker in (
+            "C2PSAHiLo",
+            "HHSPP",
+            "elif m is FConv:",
+            "FocalCIoUDetect",
+            "DREDetect",
+        )
+    )
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -67,6 +77,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_calibrated_scam
         and has_comparison_modules
         and has_ac_yolo
+        and has_single_reproductions
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -77,6 +88,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._calibrated_scam_patched = True
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
+        parse_model._single_reproductions_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -99,6 +111,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_ac_yolo:
         base_additions.append("C2PSA_ACmix")
         repeat_additions.append("C2PSA_ACmix")
+    if not has_single_reproductions:
+        base_additions.extend(("HHSPP", "C2PSAHiLo"))
+        repeat_additions.append("C2PSAHiLo")
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -208,6 +223,54 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
 """
         source = source.replace(branch_marker, comparison_branch + branch_marker, 1)
 
+    if not has_single_reproductions:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for FConv registration."
+            )
+        fconv_branch = """        elif m is FConv:
+            if isinstance(f, (list, tuple)):
+                raise ValueError("FConv expects exactly one feature tensor.")
+            c1 = ch[f]
+            c2 = c1
+            args = [c1, *args]
+"""
+        source = source.replace(branch_marker, fconv_branch + branch_marker, 1)
+
+        detect_set_marker = """            {
+                Detect,
+                WorldDetect,
+"""
+        if detect_set_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect module set for loss/head markers."
+            )
+        source = source.replace(
+            detect_set_marker,
+            """            {
+                Detect,
+                FocalCIoUDetect,
+                DREDetect,
+                WorldDetect,
+""",
+            1,
+        )
+        legacy_marker = (
+            "            if m in {Detect, YOLOEDetect, Segment, Segment26, "
+            "YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:"
+        )
+        if legacy_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect legacy set for custom head markers."
+            )
+        source = source.replace(
+            legacy_marker,
+            "            if m in {Detect, FocalCIoUDetect, DREDetect, YOLOEDetect, "
+            "Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:",
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -227,6 +290,36 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._calibrated_scam_patched = True
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
+    tasks.parse_model._single_reproductions_patched = True
+
+
+def _patch_detection_criterion(
+    tasks: ModuleType,
+    focal_head: type,
+    focal_loss: type,
+    dre_head: type,
+    dre_loss: type,
+) -> None:
+    """Route marker Detect subclasses without changing normal DetectionModel behavior."""
+
+    current = tasks.DetectionModel.init_criterion
+    if getattr(current, "_ship_yolo_patch_version", 0) == _PATCH_VERSION:
+        return
+    original = getattr(current, "_ship_yolo_original", current)
+
+    def init_criterion(model):
+        head = model.model[-1]
+        if isinstance(head, focal_head):
+            return focal_loss(model)
+        if isinstance(head, dre_head):
+            return dre_loss(model)
+        return original(model)
+
+    init_criterion._ship_yolo_original = original
+    init_criterion._ship_yolo_patch_version = _PATCH_VERSION
+    init_criterion.__name__ = original.__name__
+    init_criterion.__doc__ = original.__doc__
+    tasks.DetectionModel.init_criterion = init_criterion
 
 
 def register_custom_modules(patch_parse_model: bool = True) -> None:
@@ -244,6 +337,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
+    from custom_modules.dre import DREDetect, DREDetectionLoss
+    from custom_modules.fconv import FConv
+    from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
+    from custom_modules.hhspp import HHSPP
+    from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -275,12 +373,24 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "ShuffleAttention": ShuffleAttention,
         "SimSPPF": SimSPPF,
         "WeightedFeatureFusion": WeightedFeatureFusion,
+        "FConv": FConv,
+        "HHSPP": HHSPP,
+        "C2PSAHiLo": C2PSAHiLo,
+        "FocalCIoUDetect": FocalCIoUDetect,
+        "DREDetect": DREDetect,
     }
     _set_module_attrs(modules, names)
     _set_module_attrs(tasks, names)
 
     if patch_parse_model:
         _patch_parse_model(tasks, names)
+        _patch_detection_criterion(
+            tasks,
+            FocalCIoUDetect,
+            FocalCIoUDetectionLoss,
+            DREDetect,
+            DREDetectionLoss,
+        )
 
 
 def register_inceptiondw_modules(patch_parse_model: bool = True) -> None:
