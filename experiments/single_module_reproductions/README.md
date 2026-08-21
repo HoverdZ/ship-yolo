@@ -9,7 +9,7 @@ baseline and introduces exactly one method:
   YOLO11n state dict so original layers 11-23 map to 14-26.
 - `yolo11n_hhspp.yaml`: HHSPP replaces only the layer-9 SPPF.
 - `yolo11n_focal_ciou.yaml`: the architecture is unchanged; only the native
-  bbox CIoU term becomes `(1-IoU)^0.5 * (1-CIoU)`.
+  bbox CIoU term becomes `IoU^0.5 * (1-CIoU)`.
 - `yolo11n_dre.yaml`: a DRENet RCAN branch reconstructs Selective Degradation
   targets only in training. Evaluation/export never invokes the enhancer;
   `DREDetect.switch_to_deploy()` can permanently strip its training-only

@@ -36,7 +36,7 @@ class FocalCIoUBboxLoss(BboxLoss):
         foreground_target = target_bboxes[fg_mask]
         iou = bbox_iou(foreground_pred, foreground_target, xywh=False)
         ciou = bbox_iou(foreground_pred, foreground_target, xywh=False, CIoU=True)
-        focal_weight = (1.0 - iou).clamp_min(0.0).pow(self.gamma)
+        focal_weight = iou.clamp_min(0.0).pow(self.gamma)
         loss_iou = (focal_weight * (1.0 - ciou) * weight).sum() / target_scores_sum
 
         # Native YOLO11 DFL path is intentionally unchanged.
