@@ -159,6 +159,7 @@ class DCDQFLDetectionLoss(v8DetectionLoss):
                 mask_gt,
             )
         )
+        fg_mask = fg_mask.bool()
 
         # Preserve the native TAL score normalization for bbox and DFL only.
         target_scores_sum = max(target_scores.sum(), 1)
@@ -177,10 +178,10 @@ class DCDQFLDetectionLoss(v8DetectionLoss):
                 "target_bboxes must align with pred_bboxes, got "
                 f"{tuple(target_bboxes.shape)} and {tuple(pred_bboxes.shape)}"
             )
-        if fg_mask.shape != pred_scores.shape[:2] or fg_mask.dtype != torch.bool:
+        if fg_mask.shape != pred_scores.shape[:2]:
             raise ValueError(
-                "fg_mask must be bool with shape [B, N], got "
-                f"{tuple(fg_mask.shape)} and {fg_mask.dtype}"
+                "fg_mask must have shape [B, N], got "
+                f"{tuple(fg_mask.shape)}"
             )
 
         # Classification quality targets: negatives remain zero; each positive
