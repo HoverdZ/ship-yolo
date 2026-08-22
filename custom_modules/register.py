@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 14
+_PATCH_VERSION = 15
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -24,10 +24,13 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     parse_model = getattr(tasks, "parse_model", None)
     if parse_model is None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
-    if getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION:
+    if (
+        getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
+        and getattr(parse_model, "_hhspp_local_detail_patched", False)
+    ):
         return
 
-    source = inspect.getsource(parse_model)
+    source = inspect.getsource(parse_model).replace("\r\n", "\n")
     has_c3k2_inception = "C3k2_InceptionDW" in source
     has_c2f_inception = "C2f_InceptionDW" in source
     has_conv_screening = all(
@@ -68,6 +71,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             "DREDetect",
         )
     )
+    has_hhspp_local_detail = "HHSPPLocalDetail" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -78,6 +82,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_comparison_modules
         and has_ac_yolo
         and has_single_reproductions
+        and has_hhspp_local_detail
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -89,6 +94,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
         parse_model._single_reproductions_patched = True
+        parse_model._hhspp_local_detail_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -114,6 +120,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if not has_single_reproductions:
         base_additions.extend(("HHSPP", "C2PSAHiLo"))
         repeat_additions.append("C2PSAHiLo")
+    if not has_hhspp_local_detail:
+        base_additions.append("HHSPPLocalDetail")
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -291,6 +299,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
     tasks.parse_model._single_reproductions_patched = True
+    tasks.parse_model._hhspp_local_detail_patched = True
 
 
 def _patch_detection_criterion(
@@ -341,6 +350,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.fconv import FConv
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
     from custom_modules.hhspp import HHSPP
+    from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
@@ -375,6 +385,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "WeightedFeatureFusion": WeightedFeatureFusion,
         "FConv": FConv,
         "HHSPP": HHSPP,
+        "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
