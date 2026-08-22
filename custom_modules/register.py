@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 14
+_PATCH_VERSION = 15
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -68,6 +68,14 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             "DREDetect",
         )
     )
+    p23_hhspp_module_set = (
+        "{HHSPPP23Concat, HHSPPP23SPD, HHSPPP23FreqAdaKern, "
+        "HHSPPP23FDConv, HHSPPP23HWD}"
+    )
+    has_p23_hhspp_detail = (
+        f"elif m in {p23_hhspp_module_set}:" in source
+        and "P2/P3 HHSPP detail modules require exactly three feature inputs." in source
+    )
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -78,6 +86,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_comparison_modules
         and has_ac_yolo
         and has_single_reproductions
+        and has_p23_hhspp_detail
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -89,6 +98,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
         parse_model._single_reproductions_patched = True
+        parse_model._p23_hhspp_detail_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -271,6 +281,32 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_p23_hhspp_detail:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for P2/P3 HHSPP detail modules."
+            )
+        p23_hhspp_branch = """        elif m in {HHSPPP23Concat, HHSPPP23SPD, HHSPPP23FreqAdaKern, HHSPPP23FDConv, HHSPPP23HWD}:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError("P2/P3 HHSPP detail modules require exactly three feature inputs.")
+            input_channels = [ch[index] for index in f]
+            if not all(type(channel) is int for channel in input_channels):
+                raise TypeError(
+                    "P2/P3 HHSPP detail input channels must all be Python int values."
+                )
+            if len(args) != 1:
+                raise ValueError(
+                    "P2/P3 HHSPP detail YAML nodes must provide only the target output channels."
+                )
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            c2 = int(c2)
+            args = [input_channels, c2]
+"""
+        source = source.replace(branch_marker, p23_hhspp_branch + branch_marker, 1)
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -291,6 +327,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
     tasks.parse_model._single_reproductions_patched = True
+    tasks.parse_model._p23_hhspp_detail_patched = True
 
 
 def _patch_detection_criterion(
@@ -341,6 +378,13 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.fconv import FConv
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
     from custom_modules.hhspp import HHSPP
+    from custom_modules.hhspp_p23_detail import (
+        HHSPPP23Concat,
+        HHSPPP23FDConv,
+        HHSPPP23FreqAdaKern,
+        HHSPPP23HWD,
+        HHSPPP23SPD,
+    )
     from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
@@ -375,6 +419,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "WeightedFeatureFusion": WeightedFeatureFusion,
         "FConv": FConv,
         "HHSPP": HHSPP,
+        "HHSPPP23Concat": HHSPPP23Concat,
+        "HHSPPP23FDConv": HHSPPP23FDConv,
+        "HHSPPP23FreqAdaKern": HHSPPP23FreqAdaKern,
+        "HHSPPP23HWD": HHSPPP23HWD,
+        "HHSPPP23SPD": HHSPPP23SPD,
         "C2PSAHiLo": C2PSAHiLo,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
