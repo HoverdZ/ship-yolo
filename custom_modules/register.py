@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 14
+_PATCH_VERSION = 15
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -24,10 +24,13 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     parse_model = getattr(tasks, "parse_model", None)
     if parse_model is None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
-    if getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION:
+    if (
+        getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
+        and getattr(parse_model, "_pls_multiscale_fusion_patched", False)
+    ):
         return
 
-    source = inspect.getsource(parse_model)
+    source = inspect.getsource(parse_model).replace("\r\n", "\n")
     has_c3k2_inception = "C3k2_InceptionDW" in source
     has_c2f_inception = "C2f_InceptionDW" in source
     has_conv_screening = all(
@@ -68,6 +71,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             "DREDetect",
         )
     )
+    pls_fusion_module_set = "{PLSASFF, SCGBiFPNFusion, MAFPNSAF, MAFPNAAF}"
+    has_pls_multiscale_fusion = f"elif m in {pls_fusion_module_set}:" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -78,6 +83,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_comparison_modules
         and has_ac_yolo
         and has_single_reproductions
+        and has_pls_multiscale_fusion
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -89,6 +95,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
         parse_model._single_reproductions_patched = True
+        parse_model._pls_multiscale_fusion_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -271,6 +278,34 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_pls_multiscale_fusion:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for PLS fusion registration."
+            )
+        pls_fusion_branch = """        elif m in {PLSASFF, SCGBiFPNFusion, MAFPNSAF, MAFPNAAF}:
+            if not isinstance(f, (list, tuple)) or len(f) < 2:
+                raise ValueError(f"{m.__name__} requires a list of at least two feature inputs.")
+            if n != 1:
+                raise ValueError(f"{m.__name__} does not accept repeated YAML construction.")
+            if len(args) != 2:
+                raise ValueError(f"{m.__name__} expects [target_index, output_channels].")
+            target_index, requested_channels = args
+            if isinstance(target_index, bool) or not isinstance(target_index, int):
+                raise TypeError(f"{m.__name__} target_index must be a Python integer.")
+            if not 0 <= target_index < len(f):
+                raise ValueError(f"{m.__name__} target_index is outside its input list.")
+            if isinstance(requested_channels, bool) or not isinstance(requested_channels, int):
+                raise TypeError(f"{m.__name__} output channels must be a Python integer.")
+            input_channels = [ch[index] for index in f]
+            c2 = requested_channels
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [input_channels, target_index, c2]
+"""
+        source = source.replace(branch_marker, pls_fusion_branch + branch_marker, 1)
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -291,6 +326,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
     tasks.parse_model._single_reproductions_patched = True
+    tasks.parse_model._pls_multiscale_fusion_patched = True
 
 
 def _patch_detection_criterion(
@@ -342,6 +378,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
     from custom_modules.hhspp import HHSPP
     from custom_modules.hilo_attention import C2PSAHiLo
+    from custom_modules.pls_asff import PLSASFF
+    from custom_modules.pls_mafpn import MAFPNAAF, MAFPNSAF
+    from custom_modules.pls_scgbifpn import SCGBiFPNFusion
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -376,6 +415,10 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "FConv": FConv,
         "HHSPP": HHSPP,
         "C2PSAHiLo": C2PSAHiLo,
+        "PLSASFF": PLSASFF,
+        "SCGBiFPNFusion": SCGBiFPNFusion,
+        "MAFPNSAF": MAFPNSAF,
+        "MAFPNAAF": MAFPNAAF,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
