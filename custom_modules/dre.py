@@ -203,10 +203,10 @@ class DREDetectionLoss(v8DetectionLoss):
         self, predictions: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, torch.Tensor]:
         reconstruction = predictions.get("dre_reconstruction")
-        if reconstruction is None:
-            raise RuntimeError("DRE reconstruction output is required while computing the training loss.")
-
         detection_loss, detached_items = super().loss(predictions, batch)
+        if reconstruction is None:
+            return detection_loss, detached_items
+
         target = selective_degradation_target(
             batch["img"],
             batch["batch_idx"],
