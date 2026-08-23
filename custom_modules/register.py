@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 15
+_PATCH_VERSION = 16
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -26,7 +26,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
     if (
         getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
-        and getattr(parse_model, "_hhspp_local_detail_patched", False)
+        and getattr(parse_model, "_cgdr_patched", False)
     ):
         return
 
@@ -72,6 +72,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         )
     )
     has_hhspp_local_detail = "HHSPPLocalDetail" in source
+    has_cgdr = "CGDR" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -83,6 +84,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_ac_yolo
         and has_single_reproductions
         and has_hhspp_local_detail
+        and has_cgdr
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -95,6 +97,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._ac_yolo_patched = True
         parse_model._single_reproductions_patched = True
         parse_model._hhspp_local_detail_patched = True
+        parse_model._cgdr_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -122,6 +125,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         repeat_additions.append("C2PSAHiLo")
     if not has_hhspp_local_detail:
         base_additions.append("HHSPPLocalDetail")
+    if not has_cgdr:
+        base_additions.append("CGDR")
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -300,6 +305,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._ac_yolo_patched = True
     tasks.parse_model._single_reproductions_patched = True
     tasks.parse_model._hhspp_local_detail_patched = True
+    tasks.parse_model._cgdr_patched = True
 
 
 def _patch_detection_criterion(
@@ -349,6 +355,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.dre import DREDetect, DREDetectionLoss
     from custom_modules.fconv import FConv
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
+    from custom_modules.cgdr import CGDR
     from custom_modules.hhspp import HHSPP
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
@@ -384,6 +391,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "SimSPPF": SimSPPF,
         "WeightedFeatureFusion": WeightedFeatureFusion,
         "FConv": FConv,
+        "CGDR": CGDR,
         "HHSPP": HHSPP,
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,

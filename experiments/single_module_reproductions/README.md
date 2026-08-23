@@ -8,8 +8,10 @@ baseline and introduces exactly one method:
   use `remap_yolo11n_state_dict_for_fconv()` when transferring an official
   YOLO11n state dict so original layers 11-23 map to 14-26.
 - `yolo11n_hhspp.yaml`: HHSPP replaces only the layer-9 SPPF.
-- `yolo11n_hhspp_local_detail.yaml`: HHSPP is preserved at layer 9 and gains
-  one zero-scaled, context-gated local-detail compensation branch.
+- `yolo11n_hhspp_local_detail.yaml`: historical compatibility YAML for the
+  module now formally named CGDR. New experiments must use
+  `experiments/systematic_ablation/yolo11n_cgdr.yaml`; both names resolve to
+  the same implementation and state-dict layout.
 - `yolo11n_focal_ciou.yaml`: the architecture is unchanged; only the native
   bbox CIoU term becomes `IoU^0.5 * (1-CIoU)`.
 - `yolo11n_dre.yaml`: a DRENet RCAN branch reconstructs Selective Degradation
