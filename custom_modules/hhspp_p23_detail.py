@@ -207,13 +207,23 @@ class HWDDown(nn.Module):
             raise ValueError(
                 f"HWD detail alignment requires even H/W, got {tuple(x.shape[-2:])}."
             )
-        low_low, high_bands = self.wavelet(x)
-        high_low = high_bands[0][:, :, 0, ...]
-        low_high = high_bands[0][:, :, 1, ...]
-        high_high = high_bands[0][:, :, 2, ...]
-        four_bands = torch.cat((low_low, high_low, low_high, high_high), dim=1)
-        if four_bands.shape[1] != self.in_channels * 4:
-            raise RuntimeError("HWD did not produce LL/HL/LH/HH for every input channel.")
+        input_dtype = x.dtype
+        # pytorch_wavelets uses custom autograd.  Keep both its analysis pass
+        # and the saved wavelet tensors in FP32 so AMP backward reaches the
+        # FP32 Haar filters with an FP32 gradient.
+        with torch.autocast(device_type=x.device.type, enabled=False):
+            x_fp32 = x.float()
+            low_low, high_bands = self.wavelet(x_fp32)
+            high_low = high_bands[0][:, :, 0, ...]
+            low_high = high_bands[0][:, :, 1, ...]
+            high_high = high_bands[0][:, :, 2, ...]
+            four_bands = torch.cat((low_low, high_low, low_high, high_high), dim=1)
+            if four_bands.shape[1] != self.in_channels * 4:
+                raise RuntimeError("HWD did not produce LL/HL/LH/HH for every input channel.")
+
+        # Restore the branch input dtype only after the complete four-band DWT;
+        # projection remains outside the precision island under normal AMP.
+        four_bands = four_bands.to(dtype=input_dtype)
         return self.projection(four_bands)
 
 
