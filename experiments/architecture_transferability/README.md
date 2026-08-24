@@ -39,13 +39,16 @@ register_yolov12_author_modules()
 - **YOLOv12n:** the author Turbo grouped P2/P3 downsampling and A2C2f blocks are
   preserved. The pyramid is shifted to P2--P4. Because the author topology has
   no SPPF, CGDR is inserted immediately after the highest retained P4 A2C2f.
-- **YOLOv13n:** native DSC3k2, DSConv, A2C2f, HyperACE, FullPAD, P4 and P5 paths
-  are preserved. CGDR refines the backbone P4 feature before it enters P5 and
-  HyperACE. Two DySample nodes implement the added P4-to-P3 and P3-to-P2 DPLS
-  path, while zero-initialized native FullPAD gates protect the original P3
-  route. Detect receives P2, P3, P4 and P5.
+- **YOLOv13n:** the previously validated host adaptation is retained. Native
+  DSC3k2, DSConv, A2C2f, HyperACE, FullPAD, P4 and P5 paths remain intact.
+  CGDR refines backbone P4 before it enters P5 and HyperACE. P3-centered
+  DPLS-13 uses two zero-initialized native FullPAD gates and the author's
+  nearest-neighbour resizing, then adds a P2 output. Detect receives P2, P3,
+  P4 and P5.
 
-YOLOv13 uses `VGUPPrecisionSafePreprocessor`. It is the complete VGUP, not the
-older KBL-only host adaptation: BPW, KBL, global gate and spatial gate all
-remain. Only BPW/KBL and gate arithmetic run in a local FP32 precision island;
-the encoder and detector continue to follow the surrounding AMP policy.
+YOLOv13 deliberately uses the stable `KBLLitePreprocessor` from the earlier
+host experiment instead of forcing complete VGUP into this fork. It retains
+KBL and the spatial visibility gate, removes BPW and the global gate, and runs
+only KBL dynamic filtering in a local FP32 precision island. This is an
+architecture-specific stability decision; YOLOv8n, YOLO11n and YOLOv12n keep
+the complete VGUP.

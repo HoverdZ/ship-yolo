@@ -13,7 +13,7 @@ from pathlib import Path
 from types import ModuleType
 
 
-_AUTHOR_PATCH_VERSION = 1
+_AUTHOR_PATCH_VERSION = 2
 _AUTHOR_SOURCES = {
     "yolov12": (
         "https://github.com/sunsmarterjie/yolov12",
@@ -115,7 +115,7 @@ def _patch_author_parse_model(
         return
 
     source = inspect.getsource(parse_model).replace("\r\n", "\n")
-    if "CGDR" in source or "VGUPPrecisionSafePreprocessor" in source:
+    if "CGDR" in source or "KBLLitePreprocessor" in source:
         raise RuntimeError(
             "The active author parser already contains an unknown custom patch; "
             "start from a fresh Runtime."
@@ -130,7 +130,7 @@ def _patch_author_parse_model(
     )
 
     branch_marker = "        elif m is AIFI:\n"
-    custom_branches = """        elif m in {VGUPPreprocessor, VGUPPrecisionSafePreprocessor}:
+    custom_branches = """        elif m in {KBLLitePreprocessor, VGUPPreprocessor}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one RGB input.")
             c1 = ch[f]
@@ -171,8 +171,8 @@ def _patch_author_parse_model(
 def _register_author_modules(fork: str) -> None:
     from custom_modules.cgdr import CGDR
     from custom_modules.dysample import DySample
+    from custom_modules.kbl_lite import KBLLitePreprocessor
     from custom_modules.vgup import VGUPPreprocessor
-    from custom_modules.vgup_precision_safe import VGUPPrecisionSafePreprocessor
     import ultralytics.nn.modules as modules
     import ultralytics.nn.tasks as tasks
 
@@ -180,8 +180,8 @@ def _register_author_modules(fork: str) -> None:
     names = {
         "CGDR": CGDR,
         "DySample": DySample,
+        "KBLLitePreprocessor": KBLLitePreprocessor,
         "VGUPPreprocessor": VGUPPreprocessor,
-        "VGUPPrecisionSafePreprocessor": VGUPPrecisionSafePreprocessor,
     }
     _set_module_attrs(modules, names)
     _set_module_attrs(tasks, names)

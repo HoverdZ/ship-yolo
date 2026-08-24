@@ -1,4 +1,4 @@
-# iMoonLab/yolov13 author fork + final VGUP + host-adapted DPLS + CGDR.
+# iMoonLab/yolov13 author fork + KBL-only VGUP-Lite + DPLS-13 + CGDR.
 # Fixed author source: release tag commit 70f23ede45ee00a30cf6139c3d1ea7abe3df4eec.
 nc: 80
 scale: n
@@ -9,7 +9,7 @@ scales:
   x: [1.00, 1.50, 512]
 
 backbone:
-  - [-1, 1, VGUPPrecisionSafePreprocessor, [8, 128, true, true]]
+  - [-1, 1, KBLLitePreprocessor, [128, -2.0]]
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2, 1, 2]]
   - [-1, 2, DSC3k2, [256, false, 0.25]]
@@ -54,10 +54,10 @@ head:
   # DPLS-13: preserve the native P3/P4/P5 outputs and add a controlled P2 path.
   - [3, 1, nn.AvgPool2d, [2, 2]]
   - [29, 1, Conv, [256, 1, 1]]
-  - [-1, 1, DySample, [2, "lp", 4, false]]
+  - [-1, 1, nn.Upsample, [null, 2, "nearest"]]
   - [[25, 34], 1, FullPAD_Tunnel, []]
   - [[37, 36], 1, FullPAD_Tunnel, []]
-  - [-1, 1, DySample, [2, "lp", 4, false]]
+  - [-1, 1, nn.Upsample, [null, 2, "nearest"]]
   - [[-1, 3], 1, Concat, [1]]
   - [-1, 2, DSC3k2, [256, true]]
 
