@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 15
+_PATCH_VERSION = 16
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -24,7 +24,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     parse_model = getattr(tasks, "parse_model", None)
     if parse_model is None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
-    if getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION:
+    if (
+        getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
+        and getattr(parse_model, "_vgup_no_gates_patched", False)
+    ):
         return
 
     source = inspect.getsource(parse_model)
@@ -47,9 +50,14 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     adaptive_module_set = (
         "{ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, "
-        "VGUPPreprocessor, VGUPSpatialGateOnlyPreprocessor}"
+        "VGUPNoGatesPreprocessor, VGUPPreprocessor, "
+        "VGUPSpatialGateOnlyPreprocessor}"
     )
     previous_adaptive_module_set = (
+        "{ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, "
+        "VGUPPreprocessor, VGUPSpatialGateOnlyPreprocessor}"
+    )
+    older_adaptive_module_set = (
         "{ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, "
         "VGUPPreprocessor}"
     )
@@ -57,6 +65,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_adaptive = f"elif m in {adaptive_module_set}:" in source
     has_previous_adaptive = (
         f"elif m in {previous_adaptive_module_set}:" in source
+    )
+    has_older_adaptive = (
+        f"elif m in {older_adaptive_module_set}:" in source
     )
     has_legacy_adaptive = (
         f"elif m in {legacy_adaptive_module_set}:" in source
@@ -87,6 +98,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._conv_screening_patched = True
         parse_model._cumulative_models_patched = True
         parse_model._adaptive_preprocessors_patched = True
+        parse_model._vgup_no_gates_patched = True
         parse_model._calibrated_scam_patched = True
         parse_model._comparison_modules_patched = True
         parse_model._ac_yolo_patched = True
@@ -174,6 +186,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             f"elif m in {adaptive_module_set}:",
             1,
         )
+    elif not has_adaptive and has_older_adaptive:
+        source = source.replace(
+            f"elif m in {older_adaptive_module_set}:",
+            f"elif m in {adaptive_module_set}:",
+            1,
+        )
     elif not has_adaptive and has_legacy_adaptive:
         source = source.replace(
             f"elif m in {legacy_adaptive_module_set}:",
@@ -186,7 +204,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError(
                 "Unable to locate parse_model AIFI branch for adaptive preprocessors."
             )
-        adaptive_branch = """        elif m in {ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, VGUPPreprocessor, VGUPSpatialGateOnlyPreprocessor}:
+        adaptive_branch = """        elif m in {ERUPPreprocessor, VGUPGlobalGateOnlyPreprocessor, VGUPNoGatesPreprocessor, VGUPPreprocessor, VGUPSpatialGateOnlyPreprocessor}:
             if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one RGB input.")
             c1 = ch[f]
@@ -249,6 +267,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._conv_screening_patched = True
     tasks.parse_model._cumulative_models_patched = True
     tasks.parse_model._adaptive_preprocessors_patched = True
+    tasks.parse_model._vgup_no_gates_patched = True
     tasks.parse_model._calibrated_scam_patched = True
     tasks.parse_model._comparison_modules_patched = True
     tasks.parse_model._ac_yolo_patched = True
@@ -272,6 +291,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.vgup_global_gate_only import (
         VGUPGlobalGateOnlyPreprocessor,
     )
+    from custom_modules.vgup_no_gates import VGUPNoGatesPreprocessor
     from custom_modules.vgup_spatial_gate_only import (
         VGUPSpatialGateOnlyPreprocessor,
     )
@@ -299,6 +319,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
         "VGUPGlobalGateOnlyPreprocessor": VGUPGlobalGateOnlyPreprocessor,
+        "VGUPNoGatesPreprocessor": VGUPNoGatesPreprocessor,
         "VGUPPreprocessor": VGUPPreprocessor,
         "VGUPSpatialGateOnlyPreprocessor": VGUPSpatialGateOnlyPreprocessor,
         "C2fRFA": C2fRFA,
