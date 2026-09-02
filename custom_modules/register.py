@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 16
+_PATCH_VERSION = 17
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -27,6 +27,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     if (
         getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
         and getattr(parse_model, "_cgdr_patched", False)
+        and getattr(parse_model, "_projected_pair_ccw_patched", False)
     ):
         return
 
@@ -73,6 +74,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     has_hhspp_local_detail = "HHSPPLocalDetail" in source
     has_cgdr = "CGDR" in source
+    has_projected_pair_ccw = "elif m is ProjectedPairCCW:" in source
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -85,6 +87,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_single_reproductions
         and has_hhspp_local_detail
         and has_cgdr
+        and has_projected_pair_ccw
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -98,6 +101,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._single_reproductions_patched = True
         parse_model._hhspp_local_detail_patched = True
         parse_model._cgdr_patched = True
+        parse_model._projected_pair_ccw_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -206,6 +210,27 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_projected_pair_ccw:
+        branch_marker = "        elif m is AIFI:"
+        if branch_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model AIFI branch for ProjectedPairCCW."
+            )
+        projected_pair_ccw_branch = """        elif m is ProjectedPairCCW:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("ProjectedPairCCW requires [target, context] inputs.")
+            input_channels = [ch[index] for index in f]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [input_channels, c2, *args[1:]]
+"""
+        source = source.replace(
+            branch_marker,
+            projected_pair_ccw_branch + branch_marker,
+            1,
+        )
+
     if not has_comparison_modules:
         branch_marker = "        elif m is AIFI:"
         if branch_marker not in source:
@@ -306,6 +331,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._single_reproductions_patched = True
     tasks.parse_model._hhspp_local_detail_patched = True
     tasks.parse_model._cgdr_patched = True
+    tasks.parse_model._projected_pair_ccw_patched = True
 
 
 def _patch_detection_criterion(
@@ -359,6 +385,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.hhspp import HHSPP
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
+    from custom_modules.projected_pair_ccw import ProjectedPairCCW
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -395,6 +422,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "HHSPP": HHSPP,
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
+        "ProjectedPairCCW": ProjectedPairCCW,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
