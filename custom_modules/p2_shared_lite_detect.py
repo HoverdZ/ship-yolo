@@ -24,7 +24,7 @@ class P2SharedLiteDetect(Detect):
         nc: int = 80,
         p2_hidden: int = 48,
         reg_max: int = 16,
-        end2end: bool = False,
+        end2end: bool | None = False,
         ch: Sequence[int] = (),
     ) -> None:
         if not isinstance(nc, int) or isinstance(nc, bool) or nc < 1:
@@ -39,7 +39,7 @@ class P2SharedLiteDetect(Detect):
             )
         if not isinstance(reg_max, int) or isinstance(reg_max, bool) or reg_max != 16:
             raise ValueError(f"P2SharedLiteDetect requires reg_max=16, got {reg_max!r}.")
-        if not isinstance(end2end, bool):
+        if end2end is not None and not isinstance(end2end, bool):
             raise TypeError(f"end2end must be a boolean, got {type(end2end).__name__}.")
         if end2end:
             raise ValueError(
