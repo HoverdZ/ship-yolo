@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 18
+_PATCH_VERSION = 19
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -29,6 +29,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(parse_model, "_cgdr_patched", False)
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
+        and getattr(parse_model, "_p2_shared_lite_detect_patched", False)
     ):
         return
 
@@ -88,6 +89,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         all(source.count(name) >= 2 for name in dpls_c3k2_names)
         and all(name in source for name in dpls_downsample_names)
     )
+    has_p2_shared_lite_detect = source.count("P2SharedLiteDetect") >= 2
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -102,6 +104,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_cgdr
         and has_projected_pair_ccw
         and has_dpls_lightweight
+        and has_p2_shared_lite_detect
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -117,6 +120,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._cgdr_patched = True
         parse_model._projected_pair_ccw_patched = True
         parse_model._dpls_lightweight_patched = True
+        parse_model._p2_shared_lite_detect_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -327,6 +331,33 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_p2_shared_lite_detect:
+        detect_set_marker = """            {
+                Detect,
+"""
+        if detect_set_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect module set for P2SharedLiteDetect."
+            )
+        source = source.replace(
+            detect_set_marker,
+            """            {
+                Detect,
+                P2SharedLiteDetect,
+""",
+            1,
+        )
+        legacy_marker = "            if m in {Detect, "
+        if legacy_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect legacy set for P2SharedLiteDetect."
+            )
+        source = source.replace(
+            legacy_marker,
+            "            if m in {Detect, P2SharedLiteDetect, ",
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -351,6 +382,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._cgdr_patched = True
     tasks.parse_model._projected_pair_ccw_patched = True
     tasks.parse_model._dpls_lightweight_patched = True
+    tasks.parse_model._p2_shared_lite_detect_patched = True
 
 
 def _patch_detection_criterion(
@@ -415,6 +447,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.projected_pair_ccw import ProjectedPairCCW
+    from custom_modules.p2_shared_lite_detect import P2SharedLiteDetect
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -460,6 +493,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
         "ProjectedPairCCW": ProjectedPairCCW,
+        "P2SharedLiteDetect": P2SharedLiteDetect,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
