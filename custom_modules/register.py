@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 17
+_PATCH_VERSION = 18
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -28,6 +28,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
         and getattr(parse_model, "_cgdr_patched", False)
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
+        and getattr(parse_model, "_dpls_lightweight_patched", False)
     ):
         return
 
@@ -75,6 +76,18 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_hhspp_local_detail = "HHSPPLocalDetail" in source
     has_cgdr = "CGDR" in source
     has_projected_pair_ccw = "elif m is ProjectedPairCCW:" in source
+    dpls_c3k2_names = (
+        "C3k2_GSConvLite",
+        "C3k2_GhostConvLite",
+        "C3k2_PartialPConvLite",
+        "C3k2_DWSeparableLite",
+        "C3k2_DWConvLite",
+    )
+    dpls_downsample_names = ("GSConv", "PartialPConvDown", "DWSeparableConv")
+    has_dpls_lightweight = (
+        all(source.count(name) >= 2 for name in dpls_c3k2_names)
+        and all(name in source for name in dpls_downsample_names)
+    )
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -88,6 +101,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_hhspp_local_detail
         and has_cgdr
         and has_projected_pair_ccw
+        and has_dpls_lightweight
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -102,6 +116,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._hhspp_local_detail_patched = True
         parse_model._cgdr_patched = True
         parse_model._projected_pair_ccw_patched = True
+        parse_model._dpls_lightweight_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -131,6 +146,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         base_additions.append("HHSPPLocalDetail")
     if not has_cgdr:
         base_additions.append("CGDR")
+    if not has_dpls_lightweight:
+        base_additions.extend((*dpls_c3k2_names, *dpls_downsample_names))
+        repeat_additions.extend(dpls_c3k2_names)
     if base_additions:
         inserted = "".join(f"            {name},\n" for name in base_additions)
         source = source.replace(
@@ -332,6 +350,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._hhspp_local_detail_patched = True
     tasks.parse_model._cgdr_patched = True
     tasks.parse_model._projected_pair_ccw_patched = True
+    tasks.parse_model._dpls_lightweight_patched = True
 
 
 def _patch_detection_criterion(
@@ -379,6 +398,16 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
     from custom_modules.dre import DREDetect, DREDetectionLoss
+    from custom_modules.dpls_lightweight_convs import (
+        C3k2_DWConvLite,
+        C3k2_DWSeparableLite,
+        C3k2_GhostConvLite,
+        C3k2_GSConvLite,
+        C3k2_PartialPConvLite,
+        DWSeparableConv,
+        GSConv,
+        PartialPConvDown,
+    )
     from custom_modules.fconv import FConv
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
     from custom_modules.cgdr import CGDR
@@ -405,6 +434,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C3k2_InceptionDW": C3k2_InceptionDW,
         "C3k2_LSKConv": C3k2_LSKConv,
         "C3k2_PConv": C3k2_PConv,
+        "C3k2_DWConvLite": C3k2_DWConvLite,
+        "C3k2_DWSeparableLite": C3k2_DWSeparableLite,
+        "C3k2_GhostConvLite": C3k2_GhostConvLite,
+        "C3k2_GSConvLite": C3k2_GSConvLite,
+        "C3k2_PartialPConvLite": C3k2_PartialPConvLite,
         "CASCAM": CASCAM,
         "DySample": DySample,
         "ERUPPreprocessor": ERUPPreprocessor,
@@ -418,6 +452,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "SimSPPF": SimSPPF,
         "WeightedFeatureFusion": WeightedFeatureFusion,
         "FConv": FConv,
+        "DWSeparableConv": DWSeparableConv,
+        "GSConv": GSConv,
+        "PartialPConvDown": PartialPConvDown,
         "CGDR": CGDR,
         "HHSPP": HHSPP,
         "HHSPPLocalDetail": HHSPPLocalDetail,
