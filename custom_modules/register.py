@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 19
+_PATCH_VERSION = 20
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -26,6 +26,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("ultralytics.nn.tasks.parse_model was not found.")
     if (
         getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
+        and getattr(parse_model, "_adaptive_preprocessors_patched", False)
         and getattr(parse_model, "_cgdr_patched", False)
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
@@ -51,9 +52,23 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_calibrated_scam = (
         f"elif m in {scam_module_set}:" in source
     )
-    has_adaptive = (
-        "elif m in {ERUPPreprocessor, VGUPPreprocessor}:" in source
+    adaptive_module_set = (
+        "{ERUPPreprocessor, VGUPPreprocessor, VGUPGateStudyPreprocessor}"
     )
+    legacy_adaptive_module_set = "{ERUPPreprocessor, VGUPPreprocessor}"
+    adaptive_source_changed = False
+    has_adaptive = f"elif m in {adaptive_module_set}:" in source
+    if (
+        not has_adaptive
+        and f"elif m in {legacy_adaptive_module_set}:" in source
+    ):
+        source = source.replace(
+            f"elif m in {legacy_adaptive_module_set}:",
+            f"elif m in {adaptive_module_set}:",
+            1,
+        )
+        has_adaptive = True
+        adaptive_source_changed = True
     comparison_module_set = "{ShuffleAttention, DATBlock}"
     has_comparison_modules = (
         "C2fRepGhost" in source
@@ -105,6 +120,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_projected_pair_ccw
         and has_dpls_lightweight
         and has_p2_shared_lite_detect
+        and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
         parse_model._ship_yolo_patch_version = _PATCH_VERSION
@@ -215,8 +231,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError(
                 "Unable to locate parse_model AIFI branch for adaptive preprocessors."
             )
-        adaptive_branch = """        elif m in {ERUPPreprocessor, VGUPPreprocessor}:
-            if isinstance(f, (list, tuple)):
+        adaptive_branch = (
+            "        elif m in {ERUPPreprocessor, VGUPPreprocessor, "
+            "VGUPGateStudyPreprocessor}:\n"
+            """            if isinstance(f, (list, tuple)):
                 raise ValueError(f"{m.__name__} expects exactly one RGB input.")
             c1 = ch[f]
             if c1 != 3:
@@ -226,6 +244,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             c2 = c1
             args = [c1, *args]
 """
+        )
         source = source.replace(
             branch_marker,
             adaptive_branch + branch_marker,
@@ -429,6 +448,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
+    from custom_modules.vgup_gate_study import VGUPGateStudyPreprocessor
     from custom_modules.dre import DREDetect, DREDetectionLoss
     from custom_modules.dpls_lightweight_convs import (
         C3k2_DWConvLite,
@@ -477,6 +497,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "ERUPPreprocessor": ERUPPreprocessor,
         "SCAM": SCAM,
         "VGUPPreprocessor": VGUPPreprocessor,
+        "VGUPGateStudyPreprocessor": VGUPGateStudyPreprocessor,
         "C2fRFA": C2fRFA,
         "C2fRepGhost": C2fRepGhost,
         "DATBlock": DATBlock,
@@ -530,7 +551,7 @@ def register_cumulative_modules(patch_parse_model: bool = True) -> None:
 
 
 def register_adaptive_preprocessors(patch_parse_model: bool = True) -> None:
-    """Register VGUP and its shared image-processing primitives."""
+    """Register VGUP preprocessors and their shared image-processing primitives."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
 
