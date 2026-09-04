@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 20
+_PATCH_VERSION = 21
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -28,6 +28,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         getattr(parse_model, "_ship_yolo_patch_version", 0) == _PATCH_VERSION
         and getattr(parse_model, "_adaptive_preprocessors_patched", False)
         and getattr(parse_model, "_cgdr_patched", False)
+        and getattr(parse_model, "_cgdr_detail_variants_patched", False)
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
         and getattr(parse_model, "_p2_shared_lite_detect_patched", False)
@@ -91,6 +92,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     )
     has_hhspp_local_detail = "HHSPPLocalDetail" in source
     has_cgdr = "CGDR" in source
+    cgdr_detail_variant_names = ("CGDRDEConv", "CGDRPDC", "CGDRMAC")
+    has_cgdr_detail_variants = all(
+        name in source for name in cgdr_detail_variant_names
+    )
     has_projected_pair_ccw = "elif m is ProjectedPairCCW:" in source
     dpls_c3k2_names = (
         "C3k2_GSConvLite",
@@ -117,6 +122,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_single_reproductions
         and has_hhspp_local_detail
         and has_cgdr
+        and has_cgdr_detail_variants
         and has_projected_pair_ccw
         and has_dpls_lightweight
         and has_p2_shared_lite_detect
@@ -134,6 +140,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._single_reproductions_patched = True
         parse_model._hhspp_local_detail_patched = True
         parse_model._cgdr_patched = True
+        parse_model._cgdr_detail_variants_patched = True
         parse_model._projected_pair_ccw_patched = True
         parse_model._dpls_lightweight_patched = True
         parse_model._p2_shared_lite_detect_patched = True
@@ -166,6 +173,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         base_additions.append("HHSPPLocalDetail")
     if not has_cgdr:
         base_additions.append("CGDR")
+    if not has_cgdr_detail_variants:
+        base_additions.extend(
+            name for name in cgdr_detail_variant_names if name not in source
+        )
     if not has_dpls_lightweight:
         base_additions.extend((*dpls_c3k2_names, *dpls_downsample_names))
         repeat_additions.extend(dpls_c3k2_names)
@@ -399,6 +410,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._single_reproductions_patched = True
     tasks.parse_model._hhspp_local_detail_patched = True
     tasks.parse_model._cgdr_patched = True
+    tasks.parse_model._cgdr_detail_variants_patched = True
     tasks.parse_model._projected_pair_ccw_patched = True
     tasks.parse_model._dpls_lightweight_patched = True
     tasks.parse_model._p2_shared_lite_detect_patched = True
@@ -463,6 +475,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.fconv import FConv
     from custom_modules.focal_ciou import FocalCIoUDetect, FocalCIoUDetectionLoss
     from custom_modules.cgdr import CGDR
+    from custom_modules.cgdr_detail_variants import CGDRDEConv, CGDRMAC, CGDRPDC
     from custom_modules.hhspp import HHSPP
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
@@ -510,6 +523,9 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "GSConv": GSConv,
         "PartialPConvDown": PartialPConvDown,
         "CGDR": CGDR,
+        "CGDRDEConv": CGDRDEConv,
+        "CGDRPDC": CGDRPDC,
+        "CGDRMAC": CGDRMAC,
         "HHSPP": HHSPP,
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
