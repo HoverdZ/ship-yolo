@@ -1,0 +1,46 @@
+experiment: X08_NanoDet_Plus_m_416_Ours
+variant: ours
+description: NanoDet-Plus-m-416 with InceptionDW, DPLS, CA-SCAM, and VGUP.
+
+official_source:
+  repository: https://github.com/RangiLyu/nanodet
+  tag: v1.0.0
+  commit: d3fb34fa91d6020f273d6d063bf324dcd97bac12
+  model: NanoDet-Plus-m-416
+  checkpoint_google_drive_id: 1FN3WK3FLjBm7oCqiwUcD3m3MjfqxuzXe
+
+architecture_changes:
+  - Apply VGUP to RGB input before the official ShuffleNetV2 stem.
+  - Keep the first stride-2 block of every stage unchanged and replace only the later spatial operator in stage2 and stage3 with InceptionDW.
+  - Remove the parameter-free max-pool to shift native backbone outputs from P3-P5 to P2-P4 while retaining stages 2-4 and their pretrained weights.
+  - Replace the two GhostPAN top-down upsampling operations with DySample.
+  - Apply bounded CA-SCAM to P2-P4 outputs and retain the native extra P5 path.
+
+input_size: 416
+batch_size: 32
+epochs: 100
+seed: 0
+workers: 4
+amp: true
+validation_interval: 5
+
+optimizer:
+  name: AdamW
+  lr: 0.0003333333333333333
+  weight_decay: 0.05
+  eta_min: 0.0000166666666666667
+
+warmup_steps: 200
+warmup_ratio: 0.0001
+grad_clip: 35.0
+ema_decay: 0.9998
+detach_epoch: 10
+
+data:
+  drive_root: /content/drive/MyDrive/ship_detection/data
+  local_root: /content/ship_detection/data
+  generated_yaml: /content/ship_detection/data/data.yaml
+  generated_coco_root: /content/ship_detection/nanodet_coco
+  class_names: [ship]
+  validation_augmentation: false
+  test_augmentation: false
