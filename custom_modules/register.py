@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 21
+_PATCH_VERSION = 22
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -32,6 +32,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
         and getattr(parse_model, "_p2_shared_lite_detect_patched", False)
+        and getattr(parse_model, "_yolox_nano_dw_detect_patched", False)
+        and getattr(parse_model, "_rtmdet_sepbn_lite_detect_patched", False)
     ):
         return
 
@@ -110,6 +112,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and all(name in source for name in dpls_downsample_names)
     )
     has_p2_shared_lite_detect = source.count("P2SharedLiteDetect") >= 2
+    has_yolox_nano_dw_detect = source.count("YOLOXNanoDWDetect") >= 2
+    has_rtmdet_sepbn_lite_detect = source.count("RTMDetSepBNLiteDetect") >= 2
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -126,6 +130,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_projected_pair_ccw
         and has_dpls_lightweight
         and has_p2_shared_lite_detect
+        and has_yolox_nano_dw_detect
+        and has_rtmdet_sepbn_lite_detect
         and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
@@ -144,6 +150,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._projected_pair_ccw_patched = True
         parse_model._dpls_lightweight_patched = True
         parse_model._p2_shared_lite_detect_patched = True
+        parse_model._yolox_nano_dw_detect_patched = True
+        parse_model._rtmdet_sepbn_lite_detect_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -388,6 +396,44 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    lightweight_detect_heads = [
+        name
+        for name, present in (
+            ("YOLOXNanoDWDetect", has_yolox_nano_dw_detect),
+            ("RTMDetSepBNLiteDetect", has_rtmdet_sepbn_lite_detect),
+        )
+        if not present
+    ]
+    if lightweight_detect_heads:
+        detect_set_marker = """            {
+                Detect,
+"""
+        if detect_set_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect module set for lightweight heads."
+            )
+        detect_insertions = "".join(
+            f"                {name},\n" for name in lightweight_detect_heads
+        )
+        source = source.replace(
+            detect_set_marker,
+            detect_set_marker + detect_insertions,
+            1,
+        )
+        legacy_marker = "            if m in {Detect, "
+        if legacy_marker not in source:
+            raise RuntimeError(
+                "Unable to locate parse_model Detect legacy set for lightweight heads."
+            )
+        legacy_insertions = "".join(
+            f"{name}, " for name in lightweight_detect_heads
+        )
+        source = source.replace(
+            legacy_marker,
+            legacy_marker + legacy_insertions,
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -414,6 +460,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._projected_pair_ccw_patched = True
     tasks.parse_model._dpls_lightweight_patched = True
     tasks.parse_model._p2_shared_lite_detect_patched = True
+    tasks.parse_model._yolox_nano_dw_detect_patched = True
+    tasks.parse_model._rtmdet_sepbn_lite_detect_patched = True
 
 
 def _patch_detection_criterion(
@@ -481,6 +529,10 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.projected_pair_ccw import ProjectedPairCCW
     from custom_modules.p2_shared_lite_detect import P2SharedLiteDetect
+    from custom_modules.lightweight_detect_heads import (
+        RTMDetSepBNLiteDetect,
+        YOLOXNanoDWDetect,
+    )
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -531,6 +583,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "C2PSAHiLo": C2PSAHiLo,
         "ProjectedPairCCW": ProjectedPairCCW,
         "P2SharedLiteDetect": P2SharedLiteDetect,
+        "YOLOXNanoDWDetect": YOLOXNanoDWDetect,
+        "RTMDetSepBNLiteDetect": RTMDetSepBNLiteDetect,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
@@ -578,3 +632,4 @@ def register_calibrated_scam_modules(
     """Register CA-SCAM and every shared repository module."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
+
