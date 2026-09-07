@@ -1,6 +1,6 @@
-# A2 factorial model: the validated LDPP composite on YOLO11n.
+# M2 final factorial model: YOLO11n + LDPP.
 # Factors: VGUP=off, LDPP=on, CGDR=off.
-# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + P2SharedLiteDetect.
+# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + LDPPDetect.
 nc: 80
 scale: n
 scales:
@@ -34,4 +34,4 @@ head:
   - [-1, 1, DWConv, [512, 3, 2]]
   - [[-1, 8], 1, Concat, [1]]
   - [-1, 2, C3k2, [512, true]]
-  - [[14, 17, 20], 1, P2SharedLiteDetect, [nc, 48]]
+  - [[14, 17, 20], 1, LDPPDetect, [nc]]

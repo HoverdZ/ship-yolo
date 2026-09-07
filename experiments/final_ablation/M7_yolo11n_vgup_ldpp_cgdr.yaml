@@ -1,6 +1,6 @@
-# A5 factorial model: the validated LDPP composite with CGDR.
-# Factors: VGUP=off, LDPP=on, CGDR=on.
-# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + P2SharedLiteDetect.
+# M7 final factorial model: YOLO11n + VGUP + LDPP + CGDR.
+# Factors: VGUP=on, LDPP=on, CGDR=on.
+# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + LDPPDetect.
 nc: 80
 scale: n
 scales:
@@ -11,6 +11,7 @@ scales:
   x: [1.00, 1.50, 512]
 
 backbone:
+  - [-1, 1, VGUPPreprocessor, [8, 128, true, true]]
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
   - [-1, 2, C3k2, [256, false, 0.25]]
@@ -23,17 +24,15 @@ backbone:
 
 head:
   - [-1, 1, DySample, [2, lp, 4, false]]
-  - [[-1, 4], 1, Concat, [1]]
+  - [[-1, 5], 1, Concat, [1]]
   - [-1, 2, C3k2_DWConvLite, [512, false]]
   - [-1, 1, DySample, [2, lp, 4, false]]
-  - [[-1, 2], 1, Concat, [1]]
+  - [[-1, 3], 1, Concat, [1]]
   - [-1, 2, C3k2, [256, false]]
   - [-1, 1, DWConv, [256, 3, 2]]
-  - [[-1, 11], 1, Concat, [1]]
+  - [[-1, 12], 1, Concat, [1]]
   - [-1, 2, C3k2_DWConvLite, [512, false]]
   - [-1, 1, DWConv, [512, 3, 2]]
-  - [[-1, 8], 1, Concat, [1]]
+  - [[-1, 9], 1, Concat, [1]]
   - [-1, 2, C3k2, [512, true]]
-  - [[14, 17, 20], 1, YOLOXNanoDWDetect, [nc, 64]]
-
-
+  - [[15, 18, 21], 1, LDPPDetect, [nc]]

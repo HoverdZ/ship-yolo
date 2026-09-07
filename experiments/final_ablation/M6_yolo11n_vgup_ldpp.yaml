@@ -1,6 +1,6 @@
-# A7 factorial model: the final VGUP + LDPP + CGDR paper model.
-# Factors: VGUP=on, LDPP=on, CGDR=on.
-# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + P2SharedLiteDetect.
+# M6 final factorial model: YOLO11n + VGUP + LDPP.
+# Factors: VGUP=on, LDPP=on, CGDR=off.
+# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + LDPPDetect.
 nc: 80
 scale: n
 scales:
@@ -19,7 +19,7 @@ backbone:
   - [-1, 2, C3k2, [512, false, 0.25]]
   - [-1, 1, Conv, [512, 3, 2]]
   - [-1, 2, C3k2, [512, true]]
-  - [-1, 1, CGDR, [512]]
+  - [-1, 1, SPPF, [512, 5]]
   - [-1, 2, C2PSA, [512]]
 
 head:
@@ -35,4 +35,4 @@ head:
   - [-1, 1, DWConv, [512, 3, 2]]
   - [[-1, 9], 1, Concat, [1]]
   - [-1, 2, C3k2, [512, true]]
-  - [[15, 18, 21], 1, P2SharedLiteDetect, [nc, 48]]
+  - [[15, 18, 21], 1, LDPPDetect, [nc]]

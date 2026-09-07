@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 24
+_PATCH_VERSION = 25
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -31,24 +31,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(parse_model, "_cgdr_detail_variants_patched", False)
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
-        and getattr(parse_model, "_p2_shared_lite_detect_patched", False)
-        and getattr(parse_model, "_yolox_nano_dw_detect_patched", False)
-        and getattr(parse_model, "_rtmdet_sepbn_lite_detect_patched", False)
-        and getattr(
-            parse_model,
-            "_yolo11_cls_yolox_dw_reg_detect_patched",
-            False,
-        )
-        and getattr(
-            parse_model,
-            "_yolo11_cls_p2dense_hybrid_dw_reg_detect_patched",
-            False,
-        )
-        and getattr(
-            parse_model,
-            "_yolo11_cls_p23dense_hybrid_dw_reg_detect_patched",
-            False,
-        )
+        and getattr(parse_model, "_ldpp_detect_patched", False)
     ):
         return
 
@@ -126,18 +109,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         all(source.count(name) >= 2 for name in dpls_c3k2_names)
         and all(name in source for name in dpls_downsample_names)
     )
-    has_p2_shared_lite_detect = source.count("P2SharedLiteDetect") >= 2
-    has_yolox_nano_dw_detect = source.count("YOLOXNanoDWDetect") >= 2
-    has_rtmdet_sepbn_lite_detect = source.count("RTMDetSepBNLiteDetect") >= 2
-    has_yolo11_cls_yolox_dw_reg_detect = (
-        source.count("YOLO11ClsYOLOXNanoDWRegDetect") >= 2
-    )
-    has_yolo11_cls_p2dense_hybrid_dw_reg_detect = (
-        source.count("YOLO11ClsP2DenseHybridDWRegDetect") >= 2
-    )
-    has_yolo11_cls_p23dense_hybrid_dw_reg_detect = (
-        source.count("YOLO11ClsP23DenseHybridDWRegDetect") >= 2
-    )
+    has_ldpp_detect = source.count("LDPPDetect") >= 2
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -153,12 +125,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_cgdr_detail_variants
         and has_projected_pair_ccw
         and has_dpls_lightweight
-        and has_p2_shared_lite_detect
-        and has_yolox_nano_dw_detect
-        and has_rtmdet_sepbn_lite_detect
-        and has_yolo11_cls_yolox_dw_reg_detect
-        and has_yolo11_cls_p2dense_hybrid_dw_reg_detect
-        and has_yolo11_cls_p23dense_hybrid_dw_reg_detect
+        and has_ldpp_detect
         and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
@@ -176,12 +143,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._cgdr_detail_variants_patched = True
         parse_model._projected_pair_ccw_patched = True
         parse_model._dpls_lightweight_patched = True
-        parse_model._p2_shared_lite_detect_patched = True
-        parse_model._yolox_nano_dw_detect_patched = True
-        parse_model._rtmdet_sepbn_lite_detect_patched = True
-        parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
-        parse_model._yolo11_cls_p2dense_hybrid_dw_reg_detect_patched = True
-        parse_model._yolo11_cls_p23dense_hybrid_dw_reg_detect_patched = True
+        parse_model._ldpp_detect_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -399,80 +361,30 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
-    if not has_p2_shared_lite_detect:
+    if not has_ldpp_detect:
         detect_set_marker = """            {
                 Detect,
 """
         if detect_set_marker not in source:
             raise RuntimeError(
-                "Unable to locate parse_model Detect module set for P2SharedLiteDetect."
+                "Unable to locate parse_model Detect module set for LDPPDetect."
             )
         source = source.replace(
             detect_set_marker,
             """            {
                 Detect,
-                P2SharedLiteDetect,
+                LDPPDetect,
 """,
             1,
         )
         legacy_marker = "            if m in {Detect, "
         if legacy_marker not in source:
             raise RuntimeError(
-                "Unable to locate parse_model Detect legacy set for P2SharedLiteDetect."
+                "Unable to locate parse_model Detect legacy set for LDPPDetect."
             )
         source = source.replace(
             legacy_marker,
-            "            if m in {Detect, P2SharedLiteDetect, ",
-            1,
-        )
-
-    lightweight_detect_heads = [
-        name
-        for name, present in (
-            ("YOLOXNanoDWDetect", has_yolox_nano_dw_detect),
-            ("RTMDetSepBNLiteDetect", has_rtmdet_sepbn_lite_detect),
-            (
-                "YOLO11ClsYOLOXNanoDWRegDetect",
-                has_yolo11_cls_yolox_dw_reg_detect,
-            ),
-            (
-                "YOLO11ClsP2DenseHybridDWRegDetect",
-                has_yolo11_cls_p2dense_hybrid_dw_reg_detect,
-            ),
-            (
-                "YOLO11ClsP23DenseHybridDWRegDetect",
-                has_yolo11_cls_p23dense_hybrid_dw_reg_detect,
-            ),
-        )
-        if not present
-    ]
-    if lightweight_detect_heads:
-        detect_set_marker = """            {
-                Detect,
-"""
-        if detect_set_marker not in source:
-            raise RuntimeError(
-                "Unable to locate parse_model Detect module set for lightweight heads."
-            )
-        detect_insertions = "".join(
-            f"                {name},\n" for name in lightweight_detect_heads
-        )
-        source = source.replace(
-            detect_set_marker,
-            detect_set_marker + detect_insertions,
-            1,
-        )
-        legacy_marker = "            if m in {Detect, "
-        if legacy_marker not in source:
-            raise RuntimeError(
-                "Unable to locate parse_model Detect legacy set for lightweight heads."
-            )
-        legacy_insertions = "".join(
-            f"{name}, " for name in lightweight_detect_heads
-        )
-        source = source.replace(
-            legacy_marker,
-            legacy_marker + legacy_insertions,
+            "            if m in {Detect, LDPPDetect, ",
             1,
         )
 
@@ -501,12 +413,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._cgdr_detail_variants_patched = True
     tasks.parse_model._projected_pair_ccw_patched = True
     tasks.parse_model._dpls_lightweight_patched = True
-    tasks.parse_model._p2_shared_lite_detect_patched = True
-    tasks.parse_model._yolox_nano_dw_detect_patched = True
-    tasks.parse_model._rtmdet_sepbn_lite_detect_patched = True
-    tasks.parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
-    tasks.parse_model._yolo11_cls_p2dense_hybrid_dw_reg_detect_patched = True
-    tasks.parse_model._yolo11_cls_p23dense_hybrid_dw_reg_detect_patched = True
+    tasks.parse_model._ldpp_detect_patched = True
 
 
 def _patch_detection_criterion(
@@ -572,15 +479,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.hhspp import HHSPP
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
+    from custom_modules.ldpp_detect import LDPPDetect
     from custom_modules.projected_pair_ccw import ProjectedPairCCW
-    from custom_modules.p2_shared_lite_detect import P2SharedLiteDetect
-    from custom_modules.lightweight_detect_heads import (
-        RTMDetSepBNLiteDetect,
-        YOLO11ClsP23DenseHybridDWRegDetect,
-        YOLO11ClsP2DenseHybridDWRegDetect,
-        YOLO11ClsYOLOXNanoDWRegDetect,
-        YOLOXNanoDWDetect,
-    )
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
         C2fRepGhost,
@@ -629,13 +529,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "HHSPP": HHSPP,
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
+        "LDPPDetect": LDPPDetect,
         "ProjectedPairCCW": ProjectedPairCCW,
-        "P2SharedLiteDetect": P2SharedLiteDetect,
-        "YOLOXNanoDWDetect": YOLOXNanoDWDetect,
-        "RTMDetSepBNLiteDetect": RTMDetSepBNLiteDetect,
-        "YOLO11ClsYOLOXNanoDWRegDetect": YOLO11ClsYOLOXNanoDWRegDetect,
-        "YOLO11ClsP2DenseHybridDWRegDetect": YOLO11ClsP2DenseHybridDWRegDetect,
-        "YOLO11ClsP23DenseHybridDWRegDetect": YOLO11ClsP23DenseHybridDWRegDetect,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }

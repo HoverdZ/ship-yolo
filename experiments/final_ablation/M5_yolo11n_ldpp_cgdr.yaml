@@ -1,6 +1,6 @@
-# LDPP hybrid-regression head search on YOLO11n.
-# Factors: VGUP=off, LDPP=on, CGDR=off.
-# The frozen DPLS/DWConv neck is shared; only the final Detect variant changes.
+# M5 final factorial model: YOLO11n + LDPP + CGDR.
+# Factors: VGUP=off, LDPP=on, CGDR=on.
+# LDPP = DPLS P2/P3/P4 pyramid + DWConv lightweight neck + LDPPDetect.
 nc: 80
 scale: n
 scales:
@@ -18,7 +18,7 @@ backbone:
   - [-1, 2, C3k2, [512, false, 0.25]]
   - [-1, 1, Conv, [512, 3, 2]]
   - [-1, 2, C3k2, [512, true]]
-  - [-1, 1, SPPF, [512, 5]]
+  - [-1, 1, CGDR, [512]]
   - [-1, 2, C2PSA, [512]]
 
 head:
@@ -34,4 +34,4 @@ head:
   - [-1, 1, DWConv, [512, 3, 2]]
   - [[-1, 8], 1, Concat, [1]]
   - [-1, 2, C3k2, [512, true]]
-  - [[14, 17, 20], 1, YOLO11ClsP2DenseHybridDWRegDetect, [nc]]
+  - [[14, 17, 20], 1, LDPPDetect, [nc]]
