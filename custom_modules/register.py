@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 22
+_PATCH_VERSION = 23
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -34,6 +34,11 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(parse_model, "_p2_shared_lite_detect_patched", False)
         and getattr(parse_model, "_yolox_nano_dw_detect_patched", False)
         and getattr(parse_model, "_rtmdet_sepbn_lite_detect_patched", False)
+        and getattr(
+            parse_model,
+            "_yolo11_cls_yolox_dw_reg_detect_patched",
+            False,
+        )
     ):
         return
 
@@ -114,6 +119,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_p2_shared_lite_detect = source.count("P2SharedLiteDetect") >= 2
     has_yolox_nano_dw_detect = source.count("YOLOXNanoDWDetect") >= 2
     has_rtmdet_sepbn_lite_detect = source.count("RTMDetSepBNLiteDetect") >= 2
+    has_yolo11_cls_yolox_dw_reg_detect = (
+        source.count("YOLO11ClsYOLOXNanoDWRegDetect") >= 2
+    )
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -132,6 +140,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_p2_shared_lite_detect
         and has_yolox_nano_dw_detect
         and has_rtmdet_sepbn_lite_detect
+        and has_yolo11_cls_yolox_dw_reg_detect
         and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
@@ -152,6 +161,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._p2_shared_lite_detect_patched = True
         parse_model._yolox_nano_dw_detect_patched = True
         parse_model._rtmdet_sepbn_lite_detect_patched = True
+        parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -401,6 +411,10 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         for name, present in (
             ("YOLOXNanoDWDetect", has_yolox_nano_dw_detect),
             ("RTMDetSepBNLiteDetect", has_rtmdet_sepbn_lite_detect),
+            (
+                "YOLO11ClsYOLOXNanoDWRegDetect",
+                has_yolo11_cls_yolox_dw_reg_detect,
+            ),
         )
         if not present
     ]
@@ -462,6 +476,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._p2_shared_lite_detect_patched = True
     tasks.parse_model._yolox_nano_dw_detect_patched = True
     tasks.parse_model._rtmdet_sepbn_lite_detect_patched = True
+    tasks.parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
 
 
 def _patch_detection_criterion(
@@ -531,6 +546,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.p2_shared_lite_detect import P2SharedLiteDetect
     from custom_modules.lightweight_detect_heads import (
         RTMDetSepBNLiteDetect,
+        YOLO11ClsYOLOXNanoDWRegDetect,
         YOLOXNanoDWDetect,
     )
     from custom_modules.remote_ship_reproductions import (
@@ -585,6 +601,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "P2SharedLiteDetect": P2SharedLiteDetect,
         "YOLOXNanoDWDetect": YOLOXNanoDWDetect,
         "RTMDetSepBNLiteDetect": RTMDetSepBNLiteDetect,
+        "YOLO11ClsYOLOXNanoDWRegDetect": YOLO11ClsYOLOXNanoDWRegDetect,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
@@ -632,4 +649,5 @@ def register_calibrated_scam_modules(
     """Register CA-SCAM and every shared repository module."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
+
 

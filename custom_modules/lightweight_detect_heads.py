@@ -75,10 +75,16 @@ class _ConvBNAct(nn.Sequential):
 class _DepthwiseSeparableBlock(nn.Sequential):
     """Depthwise 3x3 then pointwise 1x1, each followed by BN and SiLU."""
 
-    def __init__(self, channels: int) -> None:
+    def __init__(self, in_channels: int, out_channels: int | None = None) -> None:
+        out_channels = in_channels if out_channels is None else out_channels
         super().__init__(
-            _ConvBNAct(channels, channels, kernel_size=3, groups=channels),
-            _ConvBNAct(channels, channels, kernel_size=1),
+            _ConvBNAct(
+                in_channels,
+                in_channels,
+                kernel_size=3,
+                groups=in_channels,
+            ),
+            _ConvBNAct(in_channels, out_channels, kernel_size=1),
         )
 
 
@@ -184,6 +190,78 @@ class YOLOXNanoDWDetect(_ProjectedDetect):
             for _ in channels
         )
         self._configure_end2end(effective_end2end)
+
+
+class YOLO11ClsYOLOXNanoDWRegDetect(Detect):
+    """Keep stock YOLO11 classification and lighten only regression features.
+
+    YAML arguments ``[nc]`` are followed by Ultralytics 8.4.92 parser values
+    ``[reg_max, end2end, ch]``. The parent-created ``cv3`` is intentionally
+    retained without replacement.
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 16,
+        end2end: bool | None = False,
+        ch: Sequence[int] = (),
+    ) -> None:
+        if not isinstance(nc, int) or isinstance(nc, bool) or nc < 1:
+            raise ValueError(f"nc must be a positive integer, got {nc!r}.")
+        if not isinstance(reg_max, int) or isinstance(reg_max, bool) or reg_max != 16:
+            raise ValueError(
+                "YOLO11ClsYOLOXNanoDWRegDetect requires "
+                f"reg_max=16, got {reg_max!r}."
+            )
+        if end2end is not None and not isinstance(end2end, bool):
+            raise TypeError(
+                f"end2end must be a boolean or None, got {type(end2end).__name__}."
+            )
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError("Expected exactly three ordered detection channels: P2, P3, P4.")
+        if any(
+            not isinstance(channel, int) or isinstance(channel, bool) or channel < 1
+            for channel in ch
+        ):
+            raise ValueError(
+                f"Detection input channels must be positive integers, got {ch!r}."
+            )
+
+        channels = tuple(ch)
+        effective_end2end = bool(end2end)
+        super().__init__(
+            nc=nc,
+            reg_max=reg_max,
+            end2end=effective_end2end,
+            ch=channels,
+        )
+
+        reg_hidden_channels = max(
+            16,
+            channels[0] // 4,
+            self.reg_max * 4,
+        )
+        self.reg_hidden_channels = reg_hidden_channels
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(
+                _DepthwiseSeparableBlock(channel, reg_hidden_channels),
+                _DepthwiseSeparableBlock(
+                    reg_hidden_channels,
+                    reg_hidden_channels,
+                ),
+                nn.Conv2d(
+                    reg_hidden_channels,
+                    4 * self.reg_max,
+                    kernel_size=1,
+                ),
+            )
+            for channel in channels
+        )
+
+        if effective_end2end:
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+        self.end2end = effective_end2end
 
 
 class _SharedSepBNTower(nn.Module):
@@ -351,4 +429,5 @@ class RTMDetSepBNLiteDetect(_ProjectedDetect):
             dim=-1,
         )
         return dict(boxes=boxes, scores=scores, feats=x)
+
 
