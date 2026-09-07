@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 23
+_PATCH_VERSION = 24
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -37,6 +37,16 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(
             parse_model,
             "_yolo11_cls_yolox_dw_reg_detect_patched",
+            False,
+        )
+        and getattr(
+            parse_model,
+            "_yolo11_cls_p2dense_hybrid_dw_reg_detect_patched",
+            False,
+        )
+        and getattr(
+            parse_model,
+            "_yolo11_cls_p23dense_hybrid_dw_reg_detect_patched",
             False,
         )
     ):
@@ -122,6 +132,12 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     has_yolo11_cls_yolox_dw_reg_detect = (
         source.count("YOLO11ClsYOLOXNanoDWRegDetect") >= 2
     )
+    has_yolo11_cls_p2dense_hybrid_dw_reg_detect = (
+        source.count("YOLO11ClsP2DenseHybridDWRegDetect") >= 2
+    )
+    has_yolo11_cls_p23dense_hybrid_dw_reg_detect = (
+        source.count("YOLO11ClsP23DenseHybridDWRegDetect") >= 2
+    )
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -141,6 +157,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_yolox_nano_dw_detect
         and has_rtmdet_sepbn_lite_detect
         and has_yolo11_cls_yolox_dw_reg_detect
+        and has_yolo11_cls_p2dense_hybrid_dw_reg_detect
+        and has_yolo11_cls_p23dense_hybrid_dw_reg_detect
         and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
@@ -162,6 +180,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._yolox_nano_dw_detect_patched = True
         parse_model._rtmdet_sepbn_lite_detect_patched = True
         parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
+        parse_model._yolo11_cls_p2dense_hybrid_dw_reg_detect_patched = True
+        parse_model._yolo11_cls_p23dense_hybrid_dw_reg_detect_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -415,6 +435,14 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
                 "YOLO11ClsYOLOXNanoDWRegDetect",
                 has_yolo11_cls_yolox_dw_reg_detect,
             ),
+            (
+                "YOLO11ClsP2DenseHybridDWRegDetect",
+                has_yolo11_cls_p2dense_hybrid_dw_reg_detect,
+            ),
+            (
+                "YOLO11ClsP23DenseHybridDWRegDetect",
+                has_yolo11_cls_p23dense_hybrid_dw_reg_detect,
+            ),
         )
         if not present
     ]
@@ -477,6 +505,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._yolox_nano_dw_detect_patched = True
     tasks.parse_model._rtmdet_sepbn_lite_detect_patched = True
     tasks.parse_model._yolo11_cls_yolox_dw_reg_detect_patched = True
+    tasks.parse_model._yolo11_cls_p2dense_hybrid_dw_reg_detect_patched = True
+    tasks.parse_model._yolo11_cls_p23dense_hybrid_dw_reg_detect_patched = True
 
 
 def _patch_detection_criterion(
@@ -546,6 +576,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.p2_shared_lite_detect import P2SharedLiteDetect
     from custom_modules.lightweight_detect_heads import (
         RTMDetSepBNLiteDetect,
+        YOLO11ClsP23DenseHybridDWRegDetect,
+        YOLO11ClsP2DenseHybridDWRegDetect,
         YOLO11ClsYOLOXNanoDWRegDetect,
         YOLOXNanoDWDetect,
     )
@@ -602,6 +634,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "YOLOXNanoDWDetect": YOLOXNanoDWDetect,
         "RTMDetSepBNLiteDetect": RTMDetSepBNLiteDetect,
         "YOLO11ClsYOLOXNanoDWRegDetect": YOLO11ClsYOLOXNanoDWRegDetect,
+        "YOLO11ClsP2DenseHybridDWRegDetect": YOLO11ClsP2DenseHybridDWRegDetect,
+        "YOLO11ClsP23DenseHybridDWRegDetect": YOLO11ClsP23DenseHybridDWRegDetect,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
     }
@@ -649,5 +683,3 @@ def register_calibrated_scam_modules(
     """Register CA-SCAM and every shared repository module."""
 
     register_custom_modules(patch_parse_model=patch_parse_model)
-
-

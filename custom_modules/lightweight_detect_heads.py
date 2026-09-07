@@ -1,8 +1,9 @@
-"""Mature lightweight Detect tower candidates for the frozen LDPP neck.
+"""Lightweight Detect tower candidates for the frozen LDPP neck.
 
-Only the feature towers are adapted from YOLOX Nano and RTMDet SepBN. The
-prediction protocol, DFL representation, anchor generation, decoding, loss,
-export path, and optional end-to-end path remain those of Ultralytics Detect.
+Only feature-tower structure changes across the YOLOX, RTMDet, and hybrid
+candidates. The prediction protocol, DFL representation, anchor generation,
+decoding, loss, export path, and optional end-to-end path remain those of
+Ultralytics Detect.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from collections.abc import Sequence
 
 import torch
 from torch import nn
+from ultralytics.nn.modules.conv import Conv, DWConv
 from ultralytics.nn.modules.head import Detect
 
 
@@ -85,6 +87,16 @@ class _DepthwiseSeparableBlock(nn.Sequential):
                 groups=in_channels,
             ),
             _ConvBNAct(in_channels, out_channels, kernel_size=1),
+        )
+
+
+class _UltralyticsDepthwiseSeparableBlock(nn.Sequential):
+    """Ultralytics-native depthwise 3x3 followed by pointwise 1x1."""
+
+    def __init__(self, in_channels: int, out_channels: int) -> None:
+        super().__init__(
+            DWConv(in_channels, in_channels, k=3, s=1),
+            Conv(in_channels, out_channels, k=1, s=1),
         )
 
 
@@ -264,6 +276,109 @@ class YOLO11ClsYOLOXNanoDWRegDetect(Detect):
         self.end2end = effective_end2end
 
 
+class _YOLO11ClsHybridDWRegDetect(Detect):
+    """Keep stock classification while selectively restoring dense regression layers."""
+
+    _dense_first_levels: tuple[int, ...] = ()
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 16,
+        end2end: bool | None = False,
+        ch: Sequence[int] = (),
+    ) -> None:
+        if not isinstance(nc, int) or isinstance(nc, bool) or nc < 1:
+            raise ValueError(f"nc must be a positive integer, got {nc!r}.")
+        if not isinstance(reg_max, int) or isinstance(reg_max, bool) or reg_max != 16:
+            raise ValueError(
+                f"{type(self).__name__} requires reg_max=16, got {reg_max!r}."
+            )
+        if end2end is not None and not isinstance(end2end, bool):
+            raise TypeError(
+                f"end2end must be a boolean or None, got {type(end2end).__name__}."
+            )
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError("Expected exactly three ordered detection channels: P2, P3, P4.")
+        if any(
+            not isinstance(channel, int) or isinstance(channel, bool) or channel < 1
+            for channel in ch
+        ):
+            raise ValueError(
+                f"Detection input channels must be positive integers, got {ch!r}."
+            )
+
+        channels = tuple(ch)
+        effective_end2end = bool(end2end)
+        super().__init__(
+            nc=nc,
+            reg_max=reg_max,
+            end2end=effective_end2end,
+            ch=channels,
+        )
+
+        reg_hidden_channels = max(
+            16,
+            channels[0] // 4,
+            self.reg_max * 4,
+        )
+        self.reg_hidden_channels = reg_hidden_channels
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(
+                Conv(channel, reg_hidden_channels, k=3, s=1)
+                if level_index in self._dense_first_levels
+                else _UltralyticsDepthwiseSeparableBlock(
+                    channel,
+                    reg_hidden_channels,
+                ),
+                _UltralyticsDepthwiseSeparableBlock(
+                    reg_hidden_channels,
+                    reg_hidden_channels,
+                ),
+                nn.Conv2d(
+                    reg_hidden_channels,
+                    4 * self.reg_max,
+                    kernel_size=1,
+                ),
+            )
+            for level_index, channel in enumerate(channels)
+        )
+
+        if effective_end2end:
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+        self.end2end = effective_end2end
+
+
+class YOLO11ClsP2DenseHybridDWRegDetect(_YOLO11ClsHybridDWRegDetect):
+    """Use Dense+DS at P2 and DS+DS at P3/P4 for regression."""
+
+    _dense_first_levels = (0,)
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 16,
+        end2end: bool | None = False,
+        ch: Sequence[int] = (),
+    ) -> None:
+        super().__init__(nc=nc, reg_max=reg_max, end2end=end2end, ch=ch)
+
+
+class YOLO11ClsP23DenseHybridDWRegDetect(_YOLO11ClsHybridDWRegDetect):
+    """Use Dense+DS at P2/P3 and DS+DS at P4 for regression."""
+
+    _dense_first_levels = (0, 1)
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 16,
+        end2end: bool | None = False,
+        ch: Sequence[int] = (),
+    ) -> None:
+        super().__init__(nc=nc, reg_max=reg_max, end2end=end2end, ch=ch)
+
+
 class _SharedSepBNTower(nn.Module):
     """RTMDet depthwise tower with shared DW/PW weights and per-level BN."""
 
@@ -429,5 +544,3 @@ class RTMDetSepBNLiteDetect(_ProjectedDetect):
             dim=-1,
         )
         return dict(boxes=boxes, scores=scores, feats=x)
-
-
