@@ -57,6 +57,25 @@ Both use 640 × 640 input, 150 epochs, batch size 8, seed 0, and the same
 official RTMDet-Tiny COCO checkpoint. The runtime records exact
 Loaded/Total tensor counts before epoch one.
 
+## NanoDet-Plus Cross-Architecture Evaluation
+
+The NanoDet comparison is a paired, speed-oriented transfer experiment based
+on the official NanoDet v1.0.0 implementation. Both runs use 416 x 416 input,
+batch size 32, 100 epochs, seed 0, AdamW, AMP, identical official
+NanoDet-Plus-m-416 pretrained weights, and the same native data augmentation,
+GFL/DSLA losses, auxiliary head, and EMA rule:
+
+- `experiments/transfer_models/nanodet/X07_nanodet_plus_m_416_official_100e.yaml`
+- `experiments/transfer_models/nanodet/X08_nanodet_plus_m_416_inceptiondw_dpls_ca_scam_vgup_100e.yaml`
+
+The migrated model retains every first stride-2 ShuffleNetV2 block. It adapts
+InceptionDW to later shallow spatial operators, shifts the native feature
+pyramid to P2-P4, uses DySample in the two top-down GhostPAN paths, applies
+bounded CA-SCAM before the detector head, and uses VGUP before the backbone.
+The foreground Colab runtime is implemented in
+`tools/nanodet_transfer_runtime.py`; it does not install legacy PyTorch or run
+training in a subprocess.
+
 ## Dataset
 
 The primary experiments use a fog-augmented version of the public LEVIR-Ship dataset. Following Wang et al. (2022), Perlin noise is used to simulate thin, dense, and patchy fog conditions. Dataset provenance, processing details, and directory organization are documented in [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
