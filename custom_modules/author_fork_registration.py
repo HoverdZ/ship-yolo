@@ -13,7 +13,7 @@ from pathlib import Path
 from types import ModuleType
 
 
-_AUTHOR_PATCH_VERSION = 2
+_AUTHOR_PATCH_VERSION = 3
 _AUTHOR_SOURCES = {
     "yolov12": (
         "https://github.com/sunsmarterjie/yolov12",
@@ -154,6 +154,19 @@ def _patch_author_parse_model(
         "AIFI branch",
     )
 
+    detect_marker = "elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:"
+    source = _replace_once(
+        source, detect_marker,
+        detect_marker.replace("{Detect,", "{Detect, AuthorLDPPDetect,"),
+        "Detect channel-append branch",
+    )
+    legacy_marker = "if m in {Detect, Segment, Pose, OBB}:"
+    source = _replace_once(
+        source, legacy_marker,
+        legacy_marker.replace("{Detect,", "{Detect, AuthorLDPPDetect,"),
+        "Detect legacy branch",
+    )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -177,7 +190,11 @@ def _register_author_modules(fork: str) -> None:
     import ultralytics.nn.tasks as tasks
 
     _validate_author_fork(tasks, fork)
+    # Import only after validating the active source and its constructor API.
+    from custom_modules.author_ldpp_detect import AuthorLDPPDetect
+
     names = {
+        "AuthorLDPPDetect": AuthorLDPPDetect,
         "CGDR": CGDR,
         "DySample": DySample,
         "KBLLitePreprocessor": KBLLitePreprocessor,

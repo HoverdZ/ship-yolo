@@ -279,3 +279,22 @@ class C3k2_DWConvLite(_C3k2LiteVariant):
     """C3k2 with only Bottleneck.cv2 replaced by bare Ultralytics DWConv."""
 
     bottleneck_type = _DWConvBottleneck
+
+
+class C2f_DWConvLite(C2f):
+    """YOLOv8 C2f with only native Bottleneck.cv2 replaced by DWConv.
+
+    Unlike C3k2's inner e=0.5, C2f uses inner e=1.0. Retain the
+    parent-created bottlenecks, cv1, projections and residual decisions.
+    """
+
+    def __init__(
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = False,
+        g: int = 1, e: float = 0.5,
+    ) -> None:
+        super().__init__(c1, c2, n=n, shortcut=shortcut, g=g, e=e)
+        for bottleneck in self.m:
+            spatial = bottleneck.cv2.conv
+            bottleneck.cv2 = DWConv(
+                spatial.in_channels, spatial.out_channels, k=3, s=1,
+            )

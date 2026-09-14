@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 25
+_PATCH_VERSION = 26
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -110,6 +110,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and all(name in source for name in dpls_downsample_names)
     )
     has_ldpp_detect = source.count("LDPPDetect") >= 2
+    has_c2f_dwconv = source.count("C2f_DWConvLite") >= 2
     if (
         has_c3k2_inception
         and has_c2f_inception
@@ -126,6 +127,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_projected_pair_ccw
         and has_dpls_lightweight
         and has_ldpp_detect
+        and has_c2f_dwconv
         and not adaptive_source_changed
     ):
         parse_model._ship_yolo_patched = True
@@ -151,6 +153,9 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         raise RuntimeError("Unable to locate parse_model base_modules block for custom registration.")
     base_additions: list[str] = []
     repeat_additions: list[str] = []
+    if not has_c2f_dwconv:
+        base_additions.append("C2f_DWConvLite")
+        repeat_additions.append("C2f_DWConvLite")
     if not has_c3k2_inception:
         base_additions.append("C3k2_InceptionDW")
         repeat_additions.append("C3k2_InceptionDW")
@@ -463,6 +468,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.vgup_gate_study import VGUPGateStudyPreprocessor
     from custom_modules.dre import DREDetect, DREDetectionLoss
     from custom_modules.dpls_lightweight_convs import (
+        C2f_DWConvLite,
         C3k2_DWConvLite,
         C3k2_DWSeparableLite,
         C3k2_GhostConvLite,
@@ -494,6 +500,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     import ultralytics.nn.tasks as tasks
 
     names = {
+        "C2f_DWConvLite": C2f_DWConvLite,
         "ACmix": ACmix,
         "C2f_InceptionDW": C2f_InceptionDW,
         "C2PSA_ACmix": C2PSA_ACmix,
