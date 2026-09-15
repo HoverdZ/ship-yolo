@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 26
+_PATCH_VERSION = 27
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -32,6 +32,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and getattr(parse_model, "_projected_pair_ccw_patched", False)
         and getattr(parse_model, "_dpls_lightweight_patched", False)
         and getattr(parse_model, "_ldpp_detect_patched", False)
+        and getattr(parse_model, "_ldpp_allocation_study_patched", False)
     ):
         return
 
@@ -110,6 +111,16 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and all(name in source for name in dpls_downsample_names)
     )
     has_ldpp_detect = source.count("LDPPDetect") >= 2
+    ldpp_allocation_study_names = (
+        "LDPPDetectH0AllDS",
+        "LDPPDetectH1P2Dense",
+        "LDPPDetectH3AllScaleDenseFirst",
+        "LDPPDetectH4AllDense",
+        "LDPPDetectH5P23DenseSecond",
+    )
+    has_ldpp_allocation_study = all(
+        source.count(name) >= 2 for name in ldpp_allocation_study_names
+    )
     has_c2f_dwconv = source.count("C2f_DWConvLite") >= 2
     if (
         has_c3k2_inception
@@ -127,6 +138,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         and has_projected_pair_ccw
         and has_dpls_lightweight
         and has_ldpp_detect
+        and has_ldpp_allocation_study
         and has_c2f_dwconv
         and not adaptive_source_changed
     ):
@@ -146,6 +158,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         parse_model._projected_pair_ccw_patched = True
         parse_model._dpls_lightweight_patched = True
         parse_model._ldpp_detect_patched = True
+        parse_model._ldpp_allocation_study_patched = True
         return
 
     base_marker = "base_modules = frozenset(\n        {"
@@ -393,6 +406,34 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             1,
         )
 
+    if not has_ldpp_allocation_study:
+        if any(name in source for name in ldpp_allocation_study_names):
+            raise RuntimeError("The active parser has a partial LDPP allocation-study patch.")
+        detect_set_marker = "                LDPPDetect,\n"
+        if source.count(detect_set_marker) != 1:
+            raise RuntimeError(
+                "Unable to locate the LDPPDetect head set for allocation-study registration."
+            )
+        detect_insert = "".join(
+            f"                {name},\n" for name in ldpp_allocation_study_names
+        )
+        source = source.replace(
+            detect_set_marker,
+            detect_set_marker + detect_insert,
+            1,
+        )
+        legacy_marker = "            if m in {Detect, LDPPDetect, "
+        if source.count(legacy_marker) != 1:
+            raise RuntimeError(
+                "Unable to locate the LDPPDetect legacy set for allocation-study registration."
+            )
+        legacy_insert = "".join(f"{name}, " for name in ldpp_allocation_study_names)
+        source = source.replace(
+            legacy_marker,
+            legacy_marker + legacy_insert,
+            1,
+        )
+
     namespace = tasks.__dict__
     namespace.update(names)
     exec(
@@ -419,6 +460,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
     tasks.parse_model._projected_pair_ccw_patched = True
     tasks.parse_model._dpls_lightweight_patched = True
     tasks.parse_model._ldpp_detect_patched = True
+    tasks.parse_model._ldpp_allocation_study_patched = True
 
 
 def _patch_detection_criterion(
@@ -486,6 +528,13 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     from custom_modules.hhspp_local_detail import HHSPPLocalDetail
     from custom_modules.hilo_attention import C2PSAHiLo
     from custom_modules.ldpp_detect import LDPPDetect
+    from custom_modules.ldpp_allocation_study import (
+        LDPPDetectH0AllDS,
+        LDPPDetectH1P2Dense,
+        LDPPDetectH3AllScaleDenseFirst,
+        LDPPDetectH4AllDense,
+        LDPPDetectH5P23DenseSecond,
+    )
     from custom_modules.projected_pair_ccw import ProjectedPairCCW
     from custom_modules.remote_ship_reproductions import (
         C2fRFA,
@@ -537,6 +586,11 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "HHSPPLocalDetail": HHSPPLocalDetail,
         "C2PSAHiLo": C2PSAHiLo,
         "LDPPDetect": LDPPDetect,
+        "LDPPDetectH0AllDS": LDPPDetectH0AllDS,
+        "LDPPDetectH1P2Dense": LDPPDetectH1P2Dense,
+        "LDPPDetectH3AllScaleDenseFirst": LDPPDetectH3AllScaleDenseFirst,
+        "LDPPDetectH4AllDense": LDPPDetectH4AllDense,
+        "LDPPDetectH5P23DenseSecond": LDPPDetectH5P23DenseSecond,
         "ProjectedPairCCW": ProjectedPairCCW,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,
