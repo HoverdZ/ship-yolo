@@ -110,10 +110,24 @@ class LDPPDetectH5P23DenseSecond(_LDPPAllocationStudyBase):
     regression_layout = (("ds", "dense"), ("ds", "dense"), ("ds", "ds"))
 
 
+class LDPPDetectH6P2DenseSecond(_LDPPAllocationStudyBase):
+    """H6: DS+Dense at P2; DS+DS at P3/P4."""
+
+    regression_layout = (("ds", "dense"), ("ds", "ds"), ("ds", "ds"))
+
+
+class LDPPDetectH7AllScaleDenseSecond(_LDPPAllocationStudyBase):
+    """H7: DS+Dense at every detection scale."""
+
+    regression_layout = (("ds", "dense"),) * 3
+
+
 __all__ = [
     "LDPPDetectH0AllDS",
     "LDPPDetectH1P2Dense",
     "LDPPDetectH3AllScaleDenseFirst",
     "LDPPDetectH4AllDense",
     "LDPPDetectH5P23DenseSecond",
+    "LDPPDetectH6P2DenseSecond",
+    "LDPPDetectH7AllScaleDenseSecond",
 ]

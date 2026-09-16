@@ -10,7 +10,7 @@ import inspect
 from types import ModuleType
 
 
-_PATCH_VERSION = 27
+_PATCH_VERSION = 28
 
 
 def _set_module_attrs(module: ModuleType, names: dict[str, type]) -> None:
@@ -117,6 +117,8 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         "LDPPDetectH3AllScaleDenseFirst",
         "LDPPDetectH4AllDense",
         "LDPPDetectH5P23DenseSecond",
+        "LDPPDetectH6P2DenseSecond",
+        "LDPPDetectH7AllScaleDenseSecond",
     )
     has_ldpp_allocation_study = all(
         source.count(name) >= 2 for name in ldpp_allocation_study_names
@@ -407,15 +409,18 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
         )
 
     if not has_ldpp_allocation_study:
-        if any(name in source for name in ldpp_allocation_study_names):
+        if any(0 < source.count(name) < 2 for name in ldpp_allocation_study_names):
             raise RuntimeError("The active parser has a partial LDPP allocation-study patch.")
+        missing_study_names = tuple(
+            name for name in ldpp_allocation_study_names if name not in source
+        )
         detect_set_marker = "                LDPPDetect,\n"
         if source.count(detect_set_marker) != 1:
             raise RuntimeError(
                 "Unable to locate the LDPPDetect head set for allocation-study registration."
             )
         detect_insert = "".join(
-            f"                {name},\n" for name in ldpp_allocation_study_names
+            f"                {name},\n" for name in missing_study_names
         )
         source = source.replace(
             detect_set_marker,
@@ -427,7 +432,7 @@ def _patch_parse_model(tasks: ModuleType, names: dict[str, type]) -> None:
             raise RuntimeError(
                 "Unable to locate the LDPPDetect legacy set for allocation-study registration."
             )
-        legacy_insert = "".join(f"{name}, " for name in ldpp_allocation_study_names)
+        legacy_insert = "".join(f"{name}, " for name in missing_study_names)
         source = source.replace(
             legacy_marker,
             legacy_marker + legacy_insert,
@@ -534,6 +539,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         LDPPDetectH3AllScaleDenseFirst,
         LDPPDetectH4AllDense,
         LDPPDetectH5P23DenseSecond,
+        LDPPDetectH6P2DenseSecond,
+        LDPPDetectH7AllScaleDenseSecond,
     )
     from custom_modules.projected_pair_ccw import ProjectedPairCCW
     from custom_modules.remote_ship_reproductions import (
@@ -591,6 +598,8 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "LDPPDetectH3AllScaleDenseFirst": LDPPDetectH3AllScaleDenseFirst,
         "LDPPDetectH4AllDense": LDPPDetectH4AllDense,
         "LDPPDetectH5P23DenseSecond": LDPPDetectH5P23DenseSecond,
+        "LDPPDetectH6P2DenseSecond": LDPPDetectH6P2DenseSecond,
+        "LDPPDetectH7AllScaleDenseSecond": LDPPDetectH7AllScaleDenseSecond,
         "ProjectedPairCCW": ProjectedPairCCW,
         "FocalCIoUDetect": FocalCIoUDetect,
         "DREDetect": DREDetect,

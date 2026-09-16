@@ -13,10 +13,16 @@ lightweight neck, classification branch and all detection behavior outside
 | H3 | Dense+DS | Dense+DS | Dense+DS | `H3_yolo11n_ldpp_all_scale_dense_first.yaml` |
 | H4 | Dense+Dense | Dense+Dense | Dense+Dense | `H4_yolo11n_ldpp_all_dense.yaml` |
 | H5 | DS+Dense | DS+Dense | DS+DS | `H5_yolo11n_ldpp_p23_dense_second.yaml` |
+| H6 | DS+Dense | DS+DS | DS+DS | `H6_yolo11n_ldpp_p2_dense_second.yaml` |
+| H7 | DS+Dense | DS+Dense | DS+Dense | `H7_yolo11n_ldpp_all_scale_dense_second.yaml` |
 
 H2 is the canonical `LDPPDetect` and reuses the existing M2 YOLO11n LDPP
-experiment. It is neither duplicated nor modified here. H0, H1, H3, H4 and H5
-are the five new controlled experiments.
+experiment. It is neither duplicated nor modified here. H0, H1, H3, H4, H5,
+H6 and H7 are the seven noncanonical controlled configurations.
+
+The reversed-order pairs are H1/H6 (Dense only at P2), H2/H5 (Dense at
+P2/P3), and H3/H7 (Dense at every scale). Within each pair, only the position
+of Dense relative to DS changes; input channels and hidden width stay fixed.
 
 ## Frozen definition
 
@@ -42,6 +48,6 @@ classification, predictor, loss or target assignment belong in this study.
 ## Minimal validation
 
 The intended check is limited to Python compilation, topology equality, and
-one construction of each H0/H1/H3/H4/H5 model after
+one construction of each newly added model after
 `register_custom_modules()`. No extra random forward, backward pass, training,
 benchmark or FLOP profiling is part of this structural study.
