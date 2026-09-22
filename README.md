@@ -1,69 +1,67 @@
-# Small and Tiny Ship Detection in Wide-Area Ocean Remote Sensing
+# SIP-Det: Ship Information Preservation Detector
 
-This repository implements a parameter-efficient visibility-scale-context collaborative detection method for wide-area ocean remote sensing imagery. Built on Ultralytics YOLO11n, the method improves small and tiny ship detection under complex marine conditions through shallow spatial feature extraction, small-object-oriented detection-scale reconstruction, context calibration, and visibility-aware input processing.
+SIP-Det is a YOLO11n-based detector for small and tiny ships in complex ocean remote sensing imagery. Its design addresses degradation of useful ship information along the detection pipeline: limited input visibility, spatial dilution during scale sampling, and imbalance between contextual information and local detail.
 
-## Core Components
+## Current final model
 
-- **InceptionDW**: Adapted to the shallow C3k2 bottlenecks for multi-scale spatial feature extraction at the P2 and P3 backbone stages.
-- **DPLS**: Reconstructs a P2-P4 detection pyramid to preserve fine-grained features for small and tiny objects.
-- **CA-SCAM**: Performs contrast-aware spatial context calibration for ships under low-visibility conditions.
-- **VGUP**: Applies adaptive input enhancement according to image visibility.
+**SIP-Det = YOLO11n + VGUP + LDPP + CGDR.**
 
-## Repository Structure
+The authoritative configuration is [M7_yolo11n_vgup_ldpp_cgdr.yaml](experiments/final_ablation/M7_yolo11n_vgup_ldpp_cgdr.yaml). The model name identifies this existing architecture; it does not introduce another model variant.
 
-- `custom_modules/`: Implementations and registration code for the proposed modules.
-- `experiments/`: Model YAML files and experiment configurations.
-- `model_weights/`: Trained model weights managed with Git LFS.
-- `training_logs/`: Training logs and metric records.
-- `datasets/`: Dataset provenance and usage documentation.
+| Component | Role | Implementation |
+|---|---|---|
+| VGUP | Visibility-Gated Unified Processing: shared lightweight parameter encoder, global BPW residual gate and spatial KBL residual gate | [vgup.py](custom_modules/vgup.py) |
+| LDPP | P2/P3/P4 detection pyramid with DySample, selected lightweight neck operations and scale-specific regression towers | [M7 configuration](experiments/final_ablation/M7_yolo11n_vgup_ldpp_cgdr.yaml), [neck operators](custom_modules/dpls_lightweight_convs.py), [LDPPDetect](custom_modules/ldpp_detect.py) |
+| CGDR | Context-Guided Detail Refinement: context aggregation and gated local detail supplementation | [cgdr.py](custom_modules/cgdr.py) |
 
-## Final Model Configuration
+VGUP processes the RGB input before the backbone. LDPP removes the P5 backbone stage and organizes prediction at strides 4, 8 and 16. CGDR operates at the deepest retained P4 backbone stage, before C2PSA and neck fusion. LDPP spans the scale hierarchy, neck and heads; the three components are not three consecutive standalone blocks.
 
-The complete model configuration is available at:
+LDPP uses Dense+DS regression blocks at P2/P3 and DS+DS at P4. Dense denotes standard 3×3 convolution; DS denotes depthwise 3×3 followed by pointwise 1×1 convolution. The native classification branch is retained.
 
-```text
-experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml
-```
+## Construct the final model
 
-Main training settings:
-
-- Ultralytics: `8.4.92`
-- Input size: `640 x 640`
-- Batch size: `8`
-- Training epochs: `150`
-- Random seed: `0`
-
-Register the custom modules before constructing the model:
+Run from the repository root in the intended Ultralytics 8.4.92 environment:
 
 ```python
 from custom_modules.register import register_custom_modules
 from ultralytics import YOLO
 
 register_custom_modules()
-model = YOLO("experiments/model_ablation/A5_inceptiondw_dpls_ca_scam_vgup.yaml")
+model = YOLO(
+    "experiments/final_ablation/M7_yolo11n_vgup_ldpp_cgdr.yaml",
+    task="detect",
+)
 ```
 
-## RTMDet-Tiny Cross-Architecture Evaluation
+This constructs the architecture, not a trained detector. The YAML retains the existing `nc: 80` template value; ship training must use a dataset YAML declaring the actual ship classes. Ultralytics training adapts the class count to the dataset.
 
-The paired RTMDet-Tiny experiment keeps the native MMDetection detector,
-assignment strategy, losses, head, optimizer family, and augmentation recipe.
-Only the proposed visibility-scale-context components change between the two
-configs:
+The recorded shared protocol uses 640×640 inputs, batch size 8, 150 epochs and seed 0. See [training_config.yaml](experiments/training_config.yaml) for the full protocol, initialization policy and environment requirements.
 
-- `experiments/transfer_models/X05_rtmdet_tiny_official_150e.py`
-- `experiments/transfer_models/X06_rtmdet_tiny_inceptiondw_dpls_ca_scam_vgup_150e.py`
+## Experiments and versions
 
-Both use 640 × 640 input, 150 epochs, batch size 8, seed 0, and the same
-official RTMDet-Tiny COCO checkpoint. The runtime records exact
-Loaded/Total tensor counts before epoch one.
+- [Experiment index](experiments/README.md): current ablations, component studies, transfer configurations and historical experiments.
+- [Complete three-factor ablation map](experiments/final_ablation/README.md): all eight VGUP/LDPP/CGDR combinations, referencing the existing files.
+- [Version and naming guide](docs/MODEL_VERSIONS.md): DPLS versus LDPP and the scope of SIP-Det.
+- [Architecture transfer guide](experiments/architecture_transferability/README.md): host-specific adaptations and their differences.
 
-## Dataset
+InceptionDW + DPLS + CA-SCAM + VGUP is an earlier architecture. Its configurations, logs and weights remain historical records and are not the current final model. DPLS is a precursor to LDPP, not an interchangeable name. The source filename `dpls_lightweight_convs.py` remains valid: its operators are reused by LDPP.
 
-The primary experiments use a fog-augmented version of the public LEVIR-Ship dataset. Following Wang et al. (2022), Perlin noise is used to simulate thin, dense, and patchy fog conditions. Dataset provenance, processing details, and directory organization are documented in [`datasets/Fog-LEVIR-Ship/README.md`](datasets/Fog-LEVIR-Ship/README.md).
+## Repository layout
 
-The original remote-sensing images are not redistributed in this repository. Users should obtain the source dataset in accordance with its original terms and reproduce the derived data using the documented procedure.
+| Directory | Contents |
+|---|---|
+| `custom_modules/` | Current modules, shared operators and historical/comparison implementations |
+| `experiments/` | Architecture configurations and protocols, classified in the experiment index |
+| `docs/` | Model identity and version documentation |
+| `model_weights/` | Git LFS checkpoints; architecture provenance must be verified before assigning a model label |
+| `training_logs/` | Original run records; historical metrics retain their original model identity |
+| `datasets/` | Dataset provenance and preparation documentation |
 
-## References
+## Dataset and attribution
 
-- Chen, W. et al. LEVIR-Ship: [https://github.com/WindVChen/LEVIR-Ship](https://github.com/WindVChen/LEVIR-Ship)
-- Wang, W., Zhang, X., Sun, W., and Huang, M. (2022). *A Novel Method of Ship Detection under Cloud Interference for Optical Remote Sensing Images*. Remote Sensing, 14(15), 3731. [https://doi.org/10.3390/rs14153731](https://doi.org/10.3390/rs14153731)
+Primary experiments use a fog-augmented version of LEVIR-Ship. See [dataset documentation](datasets/Fog-LEVIR-Ship/README.md) for provenance and processing details. Original remote sensing imagery is not redistributed.
+
+VGUP builds on the BPW/KBL filters of [ERUP-YOLO](https://arxiv.org/abs/2411.02799). LDPP uses [DySample](https://github.com/tiny-smart/dysample). CGDR reuses the HHSPP context operator migrated from DPCSANet, as documented in [hhspp.py](custom_modules/hhspp.py). These reused operators should be distinguished from the proposed adaptations.
+
+- LEVIR-Ship: [original dataset repository](https://github.com/WindVChen/LEVIR-Ship).
+- Wang et al. (2022), *A Novel Method of Ship Detection under Cloud Interference for Optical Remote Sensing Images*, Remote Sensing 14(15), 3731. [DOI](https://doi.org/10.3390/rs14153731).
