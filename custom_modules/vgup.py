@@ -27,6 +27,21 @@ from custom_modules.erup import (
 )
 
 
+def _validate_filter_gate_flags(
+    use_bpw: bool,
+    use_kbl: bool,
+    use_global_gate: bool,
+    use_spatial_gate: bool,
+) -> None:
+    """The global gate belongs to BPW and the spatial gate belongs to KBL."""
+    if not (use_bpw or use_kbl):
+        raise ValueError("At least one of BPW and KBL must be enabled.")
+    if use_global_gate and not use_bpw:
+        raise ValueError("The global gate requires BPW (use_bpw=True).")
+    if use_spatial_gate and not use_kbl:
+        raise ValueError("The spatial gate requires KBL (use_kbl=True).")
+
+
 class DepthwiseSeparableConv(nn.Module):
     """Depthwise 3x3 spatial convolution followed by a pointwise projection."""
 
@@ -62,15 +77,29 @@ class LightweightVGUPEncoder(nn.Module):
         use_spatial_gate: bool = True,
         global_gate_bias: float = -1.5,
         spatial_gate_bias: float = -1.0,
+        use_bpw: bool = True,
+        use_kbl: bool = True,
     ) -> None:
         super().__init__()
         if in_channels != 3:
             raise ValueError("LightweightVGUPEncoder requires RGB input.")
         if prediction_size < 32:
             raise ValueError("prediction_size must be at least 32.")
+        _validate_filter_gate_flags(
+            use_bpw, use_kbl, use_global_gate, use_spatial_gate
+        )
         self.prediction_size = int(prediction_size)
+        self.use_bpw = bool(use_bpw)
+        self.use_kbl = bool(use_kbl)
         self.use_global_gate = bool(use_global_gate)
         self.use_spatial_gate = bool(use_spatial_gate)
+        # A removed filter is deleted outright: the parameter head only
+        # predicts the parameters of the filters that remain.
+        self.bpw_parameter_count = BPW_PARAMETER_COUNT if self.use_bpw else 0
+        self.kbl_parameter_count = KBL_PARAMETER_COUNT if self.use_kbl else 0
+        self.parameter_output_count = (
+            self.bpw_parameter_count + self.kbl_parameter_count
+        )
         self.stem = nn.Sequential(
             nn.Conv2d(3, 16, 3, 2, 1, bias=False),
             nn.BatchNorm2d(16),
@@ -133,7 +162,7 @@ class LightweightVGUPEncoder(nn.Module):
         filter_params = self.filter_head(pooled).tanh()
         bpw_params, kbl_params = torch.split(
             filter_params,
-            (BPW_PARAMETER_COUNT, KBL_PARAMETER_COUNT),
+            (self.bpw_parameter_count, self.kbl_parameter_count),
             dim=1,
         )
         if self.global_gate_head is None:
@@ -181,11 +210,24 @@ class VGUPPreprocessor(nn.Module):
         prediction_size: int = 128,
         use_global_gate: bool = True,
         use_spatial_gate: bool = True,
+        use_bpw: bool = True,
+        use_kbl: bool = True,
     ) -> None:
+        """YAML args: [bpw_segments, prediction_size, use_global_gate,
+        use_spatial_gate, use_bpw, use_kbl]; the last two default to True.
+
+        A disabled gate is fixed to 1 (the plain filter). A disabled filter is
+        deleted together with its parameters and its gate.
+        """
         super().__init__()
         if in_channels != 3:
             raise ValueError("VGUPPreprocessor must be the first RGB model layer.")
+        _validate_filter_gate_flags(
+            use_bpw, use_kbl, use_global_gate, use_spatial_gate
+        )
         self.in_channels = in_channels
+        self.use_bpw = bool(use_bpw)
+        self.use_kbl = bool(use_kbl)
         self.use_global_gate = bool(use_global_gate)
         self.use_spatial_gate = bool(use_spatial_gate)
         self.encoder = LightweightVGUPEncoder(
@@ -193,9 +235,11 @@ class VGUPPreprocessor(nn.Module):
             prediction_size=prediction_size,
             use_global_gate=self.use_global_gate,
             use_spatial_gate=self.use_spatial_gate,
+            use_bpw=self.use_bpw,
+            use_kbl=self.use_kbl,
         )
-        self.bpw = BPWFilter(segments=bpw_segments)
-        self.kbl = KBLFilter()
+        self.bpw = BPWFilter(segments=bpw_segments) if self.use_bpw else None
+        self.kbl = KBLFilter() if self.use_kbl else None
 
     @staticmethod
     def apply_bpw_gate(
@@ -219,29 +263,45 @@ class VGUPPreprocessor(nn.Module):
         return_debug: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
         predictions = self.encoder(image)
-        enhanced_bpw = self.bpw(image, predictions["bpw_params"])
-        gated_bpw = self.apply_bpw_gate(
-            image,
-            enhanced_bpw,
-            predictions["global_gate"],
-        )
-        enhanced_kbl = self.kbl(
-            gated_bpw,
-            predictions["kbl_params"],
-        )
-        output = self.apply_kbl_gate(
-            gated_bpw,
-            enhanced_kbl,
-            predictions["spatial_gate"],
-        )
+        if self.bpw is not None:
+            enhanced_bpw = self.bpw(image, predictions["bpw_params"])
+            gated_bpw = self.apply_bpw_gate(
+                image,
+                enhanced_bpw,
+                predictions["global_gate"],
+            )
+        else:
+            enhanced_bpw = image
+            gated_bpw = image
+        if self.kbl is not None:
+            enhanced_kbl = self.kbl(
+                gated_bpw,
+                predictions["kbl_params"],
+            )
+            output = self.apply_kbl_gate(
+                gated_bpw,
+                enhanced_kbl,
+                predictions["spatial_gate"],
+            )
+        else:
+            enhanced_kbl = gated_bpw
+            output = gated_bpw
         if not return_debug:
             return output
         global_gate = predictions["global_gate"]
         spatial_gate = predictions["spatial_gate"]
         debug = {
             **predictions,
-            "bpw_param_stats": _tensor_stats(predictions["bpw_params"]),
-            "kbl_param_stats": _tensor_stats(predictions["kbl_params"]),
+            "bpw_param_stats": (
+                _tensor_stats(predictions["bpw_params"])
+                if self.use_bpw
+                else None
+            ),
+            "kbl_param_stats": (
+                _tensor_stats(predictions["kbl_params"])
+                if self.use_kbl
+                else None
+            ),
             "global_gate_stats": _tensor_stats(global_gate),
             "spatial_gate_stats": _tensor_stats(spatial_gate),
             "bpw_image": enhanced_bpw,

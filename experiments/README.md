@@ -11,6 +11,7 @@ The canonical model is [M7: YOLO11n + VGUP + LDPP + CGDR](final_ablation/M7_yolo
 | [ldpp_allocation_study](ldpp_allocation_study/README.md) | Scale-specific regression convolution allocation; H2 reuses M2 |
 | [architecture_transferability](architecture_transferability/README.md) | Current host-aware LDPP transfers alongside historical DPLS configurations |
 | [vgup_gate_study](vgup_gate_study/) | VGUP gate variants; component study |
+| [vgup_filter_ablation](vgup_filter_ablation/) | VGUP filter/gate ablation (F1–F6, F5a, F5b) |
 | [cgdr_detail_ablation](cgdr_detail_ablation/) | CGDR detail-branch alternatives; component study |
 
 ## Precursor, comparison and historical experiments
