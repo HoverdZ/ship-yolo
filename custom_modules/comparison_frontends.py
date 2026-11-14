@@ -23,6 +23,15 @@ AGEPreprocessor
     the authors' Zenodo archive (doi:10.5281/zenodo.20618962) was not reachable
     when this file was written.
 
+AIEPreprocessor
+    Wang et al., "A joint adaptive image enhancement and detection network
+    for robust maritime surveillance under hazy weather conditions",
+    Reliability Engineering and System Safety 277 (2027) 113265, Sec. 3.2.
+    The released code (github.com/wsw1996/AIE-DE-ship-detection) does not
+    contain the AIE module, so it is reconstructed from the paper.
+    ``RFCAConv``/``h_swish`` are copied from that release's
+    ``ultralytics/nn/modules/rfa.py`` (RFAConv family, author Xin Zhang).
+
 Deviations from the original code are listed in
 ``experiments/frontend_comparison/README.md``.
 """
@@ -317,4 +326,213 @@ class AGEPreprocessor(nn.Module):
         return out
 
 
-__all__ = ["AGEPreprocessor", "GDIPPreprocessor", "GDIPVisionEncoder"]
+
+
+# ---------------------------------------------------------------------------
+# AIE (AIEDN) — reconstruction from the paper
+# ---------------------------------------------------------------------------
+class _HSigmoid(nn.Module):
+    def __init__(self, inplace: bool = True) -> None:
+        super().__init__()
+        self.relu = nn.ReLU6(inplace=inplace)
+
+    def forward(self, x):
+        return self.relu(x + 3) / 6
+
+
+class _HSwish(nn.Module):
+    def __init__(self, inplace: bool = True) -> None:
+        super().__init__()
+        self.sigmoid = _HSigmoid(inplace=inplace)
+
+    def forward(self, x):
+        return x * self.sigmoid(x)
+
+
+class RFCAConv(nn.Module):
+    """Receptive-field coordinate-attention convolution, verbatim from the
+    AIEDN release (``rfa.py``); ``einops.rearrange`` replaced by an
+    equivalent reshape/permute."""
+
+    def __init__(self, inp: int, oup: int, kernel_size: int, stride: int, reduction: int = 32) -> None:
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.generate = nn.Sequential(
+            nn.Conv2d(inp, inp * (kernel_size**2), kernel_size, padding=kernel_size // 2,
+                      stride=stride, groups=inp, bias=False),
+            nn.BatchNorm2d(inp * (kernel_size**2)),
+            nn.ReLU(),
+        )
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))
+        mip = max(8, inp // reduction)
+        self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
+        self.bn1 = nn.BatchNorm2d(mip)
+        self.act = _HSwish()
+        self.conv_h = nn.Conv2d(mip, inp, kernel_size=1, stride=1, padding=0)
+        self.conv_w = nn.Conv2d(mip, inp, kernel_size=1, stride=1, padding=0)
+        self.conv = nn.Sequential(nn.Conv2d(inp, oup, kernel_size, stride=kernel_size))
+
+    def forward(self, x):
+        b, c = x.shape[0:2]
+        k = self.kernel_size
+        feature = self.generate(x)
+        h, w = feature.shape[2:]
+        # 'b c (n1 n2) h w -> b c (h n1) (w n2)'
+        feature = feature.view(b, c, k, k, h, w).permute(0, 1, 4, 2, 5, 3).reshape(b, c, h * k, w * k)
+        x_h = self.pool_h(feature)
+        x_w = self.pool_w(feature).permute(0, 1, 3, 2)
+        y = self.act(self.bn1(self.conv1(torch.cat([x_h, x_w], dim=2))))
+        h, w = feature.shape[2:]
+        x_h, x_w = torch.split(y, [h, w], dim=2)
+        x_w = x_w.permute(0, 1, 3, 2)
+        a_h = self.conv_h(x_h).sigmoid()
+        a_w = self.conv_w(x_w).sigmoid()
+        return self.conv(feature * a_w * a_h)
+
+
+class _ChannelLayerNorm(nn.Module):
+    """Per-pixel LayerNorm over channels with bias (Restormer 'WithBias')."""
+
+    def __init__(self, dim: int) -> None:
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(dim))
+        self.bias = nn.Parameter(torch.zeros(dim))
+
+    def forward(self, x):
+        mu = x.mean(1, keepdim=True)
+        var = x.var(1, keepdim=True, unbiased=False)
+        x = (x - mu) / torch.sqrt(var + 1e-5)
+        return x * self.weight.view(1, -1, 1, 1) + self.bias.view(1, -1, 1, 1)
+
+
+class _ChannelSelfAttention(nn.Module):
+    """Eqs. (7)-(8): LN -> 1x1 conv -> 3x3 group conv (3C groups) -> Q,K,V;
+    channel ("transposed") self-attention softmax(QK^T/alpha)V, 1x1 conv,
+    residual. Q and K are L2-normalised as in Restormer's MDTA."""
+
+    def __init__(self, dim: int) -> None:
+        super().__init__()
+        self.norm = _ChannelLayerNorm(dim)
+        self.qkv = nn.Conv2d(dim, dim * 3, 1, bias=False)
+        self.qkv_dw = nn.Conv2d(dim * 3, dim * 3, 3, padding=1, groups=dim * 3, bias=False)
+        self.temperature = nn.Parameter(torch.ones(1))
+        self.proj = nn.Conv2d(dim, dim, 1, bias=False)
+
+    def forward(self, x):
+        b, c, h, w = x.shape
+        q, k, v = self.qkv_dw(self.qkv(self.norm(x))).chunk(3, dim=1)
+        q = F.normalize(q.reshape(b, c, h * w), dim=-1)
+        k = F.normalize(k.reshape(b, c, h * w), dim=-1)
+        v = v.reshape(b, c, h * w)
+        attn = torch.softmax((q @ k.transpose(-2, -1)) * self.temperature, dim=-1)
+        out = (attn @ v).reshape(b, c, h, w)
+        return self.proj(out) + x
+
+
+class _CGE(nn.Module):
+    """Content-Guided Enhancement, Eqs. (2)-(9). Channel/spatial/pixel
+    attention follow DEA-Net's content-guided attention (the paper's [34])."""
+
+    def __init__(self, dim: int, reduction: int = 8, splits: int = 4) -> None:
+        super().__init__()
+        if dim % splits:
+            raise ValueError(f"CGE dim {dim} must be divisible by {splits}.")
+        self.splits = splits
+        self.ca = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(dim, max(dim // reduction, 1), 1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(max(dim // reduction, 1), dim, 1),
+        )
+        self.sa = nn.Conv2d(2, 1, 7, padding=3, padding_mode="reflect")
+        self.pa_group = nn.Conv2d(2 * dim, dim, 7, padding=3, padding_mode="reflect", groups=dim)
+        self.pa_point = nn.Conv2d(dim, dim, 1)
+        self.prompt_conv = nn.Conv2d(dim, dim, 3, padding=1)
+        self.fuse = nn.Conv2d(2 * dim, dim, 1)
+        chunk = dim // splits
+        self.attn = nn.ModuleList(_ChannelSelfAttention(chunk) for _ in range(splits))
+
+    def forward(self, d: torch.Tensor, prompt: torch.Tensor) -> torch.Tensor:
+        w_c = self.ca(d)
+        w_s = self.sa(torch.cat([d.mean(1, keepdim=True), d.amax(1, keepdim=True)], dim=1))
+        f_coa = (w_c + w_s) * d                                            # Eq. (4)
+        b, c, h, w = d.shape
+        shuffled = torch.stack([f_coa, d], dim=2).reshape(b, 2 * c, h, w)  # channel shuffle
+        f_rw = torch.sigmoid(self.pa_point(self.pa_group(shuffled)))       # Eq. (5)
+        prompt = F.interpolate(prompt, size=(h, w), mode="bilinear", align_corners=False)
+        f_w = self.fuse(torch.cat([d, self.prompt_conv(prompt * f_rw)], dim=1))  # Eq. (6)
+        parts = f_w.chunk(self.splits, dim=1)
+        return torch.cat([blk(p) for blk, p in zip(self.attn, parts)], dim=1)  # Eqs. (7)-(9)
+
+
+class AIEPreprocessor(nn.Module):
+    """Adaptive Image Enhancement module of AIEDN (reconstruction).
+
+    YAML args: ``[base_channels, prompt_size]``.
+
+    Encoder: RFCAConv embedding (3->C, full resolution) and four encoding
+    layers (RFCAConv 3x3 stride 1 + stride-2 3x3 conv; the fourth layer has
+    no down-sampling), giving C, 2C (1/2), 4C (1/4), 8C (1/8).
+    DIG: a learnable content prompt P1 (8C x prompt_size^2) and stacked 3x3
+    stride-2 transposed convs give P2 (4C) and P3 (2C).
+    Decoder: three CGE layers at 1/8, 1/4, 1/2 with 2x transposed-conv
+    up-sampling, skip concatenation and a 3x3 conv; the last up-sampled map is
+    concatenated with the full-resolution embedding (2C), projected to 3
+    channels and added to the input image (Eq. 10).
+
+    Defaults C=6 and prompt 80x80 reproduce the reported cost of AIE on
+    YOLOv8 (about 0.48M parameters and 5.1 GFLOPs at 640): this module has
+    about 0.44M parameters and about 5.8 GFLOPs (conv layers, 640x640).
+    """
+
+    def __init__(self, base_channels: int = 6, prompt_size: int = 80) -> None:
+        super().__init__()
+        c = int(base_channels)
+        if c < 2 or (2 * c) % 4:
+            raise ValueError("base_channels must make 2C divisible by 4 (CGE splits).")
+        self.embed = RFCAConv(3, c, 3, 1)
+        widths = (c, 2 * c, 4 * c, 8 * c)
+        self.enc = nn.ModuleList(RFCAConv(widths[i], widths[i], 3, 1) for i in range(4))
+        self.down = nn.ModuleList(nn.Conv2d(widths[i], widths[i + 1], 3, 2, 1) for i in range(3))
+        self.prompt = nn.Parameter(torch.zeros(1, widths[3], prompt_size, prompt_size))
+        nn.init.trunc_normal_(self.prompt, std=0.02)
+        self.dig = nn.ModuleList([
+            nn.ConvTranspose2d(widths[3], widths[2], 3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(widths[2], widths[1], 3, stride=2, padding=1, output_padding=1),
+        ])
+        self.cge = nn.ModuleList(_CGE(widths[3 - i]) for i in range(3))
+        self.up = nn.ModuleList(nn.ConvTranspose2d(widths[3 - i], widths[2 - i], 2, stride=2) for i in range(3))
+        self.merge = nn.ModuleList(
+            nn.Sequential(nn.Conv2d(2 * widths[2 - i], widths[2 - i], 3, padding=1), nn.ReLU(inplace=True))
+            for i in range(2)
+        )
+        self.out = nn.Conv2d(2 * c, 3, 3, padding=1)
+        nn.init.zeros_(self.out.weight)
+        nn.init.zeros_(self.out.bias)
+
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        _require_rgb(image, "AIEPreprocessor")
+        h, w = image.shape[-2:]
+        if h % 8 or w % 8:
+            raise ValueError("AIEPreprocessor needs H and W divisible by 8.")
+        f0 = self.embed(image)
+        skips, x = [], f0
+        for i in range(3):
+            x = self.enc[i](x)
+            x = self.down[i](x)
+            skips.append(x)                      # 1/2 (2C), 1/4 (4C), 1/8 (8C)
+        x = self.enc[3](x)                       # latent, 1/8, 8C
+        prompts = [self.prompt.expand(image.shape[0], -1, -1, -1)]
+        for layer in self.dig:
+            prompts.append(layer(prompts[-1]))
+        for i in range(3):
+            x = self.cge[i](x, prompts[i])
+            x = self.up[i](x)
+            if i < 2:
+                x = self.merge[i](torch.cat([x, skips[1 - i]], dim=1))
+        x = torch.cat([x, f0], dim=1)            # full resolution, 2C
+        return image + self.out(x)
+
+
+__all__ = ["AGEPreprocessor", "AIEPreprocessor", "GDIPPreprocessor", "GDIPVisionEncoder", "RFCAConv"]
