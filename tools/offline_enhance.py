@@ -182,6 +182,81 @@ def enhance_adair(images, out_dir: Path, args) -> None:
 # ---------------------------------------------------------------------------
 # GLADE-Net (official scripts, two phases)
 # ---------------------------------------------------------------------------
+# The released Phase-2 weights were trained with the first-level Laplacian
+# extractor (5x5 Gaussian buffer ``get_g_nopadding.kernel``; paper Sec. 3.2:
+# "we utilize only the first level of the Laplacian pyramid"), which is
+# commented out in architecture.py. The active default is a 3x3 directional
+# gradient, and ``load_network`` silently drops checkpoint keys the model does
+# not have. We therefore swap in the level-one class (verbatim from the
+# commented block) on a copy of the code and require a strict load.
+_GLADE_LEVEL_ONE = """class Get_gradient_nopadding(nn.Module):
+    # GLADE-Net first-level Laplacian (verbatim from the commented 'level one'
+    # block of the official architecture.py), selected to match the weights.
+    def __init__(self):
+        super(Get_gradient_nopadding, self).__init__()
+        k = torch.Tensor([[.05, .25, .4, .25, .05]])
+        kernel = torch.matmul(k.t(), k).unsqueeze(0).repeat(3, 1, 1, 1)
+        self.register_buffer('kernel', kernel)
+
+    def conv_gauss(self, img, kernel):
+        n_channels, _, kw, kh = kernel.shape
+        img = F.pad(img, (kw // 2, kh // 2, kw // 2, kh // 2), mode='replicate')
+        return F.conv2d(img, kernel, groups=n_channels)
+
+    def forward(self, img):
+        kernel = self.kernel.to(device=img.device, dtype=img.dtype)
+        filtered = self.conv_gauss(img, kernel)
+        down = filtered[:, :, ::2, ::2]
+        new_filter = torch.zeros_like(filtered)
+        new_filter[:, :, ::2, ::2] = down * 4
+        filtered = self.conv_gauss(new_filter, kernel)
+        diff = img - filtered
+        return diff
+
+
+"""
+
+_GLADE_CHECK = r"""
+import sys, torch
+sys.path.insert(0, '.')
+from models.modules.architecture import SPSRNet
+net = SPSRNet(in_nc=3, out_nc=3, nf=64, nb=23, gc=32, upscale=1, norm_type=None,
+              act_type='leakyrelu', mode='CNA', upsample_mode='upconv')
+state = torch.load(sys.argv[1], map_location='cpu')
+missing, unexpected = [], []
+model_state = net.state_dict()
+for key in state:
+    if key not in model_state:
+        unexpected.append(key)
+    elif tuple(state[key].shape) != tuple(model_state[key].shape):
+        unexpected.append(f"{key}: {tuple(state[key].shape)} vs {tuple(model_state[key].shape)}")
+missing = [key for key in model_state if key not in state]
+assert not missing and not unexpected, f"missing={missing[:10]} unexpected={unexpected[:10]}"
+net.load_state_dict(state, strict=True)
+k = torch.tensor([[.05, .25, .4, .25, .05]])
+expected = torch.matmul(k.t(), k).unsqueeze(0).repeat(3, 1, 1, 1)
+got = state['get_g_nopadding.kernel'].float()
+assert torch.allclose(got, expected, atol=1e-6), f"checkpoint kernel differs: {got[0, 0].tolist()}"
+print('GLADE-Net Phase-2 weights: strict load OK, 5x5 first-level Laplacian kernel verified')
+"""
+
+
+def prepare_glade_phase2(repo: Path, weights2: Path, work: Path) -> Path:
+    code = work / "phase2_code"
+    shutil.copytree(repo / "Phase_2/code", code)
+    arch = code / "models/modules/architecture.py"
+    text = arch.read_text()
+    start = text.find("class Get_gradient_nopadding(nn.Module):")
+    end = text.find("################################", start)
+    if start < 0 or end < 0 or "kernel_v = [[0, -1, 0]" not in text[start:end]:
+        raise RuntimeError("GLADE-Net architecture.py layout changed; check Get_gradient_nopadding manually.")
+    arch.write_text(text[:start] + _GLADE_LEVEL_ONE + text[end:])
+    check = work / "glade_phase2_check.py"
+    check.write_text(_GLADE_CHECK)
+    run([sys.executable, str(check), str(weights2)], cwd=code)
+    return code
+
+
 def enhance_glade(images, out_dir: Path, args, work: Path) -> None:
     repo = Path(args.repo).resolve()
     staged = stage_inputs(images, work / "input")
@@ -191,6 +266,7 @@ def enhance_glade(images, out_dir: Path, args, work: Path) -> None:
     if args.fp16:
         cmd.append("--fp16")
     run(cmd, cwd=repo)
+    phase2_code = prepare_glade_phase2(repo, Path(args.weights2).resolve(), work)
     phase2_root = work / "phase2"
     opt = {
         "name": "glade_phase2",
@@ -204,7 +280,7 @@ def enhance_glade(images, out_dir: Path, args, work: Path) -> None:
     }
     opt_path = work / "phase2_test.json"
     opt_path.write_text(json.dumps(opt, indent=2))
-    run([sys.executable, "test.py", "-opt", str(opt_path)], cwd=repo / "Phase_2/code")
+    run([sys.executable, "test.py", "-opt", str(opt_path)], cwd=phase2_code)
     result_dir = phase2_root / "results" / "glade_phase2" / "out"
     out_dir.mkdir(parents=True, exist_ok=True)
     for image in images:

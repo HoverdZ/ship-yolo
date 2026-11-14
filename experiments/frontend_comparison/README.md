@@ -83,6 +83,14 @@ it writes a full dataset copy (`images`, copied `labels`, `data.yaml`) and
 Notes:
 - All run at 640x640. GLADE-Net Phase 1 uses `--tile 640`, i.e. one grid per
   image (the official script with the tile equal to the image size).
+- GLADE-Net Phase 2: the released `SateHaze1k.pth` contains the 5x5
+  Gaussian buffer `get_g_nopadding.kernel` of the first-level Laplacian
+  extractor (paper Sec. 3.2: only the first pyramid level is used), but the
+  active default in `architecture.py` is a 3x3 directional gradient and the
+  official loader silently drops unmatched keys. The script copies
+  `Phase_2/code`, swaps in the commented "level one" class verbatim, and
+  aborts unless a strict load succeeds and the loaded kernel equals the
+  expected 5x5 Gaussian. The cloned repository itself is not modified.
 - AdaIR FP16 keeps its FFT in FP32 (cuFFT half precision needs power-of-two
   sizes). AdaIR pads to a multiple of 16 instead of the official crop, so
   label coordinates stay valid.
