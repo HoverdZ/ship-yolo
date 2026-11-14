@@ -509,6 +509,7 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
     )
     from custom_modules.calibrated_scam import CASCAM
     from custom_modules.dysample import DySample
+    from custom_modules.comparison_frontends import AGEPreprocessor, GDIPPreprocessor
     from custom_modules.erup import ERUPPreprocessor
     from custom_modules.scam import SCAM
     from custom_modules.vgup import VGUPPreprocessor
@@ -571,6 +572,10 @@ def register_custom_modules(patch_parse_model: bool = True) -> None:
         "CASCAM": CASCAM,
         "DySample": DySample,
         "ERUPPreprocessor": ERUPPreprocessor,
+        # Comparison front-ends use parse_model's default branch
+        # (args passed through, 3 output channels); no parser patch needed.
+        "AGEPreprocessor": AGEPreprocessor,
+        "GDIPPreprocessor": GDIPPreprocessor,
         "SCAM": SCAM,
         "VGUPPreprocessor": VGUPPreprocessor,
         "VGUPGateStudyPreprocessor": VGUPGateStudyPreprocessor,

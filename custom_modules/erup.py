@@ -251,11 +251,21 @@ class ERUPPreprocessor(nn.Module):
         self,
         in_channels: int = 3,
         bpw_segments: int = 8,
+        prediction_size: int = 0,
     ) -> None:
+        """YAML args: [bpw_segments, prediction_size].
+
+        ``prediction_size`` > 0 bilinearly resizes the image to that square
+        size before the parameter encoder (the filters still run at full
+        resolution). 0 keeps the previous behaviour (encoder on the full image).
+        """
         super().__init__()
         if in_channels != 3:
             raise ValueError("ERUPPreprocessor must be the first RGB model layer.")
+        if prediction_size < 0:
+            raise ValueError("prediction_size must be >= 0.")
         self.in_channels = in_channels
+        self.prediction_size = int(prediction_size)
         self.encoder = ERUPParameterEncoder(in_channels)
         self.bpw = BPWFilter(segments=bpw_segments)
         self.kbl = KBLFilter()
@@ -265,7 +275,15 @@ class ERUPPreprocessor(nn.Module):
         image: torch.Tensor,
         return_debug: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
-        params = self.encoder(image)
+        encoder_input = image
+        if self.prediction_size > 0:
+            encoder_input = F.interpolate(
+                image,
+                size=(self.prediction_size, self.prediction_size),
+                mode="bilinear",
+                align_corners=False,
+            )
+        params = self.encoder(encoder_input)
         bpw_params, kbl_params = torch.split(
             params,
             (BPW_PARAMETER_COUNT, KBL_PARAMETER_COUNT),
